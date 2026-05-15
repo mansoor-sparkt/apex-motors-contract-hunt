@@ -468,7 +468,6 @@
   }
 }
 
-/* ─── Game UI (matches remixed HTML) ─────────────────────────────────────── */
 @layer components {
   .game-hud {
     height: 48px;
@@ -1437,5 +1436,12 @@
       6px 100%,
       0 calc(100% - 6px)
     );
+  }
+
+  .game-share-btns {
+    padding: 0 14px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
   }
 }

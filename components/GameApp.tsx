@@ -65,8 +65,10 @@ export function GameApp() {
   const [huntTab, setHuntTab] = useState<HuntTab>("stops");
   const [curStop, setCurStop] = useState(0);
   const [celebration, setCelebration] = useState<CelebrationState | null>(null);
-  const [openTravelerAfterCelebrate, setOpenTravelerAfterCelebrate] =
-    useState(false);
+  /** Where to go after closing a stop-completion celebration modal. */
+  const [celebrationDismiss, setCelebrationDismiss] = useState<
+    { type: "nextStop"; index: number } | { type: "traveler" } | null
+  >(null);
   const [toast, setToast] = useState<string | null>(null);
 
   const score = computeScore(stopsDone, shortsDone);
@@ -80,15 +82,23 @@ export function GameApp() {
     []
   );
 
-  /** I → D: celebration always returns to Hunt Hub (E → H when all 8 stops done). */
   const dismissCelebration = useCallback(() => {
     setCelebration(null);
-    setScreen("hunt");
-    if (openTravelerAfterCelebrate) {
-      setHuntTab("comp");
-      setOpenTravelerAfterCelebrate(false);
+    const action = celebrationDismiss;
+    setCelebrationDismiss(null);
+
+    if (action?.type === "nextStop") {
+      setCurStop(action.index);
+      setScreen("stop");
+      return;
     }
-  }, [openTravelerAfterCelebrate]);
+    if (action?.type === "traveler") {
+      setScreen("hunt");
+      setHuntTab("comp");
+      return;
+    }
+    setScreen("hunt");
+  }, [celebrationDismiss]);
 
   const quickDemo = () => {
     setPlayer({
@@ -106,18 +116,18 @@ export function GameApp() {
     setShortsDone({ "action-hero": true });
     setRoster([]);
     setHuntTab("stops");
-    setOpenTravelerAfterCelebrate(false);
+    setCelebrationDismiss(null);
     setScreen("hunt");
   };
 
   const handleStopSubmit = (index: number, data: StopCompletion) => {
-    setStopsDone((prev) => {
-      const next = { ...prev, [index]: data };
-      if (Object.keys(next).length >= TOTAL_STOPS) {
-        setOpenTravelerAfterCelebrate(true);
-      }
-      return next;
-    });
+    if (index < TOTAL_STOPS - 1) {
+      setCelebrationDismiss({ type: "nextStop", index: index + 1 });
+    } else {
+      setCelebrationDismiss({ type: "traveler" });
+    }
+
+    setStopsDone((prev) => ({ ...prev, [index]: data }));
     if (data.rn) {
       const s = STOPS[index];
       setRoster((r) => {
@@ -206,7 +216,11 @@ export function GameApp() {
             onShortComplete={(slug) => {
               setShortsDone((prev) => ({ ...prev, [slug]: true }));
             }}
-            onCelebrate={(state) => openCelebration(state, "shorts")}
+            onCelebrate={(state) => {
+              setCelebrationDismiss(null);
+              openCelebration(state, "shorts");
+            }}
+            onToast={showToast}
           />
         </ScreenSlot>
 

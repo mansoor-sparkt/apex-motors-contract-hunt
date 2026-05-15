@@ -14,8 +14,8 @@ export function ShortsScreen({
   onCelebrate: (state: CelebrationState) => void;
 }) {
   return (
-    <div className="game-scroll">
-      <div className="px-[14px] pt-3 pb-2">
+    <div className="game-scroll flex-1 min-h-0">
+      <div className="px-[14px] pt-3 pb-2 flex-shrink-0">
         <div className="game-bc">
           HUNT <span>›</span> SHOP FLOOR SHORTS
         </div>
@@ -61,7 +61,7 @@ export function ShortsScreen({
               <div className="font-orbitron text-[11px] font-bold tracking-[0.04em] leading-tight">
                 {s.title}
               </div>
-              <div className="font-[family:var(--font-rajdhani)] text-[11px] text-[var(--mut)] leading-snug">
+              <div className="font-rajdhani text-[11px] text-[var(--mut)] leading-snug">
                 {s.desc}
               </div>
               <div className="flex items-center justify-between">

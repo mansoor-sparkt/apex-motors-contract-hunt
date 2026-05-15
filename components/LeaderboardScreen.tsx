@@ -41,8 +41,8 @@ export function LeaderboardScreen({
   const dateStr = new Date().toLocaleDateString();
 
   return (
-    <div className="game-scroll pb-20">
-      <div className="px-[14px] pt-2.5">
+    <div className="game-scroll flex-1 min-h-0 pb-20">
+      <div className="px-[14px] pt-2.5 flex-shrink-0">
         <div className="game-bc">
           HUNT <span>›</span> LEADERBOARD
         </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { GameButton } from "./GameComponents";
 import { AVS, SHORTS, getRank } from "@/constants";
 import type { PlayerProfile, RosterEntry, StopCompletion } from "@/lib/game-types";
 
@@ -17,12 +18,18 @@ export function JobTravelerScreen({
   stopsDone,
   shortsDone,
   roster,
+  onShare,
+  onViewLeaderboard,
+  onBackToHunt,
 }: {
   player: PlayerProfile;
   score: number;
   stopsDone: Record<number, StopCompletion>;
   shortsDone: Record<string, boolean>;
   roster: RosterEntry[];
+  onShare?: () => void;
+  onViewLeaderboard?: () => void;
+  onBackToHunt?: () => void;
 }) {
   const av = AVS[player.avatarIndex] ?? AVS[0];
   const rank = getRank(score, player.name);
@@ -37,7 +44,7 @@ export function JobTravelerScreen({
   ];
 
   return (
-    <div className="game-scroll pb-20 h-full">
+    <div className="game-scroll flex-1 min-h-0 pb-20 h-full">
       <div className="comp-hero px-4 py-4 text-center flex-shrink-0 bg-gradient-to-b from-[rgba(241,92,48,0.08)] to-transparent">
         <div className="game-bc flex justify-center mb-2">
           HUNT <span style={{ margin: "0 5px", color: "var(--o)" }}>›</span>{" "}
@@ -189,6 +196,18 @@ export function JobTravelerScreen({
             </p>
           </div>
         </div>
+      </div>
+
+      <div className="px-[14px] pb-[20px] flex flex-col gap-[7px]">
+        <GameButton variant="primary" onClick={onShare}>
+          ► SHARE JOB TRAVELER
+        </GameButton>
+        <GameButton variant="secondary" onClick={onViewLeaderboard}>
+          VIEW LEADERBOARD
+        </GameButton>
+        <GameButton variant="secondary" onClick={onBackToHunt}>
+          ◄ BACK TO HUNT
+        </GameButton>
       </div>
     </div>
   );
