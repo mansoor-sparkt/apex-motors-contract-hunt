@@ -74,13 +74,13 @@ export function CompletionScreen({
         {/* ── HERO ── */}
         <div className="text-center py-4 space-y-2">
           <div className="text-5xl animate-bounce">🏭</div>
-          <div className="font-[family:var(--font-orbitron)] font-black text-xl tracking-wide leading-tight">
+          <div className="font-orbitron font-black text-xl tracking-wide leading-tight">
             500 BRACKETS<br />
             <span className="text-[#F15C30]" style={{ textShadow: '0 0 24px rgba(241,92,48,0.6)' }}>
               SHIPPED.
             </span>
           </div>
-          <div className="font-[family:var(--font-share-mono)] text-[11px] text-[rgba(232,234,240,0.55)] leading-relaxed">
+          <div className="font-share-mono text-[11px] text-[rgba(232,234,240,0.55)] leading-relaxed">
             Apex Motors signs off on the lot.<br />
             A second PO hits your inbox.<br />
             <span className="text-[rgba(232,234,240,0.85)] font-bold">YOUR SHOP IS REAL NOW.</span>
@@ -97,10 +97,10 @@ export function CompletionScreen({
               {avatarEmoji}
             </div>
             <div>
-              <div className="font-[family:var(--font-orbitron)] font-bold text-sm tracking-wide">
+              <div className="font-orbitron font-bold text-sm tracking-wide">
                 {playerName.toUpperCase()}
               </div>
-              <div className="font-[family:var(--font-share-mono)] text-[10px] text-[rgba(232,234,240,0.5)] mt-0.5">
+              <div className="font-share-mono text-[10px] text-[rgba(232,234,240,0.5)] mt-0.5">
                 {school} · {role}
               </div>
             </div>
@@ -110,35 +110,35 @@ export function CompletionScreen({
           <div className="grid grid-cols-3 gap-2 mb-3">
             <div className="bg-[rgba(5,6,8,0.55)] border border-[rgba(241,92,48,0.3)] p-2 text-center">
               <div
-                className="font-[family:var(--font-orbitron)] font-black text-2xl text-[#F15C30]"
+                className="font-orbitron font-black text-2xl text-[#F15C30]"
                 style={{ textShadow: '0 0 18px rgba(241,92,48,0.5)' }}
               >
                 {totalScore}
               </div>
-              <div className="font-[family:var(--font-share-mono)] text-[8px] text-[rgba(232,234,240,0.4)] tracking-widest mt-0.5">
+              <div className="font-share-mono text-[8px] text-[rgba(232,234,240,0.4)] tracking-widest mt-0.5">
                 TOTAL PTS
               </div>
             </div>
             <div className="bg-[rgba(5,6,8,0.55)] border border-[rgba(0,229,255,0.2)] p-2 text-center">
-              <div className="font-[family:var(--font-orbitron)] font-black text-2xl text-[#00e5ff]">
+              <div className="font-orbitron font-black text-2xl text-[#00e5ff]">
                 {accuracy}%
               </div>
-              <div className="font-[family:var(--font-share-mono)] text-[8px] text-[rgba(232,234,240,0.4)] tracking-widest mt-0.5">
+              <div className="font-share-mono text-[8px] text-[rgba(232,234,240,0.4)] tracking-widest mt-0.5">
                 ACCURACY
               </div>
             </div>
             <div className="bg-[rgba(5,6,8,0.55)] border border-[rgba(57,255,20,0.2)] p-2 text-center">
-              <div className="font-[family:var(--font-orbitron)] font-black text-2xl text-[#39ff14]">
+              <div className="font-orbitron font-black text-2xl text-[#39ff14]">
                 {bonusCount}
               </div>
-              <div className="font-[family:var(--font-share-mono)] text-[8px] text-[rgba(232,234,240,0.4)] tracking-widest mt-0.5">
+              <div className="font-share-mono text-[8px] text-[rgba(232,234,240,0.4)] tracking-widest mt-0.5">
                 BONUSES
               </div>
             </div>
           </div>
 
           {/* Score breakdown */}
-          <div className="space-y-1 text-[11px] font-[family:var(--font-share-mono)]">
+          <div className="space-y-1 text-[11px] font-share-mono">
             <div className="flex justify-between text-[#39ff14]">
               <span>✓ CORRECT ANSWERS ({correctCount})</span>
               <span>+{correctCount * 10} PTS</span>
@@ -179,11 +179,11 @@ export function CompletionScreen({
                     {r.answeredCorrectly ? '✓' : '✗'}
                   </div>
                   <div>
-                    <div className="font-[family:var(--font-orbitron)] text-[10px] font-bold">
+                    <div className="font-orbitron text-[10px] font-bold">
                       {STOP_NAMES[r.stopId - 1]}
                     </div>
                     {r.bonusBadge && (
-                      <div className="font-[family:var(--font-share-mono)] text-[8px] text-[#ffbb00]">
+                      <div className="font-share-mono text-[8px] text-[#ffbb00]">
                         🏅 {r.bonusBadge}
                       </div>
                     )}
@@ -191,13 +191,13 @@ export function CompletionScreen({
                 </div>
                 <div className="text-right">
                   <div
-                    className={`font-[family:var(--font-orbitron)] font-bold text-[11px]
+                    className={`font-orbitron font-bold text-[11px]
                       ${r.answeredCorrectly ? 'text-[#39ff14]' : 'text-[#F15C30]'}`}
                   >
                     +{r.pointsEarned + r.bonusEarned} PTS
                   </div>
                   {r.bonusEarned > 0 && (
-                    <div className="font-[family:var(--font-share-mono)] text-[8px] text-[#ffbb00]">
+                    <div className="font-share-mono text-[8px] text-[#ffbb00]">
                       +{r.bonusEarned} bonus
                     </div>
                   )}
@@ -216,7 +216,7 @@ export function CompletionScreen({
                 return (
                   <span
                     key={i}
-                    className="px-2.5 py-1 font-[family:var(--font-share-mono)] text-[10px] tracking-wider"
+                    className="px-2.5 py-1 font-share-mono text-[10px] tracking-wider"
                     style={{ background: c.bg, color: c.text, border: `1px solid ${c.border}` }}
                   >
                     🏅 {badge}
@@ -232,7 +232,7 @@ export function CompletionScreen({
           <Panel header="TEAM BUILT" headerColor="green">
             <div className="space-y-2">
               {roster.map((r, i) => (
-                <div key={i} className="flex items-center gap-2 font-[family:var(--font-share-mono)] text-[11px] text-[rgba(232,234,240,0.8)]">
+                <div key={i} className="flex items-center gap-2 font-share-mono text-[11px] text-[rgba(232,234,240,0.8)]">
                   <div className="w-1.5 h-1.5 bg-[#F15C30] flex-shrink-0" />
                   {r.name} — {r.company}
                 </div>
@@ -243,7 +243,7 @@ export function CompletionScreen({
 
         {/* ── CONTRACT DETAILS ── */}
         <Panel header="CONTRACT" headerColor="cyan">
-          <div className="font-[family:var(--font-share-mono)] text-[11px] text-[rgba(232,234,240,0.7)] leading-relaxed space-y-1">
+          <div className="font-share-mono text-[11px] text-[rgba(232,234,240,0.7)] leading-relaxed space-y-1">
             <div>APEX MOTORS · 500 BRAKE CALIPER BRACKETS</div>
             <div>MATERIAL: 6061 ALUMINUM</div>
             <div className="text-[rgba(232,234,240,0.4)]">POWERED BY PHILLIPS MACHINIST</div>

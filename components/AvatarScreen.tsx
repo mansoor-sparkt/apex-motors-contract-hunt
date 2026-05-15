@@ -1,9 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Panel, GameButton } from "./GameComponents";
+import { HUDBar, GameButton } from "./GameComponents";
 import { AVS, IMAGE_URLS } from "@/constants";
 import type { PlayerProfile, RegisterDraft } from "@/lib/game-types";
+
+const AVATAR_FACE_STYLES = [
+  { background: "rgba(241,92,48,0.1)", borderColor: "rgba(241,92,48,0.3)" },
+  { background: "rgba(0,229,255,0.08)", borderColor: "rgba(0,229,255,0.25)" },
+  { background: "rgba(57,255,20,0.08)", borderColor: "rgba(57,255,20,0.25)" },
+  { background: "rgba(177,77,255,0.1)", borderColor: "rgba(177,77,255,0.3)" },
+];
 
 export function AvatarScreen({
   draft,
@@ -17,65 +24,60 @@ export function AvatarScreen({
   const [selAv, setSelAv] = useState(-1);
 
   return (
-    <div
-      className="absolute inset-0 flex flex-col h-full overflow-y-auto scrollbar-hide"
-      style={{
-        backgroundImage: `linear-gradient(rgba(4,5,6,0.88), rgba(4,5,6,0.95)), url('${IMAGE_URLS.formBg}')`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
-      <div className="p-5 flex-1 flex flex-col gap-4">
-        <Panel header="CHOOSE YOUR AVATAR" headerColor="cyan">
-          <div className="font-[family:var(--font-share-mono)] text-[10px] text-[rgba(232,234,240,0.5)] mb-1">
-            Pick the operator who represents you on the shop floor.
+    <div className="absolute inset-0 flex flex-col h-full overflow-hidden">
+      <HUDBar title="SELECT OPERATOR" onBack={onBack} />
+
+      <div className="relative flex-1 overflow-hidden flex flex-col">
+        <div
+          className="game-form-bg"
+          style={{ backgroundImage: `url('${IMAGE_URLS.formBg}')` }}
+        />
+        <div className="game-form-scroll">
+          <div className="game-bc">
+            REGISTER <span>›</span> OPERATOR
           </div>
-          <div className="font-[family:var(--font-orbitron)] text-[10px] text-[#F15C30]">
-            {draft.name.toUpperCase()} · {draft.school}
+          <h1 className="game-form-title">
+            CHOOSE YOUR
+            <br />
+            MACHINIST
+          </h1>
+          <p className="game-form-sub">
+            THIS CHARACTER APPEARS ON YOUR JOB TRAVELER
+          </p>
+
+          <div className="game-av-g">
+            {AVS.map((av, i) => (
+              <button
+                key={i}
+                type="button"
+                className={`game-av-c${selAv === i ? " sel" : ""}`}
+                onClick={() => setSelAv(i)}
+              >
+                <div
+                  className="game-av-face"
+                  style={AVATAR_FACE_STYLES[i]}
+                >
+                  {av.em}
+                </div>
+                <div className="game-av-name">{av.n}</div>
+                <div className="game-av-role">{av.role}</div>
+              </button>
+            ))}
           </div>
-        </Panel>
-        <div className="grid grid-cols-2 gap-3">
-          {AVS.map((av, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setSelAv(i)}
-              className={`p-4 border text-center transition-colors ${
-                selAv === i
-                  ? "border-[#F15C30] bg-[rgba(241,92,48,0.1)]"
-                  : "border-[rgba(255,255,255,0.1)] bg-[rgba(5,6,8,0.6)] hover:border-[rgba(241,92,48,0.4)]"
-              }`}
-            >
-              <div className="text-4xl mb-2">{av.em}</div>
-              <div className="text-[10px] font-bold font-[family:var(--font-orbitron)] text-white">
-                {av.n}
-              </div>
-              <div className="font-[family:var(--font-share-mono)] text-[9px] text-[rgba(232,234,240,0.45)] mt-1 leading-snug">
-                {av.role}
-              </div>
-            </button>
-          ))}
+
+          <GameButton
+            variant="primary"
+            disabled={selAv < 0}
+            onClick={() =>
+              onComplete({
+                ...draft,
+                avatarIndex: selAv,
+              })
+            }
+          >
+            ► START THE HUNT
+          </GameButton>
         </div>
-        <GameButton
-          variant="primary"
-          disabled={selAv < 0}
-          className="disabled:opacity-40"
-          onClick={() =>
-            onComplete({
-              ...draft,
-              avatarIndex: selAv,
-            })
-          }
-        >
-          ENTER HUNT HUB ►
-        </GameButton>
-        <button
-          type="button"
-          onClick={onBack}
-          className="w-full py-2 font-[family:var(--font-share-mono)] text-[10px] text-[rgba(232,234,240,0.45)]"
-        >
-          ← BACK TO REGISTRATION
-        </button>
       </div>
     </div>
   );

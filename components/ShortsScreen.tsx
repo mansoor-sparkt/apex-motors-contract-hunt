@@ -1,5 +1,6 @@
 "use client";
 
+import { StatusTag } from "./GameComponents";
 import { SHORTS } from "@/constants";
 import type { CelebrationState } from "@/lib/game-types";
 
@@ -13,8 +14,16 @@ export function ShortsScreen({
   onCelebrate: (state: CelebrationState) => void;
 }) {
   return (
-    <div className="flex-1 overflow-y-auto min-h-0 px-4 py-3 scrollbar-hide">
-      <div className="grid grid-cols-2 gap-2.5">
+    <div className="game-scroll">
+      <div className="px-[14px] pt-3 pb-2">
+        <div className="game-bc">
+          HUNT <span>›</span> SHOP FLOOR SHORTS
+        </div>
+        <p className="font-share-mono text-[10px] text-[var(--mut)] tracking-[0.08em]">
+          ALL UNLOCKED · ANY ORDER · +5 PTS + BADGE EACH
+        </p>
+      </div>
+      <div className="grid grid-cols-2 gap-2 px-[14px] pb-[100px]">
         {SHORTS.map((s) => {
           const done = !!shortsDone[s.slug];
           return (
@@ -31,35 +40,42 @@ export function ShortsScreen({
                   badge: s.badge,
                 });
               }}
-              className={`text-left p-3 border transition-colors ${
-                done
-                  ? "border-[rgba(57,255,20,0.3)] bg-[rgba(57,255,20,0.06)] opacity-80"
-                  : "border-[rgba(241,92,48,0.25)] bg-[rgba(5,6,8,0.55)] hover:bg-[rgba(241,92,48,0.06)] cursor-pointer"
-              }`}
+              className={`text-left p-3 border flex flex-col gap-[7px] relative transition-all duration-[0.18s] ${done
+                ? "border-[rgba(57,255,20,0.3)] bg-[rgba(5,6,8,0.88)]"
+                : "border-[var(--bdr)] bg-[rgba(5,6,8,0.88)] hover:-translate-y-0.5 hover:border-[rgba(241,92,48,0.5)] cursor-pointer"
+                }`}
+              style={{
+                clipPath:
+                  "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
+              }}
             >
-              <div className="text-2xl mb-1">{s.em}</div>
-              <div className="font-[family:var(--font-orbitron)] text-[10px] font-bold tracking-wide mb-1">
+              <div
+                className="absolute top-0 left-0 right-0 h-px opacity-35"
+                style={{
+                  background: done
+                    ? "linear-gradient(90deg, var(--g), transparent 50%)"
+                    : "linear-gradient(90deg, var(--o), transparent 50%)",
+                }}
+              />
+              <div className="text-2xl">{s.em}</div>
+              <div className="font-orbitron text-[11px] font-bold tracking-[0.04em] leading-tight">
                 {s.title}
               </div>
-              <div className="font-[family:var(--font-share-mono)] text-[9px] text-[rgba(232,234,240,0.5)] leading-snug mb-2">
+              <div className="font-[family:var(--font-rajdhani)] text-[11px] text-[var(--mut)] leading-snug">
                 {s.desc}
               </div>
-              <div className="flex items-center justify-between gap-1">
-                <span
-                  className={`px-1.5 py-0.5 font-[family:var(--font-share-mono)] text-[8px] border ${
-                    s.type === "photo"
-                      ? "text-[#00e5ff] border-[rgba(0,229,255,0.25)]"
-                      : "text-[#b14dff] border-[rgba(177,77,255,0.3)]"
-                  }`}
-                >
-                  {s.type === "photo" ? "📷 PHOTO" : "🎬 VIDEO"}
-                </span>
-                {done ? (
-                  <span className="font-[family:var(--font-share-mono)] text-[8px] text-[#39ff14]">
-                    ✓ DONE
+              <div className="flex items-center justify-between">
+                <StatusTag variant={s.type === "photo" ? "cyan" : "purple"}>
+                  <span className="text-[9px]">
+                    {s.type === "photo" ? "📷 PHOTO" : "🎬 VIDEO"}
                   </span>
+                </StatusTag>
+                {done ? (
+                  <StatusTag variant="green">
+                    <span className="text-[9px]">✓ DONE</span>
+                  </StatusTag>
                 ) : (
-                  <span className="font-[family:var(--font-orbitron)] text-[10px] font-bold text-[#39ff14]">
+                  <span className="font-orbitron text-[11px] font-bold text-[var(--g)]">
                     +5 PTS
                   </span>
                 )}

@@ -1,12 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Panel, GameButton } from "./GameComponents";
+import { HUDBar, GameButton } from "./GameComponents";
 import { ROLES, IMAGE_URLS } from "@/constants";
 import type { RegisterDraft } from "@/lib/game-types";
-
-const inputClass =
-  "w-full bg-[rgba(0,0,0,0.5)] border border-[rgba(241,92,48,0.3)] p-3 text-sm text-white font-[family:var(--font-share-mono)] outline-none focus:border-[#F15C30]";
 
 export function RegisterScreen({
   onNext,
@@ -31,68 +28,75 @@ export function RegisterScreen({
   };
 
   return (
-    <div
-      className="absolute inset-0 flex flex-col h-full overflow-y-auto scrollbar-hide"
-      style={{
-        backgroundImage: `linear-gradient(rgba(4,5,6,0.88), rgba(4,5,6,0.95)), url('${IMAGE_URLS.formBg}')`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
-      <div className="p-5 flex-1 flex flex-col gap-4">
-        <Panel header="OPERATOR REGISTRATION" headerColor="orange">
-          <div className="space-y-3">
+    <div className="absolute inset-0 flex flex-col h-full overflow-hidden">
+      <HUDBar title="OPERATOR REGISTRATION" onBack={onBack} />
+
+      <div className="relative flex-1 overflow-hidden flex flex-col">
+        <div
+          className="game-form-bg"
+          style={{ backgroundImage: `url('${IMAGE_URLS.formBg}')` }}
+        />
+        <div className="game-form-scroll">
+          <div className="game-bc">
+            HOME <span>›</span> REGISTER
+          </div>
+          <h1 className="game-form-title">
+            WHO&apos;S TAKING
+            <br />
+            THIS JOB?
+          </h1>
+          <p className="game-form-sub">NO ACCOUNT · NO PASSWORD · JUST START</p>
+
+          <div className="game-field">
+            <label>Operator Name</label>
             <input
-              className={inputClass}
-              placeholder="Operator Name"
+              className="game-input"
+              type="text"
+              placeholder="Alex Johnson"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
+          </div>
+          <div className="game-field">
+            <label>Email — your resume key</label>
             <input
-              className={inputClass}
-              placeholder="Email"
+              className="game-input"
               type="email"
+              placeholder="alex@school.edu"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
+          </div>
+          <div className="game-field">
+            <label>School / Company</label>
             <input
-              className={inputClass}
-              placeholder="School / Company"
+              className="game-input"
+              type="text"
+              placeholder="Lincoln Tech"
               value={school}
               onChange={(e) => setSchool(e.target.value)}
             />
-            <div className="font-[family:var(--font-share-mono)] text-[9px] text-[rgba(232,234,240,0.45)] tracking-wider uppercase mb-1">
-              Role
-            </div>
-            <div className="grid grid-cols-2 gap-2">
+          </div>
+          <div className="game-field">
+            <label>Role</label>
+            <div className="game-role-g">
               {ROLES.map((r) => (
                 <button
                   key={r.id}
                   type="button"
+                  className={`game-role-b${role === r.id ? " sel" : ""}`}
                   onClick={() => setRole(r.id)}
-                  className={`p-2.5 border text-left font-[family:var(--font-share-mono)] text-[11px] transition-colors ${
-                    role === r.id
-                      ? "border-[#F15C30] bg-[rgba(241,92,48,0.12)] text-[#F15C30]"
-                      : "border-[rgba(255,255,255,0.1)] text-[rgba(232,234,240,0.6)]"
-                  }`}
                 >
-                  <span className="mr-1">{r.icon}</span>
+                  <span className="text-lg">{r.icon}</span>
                   {r.id}
                 </button>
               ))}
             </div>
-            <GameButton onClick={submit}>NEXT: CHOOSE AVATAR ►</GameButton>
-            {onBack && (
-              <button
-                type="button"
-                onClick={onBack}
-                className="w-full py-2 font-[family:var(--font-share-mono)] text-[10px] text-[rgba(232,234,240,0.45)]"
-              >
-                ← BACK TO SPLASH
-              </button>
-            )}
           </div>
-        </Panel>
+
+          <div className="h-[14px]" />
+          <GameButton onClick={submit}>► NEXT: CHOOSE MACHINIST</GameButton>
+        </div>
       </div>
     </div>
   );

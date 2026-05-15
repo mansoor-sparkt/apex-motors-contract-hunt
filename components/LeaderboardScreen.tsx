@@ -41,59 +41,80 @@ export function LeaderboardScreen({
   const dateStr = new Date().toLocaleDateString();
 
   return (
-    <div className="flex-1 overflow-y-auto min-h-0 px-4 py-3 scrollbar-hide space-y-3">
-      <div className="font-[family:var(--font-share-mono)] text-[10px] text-[rgba(232,234,240,0.45)] tracking-wider">
-        {all.length + 180} PARTICIPANTS · {dateStr}
+    <div className="game-scroll pb-20">
+      <div className="px-[14px] pt-2.5">
+        <div className="game-bc">
+          HUNT <span>›</span> LEADERBOARD
+        </div>
+        <p className="font-share-mono text-[10px] text-[var(--mut)] tracking-[0.08em] mb-2.5">
+          {all.length + 180} PARTICIPANTS · {dateStr}
+        </p>
       </div>
 
       <div
-        className="flex items-center gap-3 p-3 border border-[#F15C30] bg-[rgba(241,92,48,0.08)]"
-        style={{ clipPath: "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))" }}
+        className="mx-[14px] mb-2.5 flex items-center gap-2.5 p-[11px_14px] border border-[var(--bdr)] bg-[rgba(241,92,48,0.09)]"
+        style={{
+          clipPath:
+            "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
+        }}
       >
-        <div className="font-[family:var(--font-orbitron)] text-xl font-black text-[#F15C30] w-10 text-center">
+        <div className="font-orbitron text-xl font-black text-[var(--o)] min-w-9">
           #{rank}
         </div>
-        <div className="text-2xl">{av.em}</div>
+        <div
+          className="w-7 h-7 flex items-center justify-center text-[15px] bg-[rgba(255,255,255,0.04)] border border-[var(--bdr)] flex-shrink-0"
+          style={{
+            clipPath:
+              "polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px))",
+          }}
+        >
+          {av.em}
+        </div>
         <div className="flex-1 min-w-0">
-          <div className="font-[family:var(--font-orbitron)] text-xs font-bold text-[#F15C30] truncate">
+          <div className="font-orbitron text-xs font-semibold text-[var(--o)] truncate">
             {(player.name || "YOU").toUpperCase()}
           </div>
-          <div className="font-[family:var(--font-share-mono)] text-[9px] text-[rgba(232,234,240,0.5)]">
+          <div className="font-share-mono text-[10px] text-[var(--mut)]">
             {player.school} · {badgeCount} BADGES
           </div>
         </div>
-        <div className="font-[family:var(--font-orbitron)] text-lg font-black text-[#39ff14]">
+        <div className="font-orbitron text-sm font-black text-[var(--o)]">
           {score}
         </div>
       </div>
 
-      <div className="space-y-1">
-        {all.map((p, i) => (
-          <div
-            key={`${p.n}-${i}`}
-            className={`flex items-center gap-2.5 px-3 py-2 border-b border-[rgba(255,255,255,0.05)] ${
-              p.isYou ? "bg-[rgba(241,92,48,0.06)]" : ""
+      {all.map((p, i) => (
+        <div
+          key={`${p.n}-${i}`}
+          className={`flex items-center gap-2.5 px-[14px] py-2.5 border-b border-[rgba(255,255,255,0.04)]${p.isYou ? " bg-[rgba(241,92,48,0.05)]" : ""
             }`}
+        >
+          <div className="font-orbitron text-xs font-bold min-w-[22px] text-[var(--mut)]">
+            {i + 1}
+          </div>
+          <div
+            className="w-7 h-7 flex items-center justify-center text-[15px] bg-[rgba(255,255,255,0.04)] border border-[var(--bdr)] flex-shrink-0"
+            style={{
+              clipPath:
+                "polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px))",
+            }}
           >
-            <div className="font-[family:var(--font-orbitron)] text-xs font-bold text-[rgba(232,234,240,0.35)] w-5">
-              {i + 1}
+            {p.isYou ? av.em : p.av}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="font-orbitron text-xs font-semibold truncate">
+              {(p.n || "").toUpperCase()}
+              {p.isYou ? " ◄" : ""}
             </div>
-            <div className="text-lg">{p.isYou ? av.em : p.av}</div>
-            <div className="flex-1 min-w-0">
-              <div className="font-[family:var(--font-orbitron)] text-[10px] font-bold truncate">
-                {(p.n || "").toUpperCase()}
-                {p.isYou ? " ◄" : ""}
-              </div>
-              <div className="font-[family:var(--font-share-mono)] text-[9px] text-[rgba(232,234,240,0.45)]">
-                {p.s} · {p.b} BADGES
-              </div>
-            </div>
-            <div className="font-[family:var(--font-orbitron)] text-sm font-bold text-[#39ff14]">
-              {p.sc}
+            <div className="font-share-mono text-[10px] text-[var(--mut)]">
+              {p.s} · {p.b} BADGES
             </div>
           </div>
-        ))}
-      </div>
+          <div className="font-orbitron text-sm font-black text-[var(--o)]">
+            {p.sc}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

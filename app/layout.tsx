@@ -63,7 +63,7 @@ const orbitron = Orbitron({
 
 const shareMono = Share_Tech_Mono({
   subsets: ['latin'],
-  weight: '400',
+  weight: ['400'],
   variable: '--font-share-mono',   // ← renamed: avoids collision with Tailwind v4's --font-mono
 })
 

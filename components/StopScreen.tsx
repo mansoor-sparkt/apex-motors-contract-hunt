@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  PhillipsHUDBar,
+  HUDBar,
   Panel,
   GameButton,
   StatusTag,
@@ -14,8 +14,7 @@ import {
   STOP_BRIGHTNESS,
   TOTAL_STOPS,
 } from "@/constants";
-import type { PlayerProfile, StopCompletion } from "@/lib/game-types";
-import type { CelebrationState } from "@/lib/game-types";
+import type { PlayerProfile, StopCompletion, CelebrationState } from "@/lib/game-types";
 
 export function StopScreen({
   stopIndex,
@@ -72,11 +71,8 @@ export function StopScreen({
     }
     if (done) {
       const next = stopIndex + 1;
-      if (next < TOTAL_STOPS) {
-        onNavigate(next);
-      } else {
-        onBack();
-      }
+      if (next < TOTAL_STOPS) onNavigate(next);
+      else onBack();
       return;
     }
 
@@ -92,14 +88,12 @@ export function StopScreen({
     }
 
     const gained = 10 + (bonus ? 5 : 0);
-    const data: StopCompletion = {
+    onSubmit(stopIndex, {
       bonus,
       badge: bonus ? badge : null,
       rn: rn || undefined,
       qs: selQ ?? undefined,
-    };
-
-    onSubmit(stopIndex, data);
+    });
     onCelebrate({
       icon: bonus ? "🎉" : "✅",
       title: bonus ? `STOP ${stopIndex + 1} COMPLETE!` : "FIND-IT LOGGED!",
@@ -117,8 +111,7 @@ export function StopScreen({
   const nextStop = () => {
     const n = stopIndex + 1;
     if (n >= TOTAL_STOPS) return;
-    const unlocked =
-      !!stopsDone[n] || n === 0 || !!stopsDone[n - 1];
+    const unlocked = !!stopsDone[n] || n === 0 || !!stopsDone[n - 1];
     if (!unlocked) {
       onToast(`🔒 COMPLETE STOP ${n} FIRST`);
       return;
@@ -132,6 +125,7 @@ export function StopScreen({
       if (e.key === "ArrowLeft") prevStop();
       if (e.key === "Escape") onBack();
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [stopIndex, stopsDone]
   );
 
@@ -153,233 +147,347 @@ export function StopScreen({
         style={{
           backgroundImage: `url('${photoUrl}')`,
           backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundPosition: "center 30%",
           filter: `brightness(${brightness * 0.6}) saturate(0.65) blur(2px)`,
         }}
       />
-
-      <PhillipsHUDBar
-        title={`STOP ${stopIndex + 1} · ${s.co}`}
-        onBack={onBack}
+      <div
+        className="absolute inset-0 z-[1] pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(4,5,6,0.45) 0%, rgba(4,5,6,0.72) 45%, rgba(4,5,6,0.88) 100%)",
+        }}
       />
 
-      <div
-        className="h-[120px] flex-shrink-0 relative z-10 mx-4 mt-2 border border-[rgba(241,92,48,0.25)] overflow-hidden"
-        style={{
-          backgroundImage: `url('${photoUrl}')`,
-          backgroundSize: "cover",
-          backgroundPosition: "center 40%",
-          filter: `brightness(${brightness}) saturate(0.8)`,
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(4,5,6,0.9)] to-transparent" />
-        <div className="absolute bottom-2 left-3 right-3">
-          <div className="font-[family:var(--font-share-mono)] text-[9px] text-[#00e5ff] tracking-widest">
-            STOP {stopIndex + 1} OF {TOTAL_STOPS}
-          </div>
-          <div className="font-[family:var(--font-orbitron)] text-lg font-black">
-            {s.co.toUpperCase()}
-          </div>
-          <div className="font-[family:var(--font-share-mono)] text-[10px] text-[rgba(232,234,240,0.6)]">
-            {s.task}
-          </div>
-        </div>
-      </div>
+      <HUDBar
+        title={`STOP ${stopIndex + 1} · ${s.co}`}
+        onBack={onBack}
+        backLabel="◄ STOPS"
+      />
 
-      <div className="flex-1 overflow-y-auto min-h-0 px-4 py-3 space-y-3 scrollbar-hide relative z-10">
-        <Panel header="📖 MISSION BRIEF" headerColor="orange">
-          <div className="font-[family:var(--font-share-mono)] text-xs text-[rgba(232,234,240,0.75)] leading-relaxed mb-3">
-            {s.story}
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="text-2xl">{av.em}</div>
-            <div>
-              <div className="font-[family:var(--font-orbitron)] text-[10px] font-bold">
-                {player.name.toUpperCase()}
-              </div>
-              <div className="font-[family:var(--font-share-mono)] text-[9px] text-[rgba(232,234,240,0.5)]">
-                {player.school} · {player.role}
-              </div>
-            </div>
-          </div>
-        </Panel>
-
-        <Panel
-          header={
-            <>
-              ① FIND-IT TASK
-              <StatusTag variant="cyan">10 PTS · REQUIRED</StatusTag>
-            </>
-          }
-          headerColor="cyan"
-        >
-          <div className="font-[family:var(--font-share-mono)] text-[11px] text-[rgba(232,234,240,0.6)] mb-3">
-            {s.fi}
-          </div>
-          <button
-            type="button"
-            onClick={mockUpload}
-            disabled={done}
-            className={`w-full py-4 border text-center transition-all ${
-              photoUp || done
-                ? "border-[#39ff14] bg-[rgba(57,255,20,0.08)]"
-                : "border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)]"
-            }`}
-          >
-            <div className={`text-3xl mb-1 ${photoUp || done ? "text-[#39ff14]" : ""}`}>
-              {photoUp || done ? "✅" : "📷"}
-            </div>
+      <div className="game-scroll flex-1 min-h-0 bg-transparent">
+        <div className="relative h-[168px] flex-shrink-0 overflow-hidden">
+          <div
+            className="absolute inset-0 bg-cover bg-[center_30%]"
+            style={{
+              backgroundImage: `url('${photoUrl}')`,
+              filter: `brightness(${brightness}) saturate(0.8)`,
+            }}
+          />
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage: `
+                linear-gradient(rgba(241, 92, 48, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(241, 92, 48, 0.05) 1px, transparent 1px)
+              `,
+              backgroundSize: "28px 28px",
+            }}
+          />
+          <div
+            className="absolute left-0 right-0 h-px"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent, rgba(241,92,48,0.8), transparent)",
+              animation: "sweep 3s linear infinite",
+            }}
+          />
+          <div
+            className="absolute inset-2 border border-[rgba(241,92,48,0.2)] pointer-events-none"
+            style={{
+              clipPath:
+                "polygon(0 14px, 14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px))",
+            }}
+          />
+          <div
+            className="absolute top-1/2 left-1/2 w-9 h-9 pointer-events-none border border-[rgba(241,92,48,0.25)] opacity-50"
+            style={{
+              transform: "translate(-50%, -60%)",
+              clipPath:
+                "polygon(0 50%, 35% 50%, 50% 0, 65% 50%, 100% 50%, 65% 50%, 50% 100%, 35% 50%)",
+              animation: "rSpin 8s linear infinite",
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[rgba(4,5,6,0.88)] via-[rgba(4,5,6,0.5)] to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 px-4 py-3 z-[2]">
             <div
-              className={`font-[family:var(--font-share-mono)] text-[10px] tracking-wider ${
-                photoUp || done ? "text-[#39ff14]" : "text-[rgba(232,234,240,0.5)]"
-              }`}
+              className="game-bc mb-1"
+              style={{ color: "rgba(232,234,240,0.28)" }}
             >
-              {photoUp || done
-                ? "PHOTO UPLOADED — EVIDENCE LOGGED"
-                : "TAP TO OPEN CAMERA · GALLERY"}
+              STOPS <span>›</span> STOP {stopIndex + 1}
             </div>
-          </button>
-        </Panel>
-
-        {s.bt === "calc" ? (
-          <Panel
-            header={
-              <>
-                ② SKILL CHALLENGE
-                <StatusTag variant="orange">+5 PTS · BONUS</StatusTag>
-              </>
-            }
-            headerColor="yellow"
-          >
-            <div className="font-[family:var(--font-share-mono)] text-xs text-[rgba(232,234,240,0.8)] leading-relaxed mb-3">
-              {s.bp}
-            </div>
-            <div className="px-3 py-2 mb-3 border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] font-[family:var(--font-share-mono)] text-[10px] text-[rgba(232,234,240,0.45)]">
-              📱 GIF: where to find this tool in Phillips Machinist app
-            </div>
-            <input
-              className="w-full px-3 py-2 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.1)] font-[family:var(--font-share-mono)] text-xs text-white outline-none focus:border-[#ffbb00] mb-3 disabled:opacity-50"
-              placeholder="ENTER YOUR ANSWER…"
-              value={done && stopsDone[stopIndex]?.bonus ? "SUBMITTED ✓" : bonusAnswer}
-              onChange={(e) => setBonusAnswer(e.target.value)}
-              readOnly={done}
-              disabled={done}
-            />
-            <div className="font-[family:var(--font-share-mono)] text-[9px] text-[rgba(232,234,240,0.35)] tracking-wider mb-2">
-              BADGE TIERS:
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {s.b1 && (
-                <span className="px-2 py-1 text-[9px] border text-[#ffbb00] border-[rgba(255,187,0,0.3)] bg-[rgba(255,187,0,0.08)]">
-                  🥇 {s.b1} (±10%)
-                </span>
-              )}
-              {s.b2 && (
-                <span className="px-2 py-1 text-[9px] border text-[#00e5ff] border-[rgba(0,229,255,0.25)] bg-[rgba(0,229,255,0.06)]">
-                  🥈 {s.b2} (±20%)
-                </span>
-              )}
-              {s.b3 && (
-                <span className="px-2 py-1 text-[9px] border text-[rgba(232,234,240,0.45)] border-[rgba(255,255,255,0.1)]">
-                  🥉 {s.b3}
-                </span>
-              )}
-            </div>
-          </Panel>
-        ) : (
-          <Panel
-            header={
-              <>
-                ③ SHOP TALK
-                <StatusTag variant="green">+5 PTS · BONUS</StatusTag>
-              </>
-            }
-            headerColor="green"
-          >
-            <div className="font-[family:var(--font-share-mono)] text-[10px] text-[rgba(232,234,240,0.5)] tracking-wider mb-2">
-              ASK A REP AT {(s.rc || "").toUpperCase()} ONE OF THESE:
-            </div>
-            {[s.q1, s.q2].map((q, i) => (
-              <button
-                key={i}
-                type="button"
-                disabled={done}
-                onClick={() => setSelQ(i)}
-                className={`w-full mb-2 px-3 py-2 text-left font-[family:var(--font-share-mono)] text-[11px] border transition-all ${
-                  (done && stopsDone[stopIndex]?.qs === i) || selQ === i
-                    ? "border-[#39ff14] bg-[rgba(57,255,20,0.1)] text-[#39ff14]"
-                    : "border-[rgba(255,255,255,0.1)] text-[rgba(232,234,240,0.6)]"
-                }`}
+            <StatusTag variant="orange">
+              STOP {stopIndex + 1} OF {TOTAL_STOPS}
+            </StatusTag>
+            <div className="flex items-end justify-between gap-2 mt-2">
+              <div>
+                <h1
+                  className="font-orbitron text-[22px] font-black leading-none tracking-[0.04em]"
+                  style={{ textShadow: "0 0 16px rgba(241,92,48,0.5)" }}
+                >
+                  {s.co.toUpperCase()}
+                </h1>
+                <p className="font-share-mono text-[10px] text-[var(--c)] tracking-[0.1em] uppercase mt-1">
+                  {s.task}
+                </p>
+              </div>
+              <div
+                className="flex-shrink-0 border border-[var(--bdr)] bg-[rgba(4,5,6,0.9)] px-[11px] py-[7px]"
+                style={{
+                  clipPath:
+                    "polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px))",
+                }}
               >
-                {q}
-              </button>
-            ))}
-            <input
-              className="w-full px-3 py-2 mb-2 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.1)] font-[family:var(--font-share-mono)] text-xs text-white outline-none focus:border-[#39ff14] disabled:opacity-50"
-              placeholder="NAME OF REP YOU SPOKE WITH…"
-              value={repName}
-              onChange={(e) => setRepName(e.target.value)}
-              readOnly={done}
-              disabled={done}
-            />
-            <input
-              className="w-full px-3 py-2 mb-2 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.1)] font-[family:var(--font-share-mono)] text-xs text-white outline-none focus:border-[#39ff14] disabled:opacity-50"
-              placeholder="SHORT ANSWER FROM CONVERSATION…"
-              value={repAnswer}
-              onChange={(e) => setRepAnswer(e.target.value)}
-              readOnly={done}
-              disabled={done}
-            />
-            <div
-              className={`font-[family:var(--font-share-mono)] text-[10px] ${
-                done && stopsDone[stopIndex]?.bonus
-                  ? "text-[#39ff14]"
-                  : "text-[rgba(232,234,240,0.35)]"
-              }`}
-            >
-              {done && stopsDone[stopIndex]?.bonus
-                ? "✓ ADDED TO YOUR TEAM ROSTER"
-                : "THIS PERSON JOINS YOUR JOB TRAVELER ROSTER"}
+                <div className="font-share-mono text-[8px] text-[var(--mut)] tracking-[0.14em] uppercase">
+                  CONTRACT
+                </div>
+                <div className="font-orbitron text-[10px] font-bold text-[var(--o)]">
+                  APEX MOTORS
+                </div>
+                <div className="font-share-mono text-[9px] text-[var(--mut)]">
+                  500 PCS · 6 WKS
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-[14px] py-3 flex flex-col gap-2.5">
+          <Panel
+            header={
+              <span style={{ color: "var(--o)" }}>
+                📖 <span>MISSION BRIEF</span>
+              </span>
+            }
+            headerColor="orange"
+            stopVariant
+            className="story-bg"
+          >
+            <p className="text-sm leading-[1.75] text-[rgba(232,234,240,0.85)]">
+              {s.story}
+            </p>
+            <div className="flex items-center gap-2.5 mt-3 pt-3 border-t border-[rgba(255,255,255,0.05)]">
+              <div
+                className="w-9 h-9 flex items-center justify-center text-xl bg-[rgba(241,92,48,0.1)] border border-[var(--bdr)]"
+                style={{
+                  clipPath:
+                    "polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))",
+                }}
+              >
+                {av.em}
+              </div>
+              <div>
+                <div className="font-orbitron text-[11px] font-bold tracking-[0.06em]">
+                  {player.name.toUpperCase()}
+                </div>
+                <div className="font-share-mono text-[10px] text-[var(--mut)]">
+                  {player.school} · {player.role}
+                </div>
+              </div>
             </div>
           </Panel>
-        )}
+
+          <Panel
+            header={
+              <>
+                <span style={{ color: "var(--c)" }}>
+                  ① <span>FIND-IT TASK</span>
+                </span>
+                <StatusTag variant="cyan">10 PTS · REQUIRED</StatusTag>
+              </>
+            }
+            headerColor="cyan"
+            stopVariant
+          >
+            <p className="font-share-mono text-[11px] text-[var(--mut)] mb-2.5 tracking-[0.04em]">
+              {s.fi}
+            </p>
+            <button
+              type="button"
+              onClick={mockUpload}
+              disabled={done}
+              className={`game-photo-box w-full${photoUp || done ? " up" : ""}`}
+            >
+              <span
+                className={`text-[30px] ${photoUp || done ? "ok" : ""}`}
+                style={{
+                  filter: photoUp || done
+                    ? "drop-shadow(0 0 8px rgba(57,255,20,0.6))"
+                    : "drop-shadow(0 0 8px rgba(241,92,48,0.5))",
+                }}
+              >
+                {photoUp || done ? "✅" : "📷"}
+              </span>
+              <span
+                className={`font-share-mono text-[11px] tracking-[0.06em] text-center ${photoUp || done ? "text-[var(--g)]" : "text-[var(--mut)]"
+                  }`}
+              >
+                {photoUp || done
+                  ? "PHOTO UPLOADED — EVIDENCE LOGGED"
+                  : "TAP TO OPEN CAMERA · GALLERY"}
+              </span>
+            </button>
+          </Panel>
+
+          {s.bt === "calc" ? (
+            <Panel
+              header={
+                <>
+                  <span style={{ color: "#ffbb00" }}>
+                    ② <span>SKILL CHALLENGE</span>
+                  </span>
+                  <span
+                    className="game-tag"
+                    style={{
+                      color: "#ffbb00",
+                      borderColor: "rgba(255,187,0,0.3)",
+                      background: "rgba(255,187,0,0.07)",
+                      clipPath:
+                        "polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))",
+                    }}
+                  >
+                    +5 PTS · BONUS
+                  </span>
+                </>
+              }
+              headerColor="yellow"
+              stopVariant
+            >
+              <p className="font-[family:var(--font-rajdhani)] text-[13px] leading-[1.6] text-[rgba(232,234,240,0.82)] mb-2">
+                {s.bp}
+              </p>
+              <div className="gif-box flex items-center gap-1.5 px-3 py-2 mb-2 border border-[rgba(255,187,0,0.22)] bg-[rgba(255,187,0,0.05)] text-[#ffbb00] font-share-mono text-[11px]">
+                📱 GIF: where to find this tool in Phillips Machinist app
+              </div>
+              <input
+                className="game-input mb-2"
+                placeholder="ENTER YOUR ANSWER…"
+                value={
+                  done && stopsDone[stopIndex]?.bonus
+                    ? "SUBMITTED ✓"
+                    : bonusAnswer
+                }
+                onChange={(e) => setBonusAnswer(e.target.value)}
+                readOnly={done}
+                disabled={done}
+              />
+              <p className="font-share-mono text-[10px] text-[var(--dim)] tracking-[0.08em] mb-1">
+                BADGE TIERS:
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {s.b1 && (
+                  <span className="px-2.5 py-1 text-[10px] border border-[rgba(255,187,0,0.3)] bg-[rgba(255,187,0,0.1)] text-[#ffbb00]">
+                    🥇 {s.b1} (±10%)
+                  </span>
+                )}
+                {s.b2 && (
+                  <span className="px-2.5 py-1 text-[10px] border border-[var(--bdc)] bg-[rgba(0,229,255,0.08)] text-[var(--c)]">
+                    🥈 {s.b2} (±20%)
+                  </span>
+                )}
+                {s.b3 && (
+                  <span className="px-2.5 py-1 text-[10px] border border-[var(--dim)] bg-[rgba(255,255,255,0.04)] text-[var(--mut)]">
+                    🥉 {s.b3}
+                  </span>
+                )}
+              </div>
+            </Panel>
+          ) : (
+            <Panel
+              header={
+                <>
+                  <span style={{ color: "var(--g)" }}>
+                    ③ <span>SHOP TALK</span>
+                  </span>
+                  <StatusTag variant="green">+5 PTS · BONUS</StatusTag>
+                </>
+              }
+              headerColor="green"
+              stopVariant
+            >
+              <p className="font-share-mono text-[10px] text-[var(--mut)] tracking-[0.06em] mb-2">
+                ASK A REP AT {(s.rc || "").toUpperCase()} ONE OF THESE:
+              </p>
+              {[s.q1, s.q2].map((q, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  disabled={done}
+                  onClick={() => setSelQ(i)}
+                  className={`game-q-opt${(done && stopsDone[stopIndex]?.qs === i) || selQ === i
+                    ? " sel"
+                    : ""
+                    }`}
+                >
+                  {q}
+                </button>
+              ))}
+              <input
+                className="game-input mb-2 mt-1"
+                placeholder="NAME OF REP YOU SPOKE WITH…"
+                value={repName}
+                onChange={(e) => setRepName(e.target.value)}
+                readOnly={done}
+                disabled={done}
+              />
+              <input
+                className="game-input mb-2"
+                placeholder="SHORT ANSWER FROM CONVERSATION…"
+                value={repAnswer}
+                onChange={(e) => setRepAnswer(e.target.value)}
+                readOnly={done}
+                disabled={done}
+              />
+              <p
+                className={`font-share-mono text-[10px] tracking-[0.06em] ${done && stopsDone[stopIndex]?.bonus
+                  ? "text-[var(--g)]"
+                  : "text-[var(--dim)]"
+                  }`}
+              >
+                {done && stopsDone[stopIndex]?.bonus
+                  ? "✓ ADDED TO YOUR TEAM ROSTER"
+                  : "THIS PERSON JOINS YOUR JOB TRAVELER ROSTER"}
+              </p>
+            </Panel>
+          )}
+        </div>
+
+        <div className="px-[14px] py-3">
+          <GameButton variant="primary" onClick={submitStop}>
+            {done
+              ? "✓ COMPLETED — VIEW NEXT STOP ►"
+              : `► SUBMIT STOP ${stopIndex + 1}`}
+          </GameButton>
+        </div>
+
+        <p className="font-share-mono text-[9px] text-[var(--dim)] text-center pb-3 tracking-[0.08em]">
+          ← SWIPE OR USE ARROWS BELOW →
+        </p>
       </div>
 
-      <div className="flex-shrink-0 px-4 py-3 space-y-2 relative z-10 bg-[rgba(4,5,6,0.92)] border-t border-[rgba(241,92,48,0.2)]">
-        <GameButton variant="primary" onClick={submitStop}>
-          {done
-            ? "✓ COMPLETED — VIEW NEXT STOP ►"
-            : `► SUBMIT STOP ${stopIndex + 1}`}
-        </GameButton>
-        <div className="flex items-center justify-between gap-2">
-          <button
-            type="button"
-            onClick={prevStop}
-            disabled={stopIndex === 0}
-            className={`flex-1 py-2 font-[family:var(--font-share-mono)] text-[10px] border ${
-              stopIndex === 0
-                ? "opacity-30 border-[rgba(255,255,255,0.08)]"
-                : "border-[rgba(241,92,48,0.3)] text-[#F15C30]"
-            }`}
-          >
-            ◄ PREV
-          </button>
-          <span className="font-[family:var(--font-orbitron)] text-xs font-bold">
-            {stopIndex + 1} / {TOTAL_STOPS}
+      <div className="game-stop-nav">
+        <button
+          type="button"
+          className="game-snav"
+          onClick={prevStop}
+          disabled={stopIndex === 0}
+        >
+          ◄ PREV
+        </button>
+        <div className="game-snav-ctr">
+          {stopIndex + 1}{" "}
+          <span className="text-[var(--mut)] text-[11px] font-normal">
+            / {TOTAL_STOPS}
           </span>
-          <button
-            type="button"
-            onClick={nextStop}
-            disabled={!canNext}
-            className={`flex-1 py-2 font-[family:var(--font-share-mono)] text-[10px] border ${
-              !canNext
-                ? "opacity-30 border-[rgba(255,255,255,0.08)]"
-                : "border-[rgba(241,92,48,0.3)] text-[#F15C30]"
-            }`}
-          >
-            NEXT ►
-          </button>
         </div>
+        <button
+          type="button"
+          className="game-snav text-right"
+          onClick={nextStop}
+          disabled={!canNext}
+        >
+          NEXT ►
+        </button>
       </div>
     </div>
   );
