@@ -3,7 +3,7 @@ import { GameApp } from "@/components/GameApp";
 
 export default function Home() {
   return (
-    <main className="flex items-center justify-center min-h-screen bg-[#0a0a0a]">
+    <main className="flex sm:items-center justify-center  min-h-dvh w-full bg-[#0a0a0a] overflow-y-auto items-start ">
       <GameApp />
     </main>
   );

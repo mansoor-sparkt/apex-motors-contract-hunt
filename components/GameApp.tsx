@@ -150,102 +150,205 @@ export function GameApp() {
   };
 
   return (
-    <div className="relative w-[390px] h-[844px] flex-shrink-0 mx-auto">
-      <PhotoBg />
-      <ViewportChrome />
 
+
+    // <div className="relative w-full max-w-[390px] min-h-screen sm:h-[844px] flex-shrink-0 mx-auto flex flex-col bg-black">
+    //   <PhotoBg />
+    //   <ViewportChrome />
+
+    //   <div
+    //     className="relative flex-1 sm:absolute sm:inset-0  z-10 w-full h-full  overflow-y-auto sm:overflow-hidden"
+    //     style={{
+    //       boxShadow:
+    //         "0 0 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.06)",
+    //     }}
+    //   >
+    //     {/* A: Splash */}
+    //     <ScreenSlot active={screen === "splash"} direction="fade">
+    //       <SplashScreen
+    //         onStart={() => setScreen("register")}
+    //         onDemo={quickDemo}
+    //       />
+    //     </ScreenSlot>
+
+    //     {/* B: Register */}
+    //     <ScreenSlot active={screen === "register"} direction="fwd">
+    //       <RegisterScreen
+    //         onNext={(draft) => {
+    //           setRegisterDraft(draft);
+    //           setScreen("avatar");
+    //         }}
+    //         onBack={() => setScreen("splash")}
+    //       />
+    //     </ScreenSlot>
+
+    //     {/* C: Choose Avatar */}
+    //     <ScreenSlot active={screen === "avatar"} direction="fwd">
+    //       {registerDraft ? (
+    //         <AvatarScreen
+    //           draft={registerDraft}
+    //           onComplete={(p) => {
+    //             setPlayer(p);
+    //             setRegisterDraft(null);
+    //             enterHuntHub("stops");
+    //           }}
+    //           onBack={() => setScreen("register")}
+    //         />
+    //       ) : (
+    //         <RegisterScreen
+    //           onNext={(draft) => {
+    //             setRegisterDraft(draft);
+    //             setScreen("avatar");
+    //           }}
+    //         />
+    //       )}
+    //     </ScreenSlot>
+
+    //     {/* D: Hunt Hub (Stops | Shorts | Board | Traveler) */}
+    //     <ScreenSlot active={screen === "hunt"} direction="fwd">
+    //       <HuntScreen
+    //         player={player}
+    //         score={score}
+    //         stopsDone={stopsDone}
+    //         shortsDone={shortsDone}
+    //         roster={roster}
+    //         activeTab={huntTab}
+    //         onTabChange={setHuntTab}
+    //         onOpenStop={openStop}
+    //         onShortComplete={(slug) => {
+    //           setShortsDone((prev) => ({ ...prev, [slug]: true }));
+    //         }}
+    //         onCelebrate={(state) => {
+    //           setCelebrationDismiss(null);
+    //           openCelebration(state, "shorts");
+    //         }}
+    //         onToast={showToast}
+    //       />
+    //     </ScreenSlot>
+
+    //     {/* E: Stop Detail */}
+    //     <ScreenSlot active={screen === "stop"} direction="fwd">
+    //       <StopScreen
+    //         stopIndex={curStop}
+    //         player={player}
+    //         stopsDone={stopsDone}
+    //         onBack={() => setScreen("hunt")}
+    //         onSubmit={handleStopSubmit}
+    //         onNavigate={openStop}
+    //         onToast={showToast}
+    //         onCelebrate={(state) => openCelebration(state, "stop")}
+    //       />
+    //     </ScreenSlot>
+
+    //     {/* I: Celebration → D (or H when 8 stops done) */}
+    //     <CelebrationModal
+    //       state={celebration}
+    //       onClose={dismissCelebration}
+    //       onContinue={dismissCelebration}
+    //     />
+
+    //     <GameToast message={toast} onDone={() => setToast(null)} />
+    //   </div>
+    // </div>
+
+
+    <div className="w-full max-w-[390px] mx-auto overflow-y-auto">
       <div
-        className="absolute inset-0 z-10 w-full h-full overflow-hidden"
-        style={{
-          boxShadow:
-            "0 0 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.06)",
-        }}
+        className="relative w-full flex flex-col flex-shrink-0"
+        style={{ minHeight: "100dvh" }}
       >
-        {/* A: Splash */}
-        <ScreenSlot active={screen === "splash"} direction="fade">
-          <SplashScreen
-            onStart={() => setScreen("register")}
-            onDemo={quickDemo}
-          />
-        </ScreenSlot>
+        <PhotoBg />
+        <ViewportChrome />
 
-        {/* B: Register */}
-        <ScreenSlot active={screen === "register"} direction="fwd">
-          <RegisterScreen
-            onNext={(draft) => {
-              setRegisterDraft(draft);
-              setScreen("avatar");
-            }}
-            onBack={() => setScreen("splash")}
-          />
-        </ScreenSlot>
-
-        {/* C: Choose Avatar */}
-        <ScreenSlot active={screen === "avatar"} direction="fwd">
-          {registerDraft ? (
-            <AvatarScreen
-              draft={registerDraft}
-              onComplete={(p) => {
-                setPlayer(p);
-                setRegisterDraft(null);
-                enterHuntHub("stops");
-              }}
-              onBack={() => setScreen("register")}
+        <div
+          className="absolute inset-0 z-10 w-full h-full overflow-hidden"
+          style={{
+            boxShadow:
+              "0 0 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.06)",
+          }}
+        >
+          {/* A: Splash */}
+          <ScreenSlot active={screen === "splash"} direction="fade">
+            <SplashScreen
+              onStart={() => setScreen("register")}
+              onDemo={quickDemo}
             />
-          ) : (
+          </ScreenSlot>
+
+          {/* B: Register */}
+          <ScreenSlot active={screen === "register"} direction="fwd">
             <RegisterScreen
               onNext={(draft) => {
                 setRegisterDraft(draft);
                 setScreen("avatar");
               }}
+              onBack={() => setScreen("splash")}
             />
-          )}
-        </ScreenSlot>
+          </ScreenSlot>
 
-        {/* D: Hunt Hub (Stops | Shorts | Board | Traveler) */}
-        <ScreenSlot active={screen === "hunt"} direction="fwd">
-          <HuntScreen
-            player={player}
-            score={score}
-            stopsDone={stopsDone}
-            shortsDone={shortsDone}
-            roster={roster}
-            activeTab={huntTab}
-            onTabChange={setHuntTab}
-            onOpenStop={openStop}
-            onShortComplete={(slug) => {
-              setShortsDone((prev) => ({ ...prev, [slug]: true }));
-            }}
-            onCelebrate={(state) => {
-              setCelebrationDismiss(null);
-              openCelebration(state, "shorts");
-            }}
-            onToast={showToast}
+          {/* C: Choose Avatar */}
+          <ScreenSlot active={screen === "avatar"} direction="fwd">
+            {registerDraft ? (
+              <AvatarScreen
+                draft={registerDraft}
+                onComplete={(p) => {
+                  setPlayer(p);
+                  setRegisterDraft(null);
+                  enterHuntHub("stops");
+                }}
+                onBack={() => setScreen("register")}
+              />
+            ) : (
+              <RegisterScreen
+                onNext={(draft) => {
+                  setRegisterDraft(draft);
+                  setScreen("avatar");
+                }}
+              />
+            )}
+          </ScreenSlot>
+
+          {/* D: Hunt Hub */}
+          <ScreenSlot active={screen === "hunt"} direction="fwd">
+            <HuntScreen
+              player={player}
+              score={score}
+              stopsDone={stopsDone}
+              shortsDone={shortsDone}
+              roster={roster}
+              activeTab={huntTab}
+              onTabChange={setHuntTab}
+              onOpenStop={openStop}
+              onShortComplete={(slug) => {
+                setShortsDone((prev) => ({ ...prev, [slug]: true }));
+              }}
+              onCelebrate={(state) => openCelebration(state, "shorts")}
+            />
+          </ScreenSlot>
+
+          {/* E: Stop Detail */}
+          <ScreenSlot active={screen === "stop"} direction="fwd">
+            <StopScreen
+              stopIndex={curStop}
+              player={player}
+              stopsDone={stopsDone}
+              onBack={() => setScreen("hunt")}
+              onSubmit={handleStopSubmit}
+              onNavigate={openStop}
+              onToast={showToast}
+              onCelebrate={(state) => openCelebration(state, "stop")}
+            />
+          </ScreenSlot>
+
+          {/* I: Celebration Modal */}
+          <CelebrationModal
+            state={celebration}
+            onClose={dismissCelebration}
+            onContinue={dismissCelebration}
           />
-        </ScreenSlot>
 
-        {/* E: Stop Detail */}
-        <ScreenSlot active={screen === "stop"} direction="fwd">
-          <StopScreen
-            stopIndex={curStop}
-            player={player}
-            stopsDone={stopsDone}
-            onBack={() => setScreen("hunt")}
-            onSubmit={handleStopSubmit}
-            onNavigate={openStop}
-            onToast={showToast}
-            onCelebrate={(state) => openCelebration(state, "stop")}
-          />
-        </ScreenSlot>
-
-        {/* I: Celebration → D (or H when 8 stops done) */}
-        <CelebrationModal
-          state={celebration}
-          onClose={dismissCelebration}
-          onContinue={dismissCelebration}
-        />
-
-        <GameToast message={toast} onDone={() => setToast(null)} />
+          <GameToast message={toast} onDone={() => setToast(null)} />
+        </div>
       </div>
     </div>
   );
