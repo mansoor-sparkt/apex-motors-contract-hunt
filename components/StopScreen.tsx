@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   HUDBar,
   Panel,
@@ -39,7 +39,9 @@ export function StopScreen({
   const done = !!stopsDone[stopIndex];
   const av = AVS[player.avatarIndex] ?? AVS[0];
 
+
   const [photoUp, setPhotoUp] = useState(done);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selQ, setSelQ] = useState<number | null>(
     stopsDone[stopIndex]?.qs ?? null
   );
@@ -47,22 +49,71 @@ export function StopScreen({
   const [repName, setRepName] = useState(stopsDone[stopIndex]?.rn ?? "");
   const [repAnswer, setRepAnswer] = useState("");
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     setPhotoUp(!!stopsDone[stopIndex]);
+
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+
+
     setSelQ(stopsDone[stopIndex]?.qs ?? null);
     setRepName(stopsDone[stopIndex]?.rn ?? "");
     setBonusAnswer("");
     setRepAnswer("");
   }, [stopIndex, stopsDone]);
 
+  useEffect(() => {
+    return () => {
+      setPreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+    };
+  }, []);
+
   const photoUrl = STOP_IMAGE_MAP[stopIndex + 1] ?? STOP_IMAGE_MAP[1];
   const brightness = STOP_BRIGHTNESS[stopIndex] ?? 0.45;
 
-  const mockUpload = () => {
-    if (done) return;
+
+  const openPicker = () => {
+    if (done || photoUp) return;
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Revoke any previous object URL before creating a new one
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
+
     setPhotoUp(true);
     onToast("📸 EVIDENCE LOGGED");
+
+    // Reset so the same file can be re-selected if needed
+    e.target.value = "";
   };
+
+  const handleRetake = () => {
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+    setPhotoUp(false);
+  };
+
+  // const mockUpload = () => {
+  //   if (done) return;
+  //   setPhotoUp(true);
+  //   onToast("📸 EVIDENCE LOGGED");
+  // };
 
   const submitStop = () => {
     if (!photoUp && !done) {
@@ -142,6 +193,17 @@ export function StopScreen({
 
   return (
     <div className="absolute inset-0 flex flex-col h-full w-full overflow-hidden z-30">
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        // capture="environment"
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden="true"
+        onChange={handleFileChange}
+      />
       <div
         className="absolute inset-0 z-0"
         style={{
@@ -302,7 +364,7 @@ export function StopScreen({
             <p className="font-share-mono text-[11px] text-[var(--mut)] mb-2.5 tracking-[0.04em]">
               {s.fi}
             </p>
-            <button
+            {/* <button
               type="button"
               onClick={mockUpload}
               disabled={done}
@@ -326,7 +388,70 @@ export function StopScreen({
                   ? "PHOTO UPLOADED — EVIDENCE LOGGED"
                   : "TAP TO OPEN CAMERA · GALLERY"}
               </span>
+            </button> */}
+
+            <button
+              type="button"
+              onClick={openPicker}
+              disabled={done || photoUp}
+              className={`game-photo-box w-full${photoUp || done ? " up" : ""}`}
+            >
+              {/* Show preview thumbnail after selection */}
+              {previewUrl ? (
+                <div className="flex flex-col items-center gap-2 w-full">
+                  <img
+                    src={previewUrl}
+                    alt="Your uploaded evidence"
+                    className="w-full max-h-[120px] object-cover"
+                    style={{
+                      clipPath:
+                        "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
+                    }}
+                  />
+                  <span className="font-share-mono text-[11px] tracking-[0.06em] text-[var(--g)]">
+                    ✅ PHOTO UPLOADED — EVIDENCE LOGGED
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <span
+                    className="text-[30px]"
+                    style={{
+                      filter:
+                        photoUp || done
+                          ? "drop-shadow(0 0 8px rgba(57,255,20,0.6))"
+                          : "drop-shadow(0 0 8px rgba(241,92,48,0.5))",
+                    }}
+                  >
+                    {photoUp || done ? "✅" : "📷"}
+                  </span>
+                  <span
+                    className={`font-share-mono text-[11px] tracking-[0.06em] text-center ${photoUp || done ? "text-[var(--g)]" : "text-[var(--mut)]"
+                      }`}
+                  >
+                    {photoUp || done
+                      ? "PHOTO UPLOADED — EVIDENCE LOGGED"
+                      : "TAP TO OPEN CAMERA · GALLERY"}
+                  </span>
+                  {!photoUp && !done && (
+                    <span className="font-share-mono text-[9px] text-[var(--dim)] tracking-[0.08em] mt-1">
+                      CAMERA OR PHOTO LIBRARY
+                    </span>
+                  )}
+                </>
+              )}
             </button>
+
+            {/* Retake — only shown after upload but before submit */}
+            {photoUp && !done && (
+              <button
+                type="button"
+                onClick={handleRetake}
+                className="mt-2 w-full font-share-mono text-[10px] text-[var(--mut)] tracking-[0.08em] py-1.5 border border-[rgba(255,255,255,0.08)] bg-transparent hover:bg-[rgba(255,255,255,0.04)] transition-colors"
+              >
+                ↺ RETAKE PHOTO
+              </button>
+            )}
           </Panel>
 
           {s.bt === "calc" ? (

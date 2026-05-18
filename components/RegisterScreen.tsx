@@ -17,8 +17,38 @@ export function RegisterScreen({
   const [school, setSchool] = useState("");
   const [role, setRole] = useState("Student");
 
+  // 1. Add error state tracking
+  const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+
+  // 2. Simple email regex validation
+  const validateEmail = (emailStr: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailStr);
+  };
+
   const submit = () => {
-    if (!name.trim() || !email.trim()) return;
+    const newErrors: { name?: string; email?: string } = {};
+
+    // Validate Name
+    if (!name.trim()) {
+      newErrors.name = "⚠️ OPERATOR NAME REQUIRED";
+    }
+
+    // Validate Email
+    if (!email.trim()) {
+      newErrors.email = "⚠️ RESUME KEY / EMAIL REQUIRED";
+    } else if (!validateEmail(email.trim())) {
+      newErrors.email = "⚠️ INVALID EMAIL FORMAT";
+    }
+
+    // If there are errors, block submission and update state
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    // Clear errors on success
+    setErrors({});
+
     onNext({
       name: name.trim(),
       email: email.trim(),
@@ -49,18 +79,33 @@ export function RegisterScreen({
 
           <div className="game-field">
             <label>Operator Name</label>
+
+            {errors.name && (
+              <span className="text-red-500 text-xs font-bold tracking-wider animate-pulse">
+                {errors.name}
+              </span>
+            )}
             <input
-              className="game-input"
+              className={`game-input ${errors.name ? "border-red-500 focus:border-red-500" : ""}`}
               type="text"
               placeholder="Alex Johnson"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
+              }}
             />
           </div>
           <div className="game-field">
             <label>Email — your resume key</label>
+
+            {errors.email && (
+              <span className="text-red-500 text-xs font-bold tracking-wider animate-pulse">
+                {errors.email}
+              </span>
+            )}
             <input
-              className="game-input"
+              className={`game-input ${errors.name ? "border-red-500 focus:border-red-500" : ""}`}
               type="email"
               placeholder="alex@school.edu"
               value={email}
@@ -70,7 +115,7 @@ export function RegisterScreen({
           <div className="game-field">
             <label>School / Company</label>
             <input
-              className="game-input"
+              className={`game-input ${errors.name ? "border-red-500 focus:border-red-500" : ""}`}
               type="text"
               placeholder="Lincoln Tech"
               value={school}
