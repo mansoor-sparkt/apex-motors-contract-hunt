@@ -43,7 +43,7 @@ function ScreenSlot({
 
   return (
     <div
-      className="absolute inset-0 flex flex-col h-full w-full overflow-hidden"
+      className="absolute inset-0 flex min-h-full w-full flex-col overflow-x-hidden overflow-y-auto"
       style={{
         opacity: active ? 1 : 0,
         pointerEvents: active ? "auto" : "none",
@@ -252,16 +252,15 @@ export function GameApp() {
     // </div>
 
 
-    <div className="w-full max-w-[390px] mx-auto overflow-y-auto">
+    <div className="mx-auto w-full max-w-[390px] min-h-dvh overflow-x-hidden overflow-y-auto">
       <div
-        className="relative w-full flex flex-col flex-shrink-0"
-        style={{ minHeight: "100dvh" }}
+        className="relative flex w-full min-h-dvh flex-shrink-0 flex-col"
       >
         <PhotoBg />
         <ViewportChrome />
 
         <div
-          className="absolute inset-0 z-10 w-full h-full overflow-hidden"
+          className="absolute inset-0 z-10 flex w-full min-h-dvh flex-col overflow-x-hidden overflow-y-auto"
           style={{
             boxShadow:
               "0 0 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.06)",

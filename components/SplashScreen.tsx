@@ -37,11 +37,11 @@ export function SplashScreen({
   onDemo: () => void;
 }) {
   return (
-    <div className="absolute inset-0 flex flex-col h-full w-full overflow-hidden">
+    <div className="relative flex min-h-full w-full flex-col overflow-x-hidden">
       <HUDBar title="NLSC 2026 · ATLANTA" showLogo />
 
-      <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
-        <div className="relative flex-1 min-h-0 overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="relative min-h-[min(38dvh,220px)] flex-1 overflow-hidden">
           <div
             className="absolute inset-0"
             style={{
@@ -154,7 +154,7 @@ export function SplashScreen({
         </div>
 
         <div
-          className="flex-shrink-0 px-[14px] py-[14px] flex flex-col gap-[7px] border-t border-[var(--bdr)]"
+          className="flex flex-shrink-0 flex-col gap-[7px] border-t border-[var(--bdr)] px-[14px] pb-[max(14px,env(safe-area-inset-bottom))] pt-[14px]"
           style={{ background: "rgba(4, 5, 6, 0.88)" }}
         >
           <GameButton variant="primary" onClick={onStart}>

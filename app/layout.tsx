@@ -50,7 +50,7 @@ export default function RootLayout({
         they become available as CSS custom properties across the whole tree
         without any inline style= prop needed.
       */}
-      <body className="antialiased bg-background text-foreground flex items-center justify-center min-h-screen overflow-hidden">
+      <body className="antialiased bg-background text-foreground flex min-h-dvh w-full flex-col items-stretch overflow-x-hidden overflow-y-auto">
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
