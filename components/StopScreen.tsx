@@ -78,6 +78,8 @@ export function StopScreen({
   const photoUrl = STOP_IMAGE_MAP[stopIndex + 1] ?? STOP_IMAGE_MAP[1];
   const brightness = STOP_BRIGHTNESS[stopIndex] ?? 0.45;
 
+  console.log(photoUrl, "hjsdgfjsh")
+
 
   const openPicker = () => {
     if (done || photoUp) return;
@@ -207,7 +209,7 @@ export function StopScreen({
       <div
         className="absolute inset-0 z-0"
         style={{
-          backgroundImage: `url('${photoUrl}')`,
+          backgroundImage: `url('${photoUrl.src}')`,
           backgroundSize: "cover",
           backgroundPosition: "center 30%",
           filter: `brightness(${brightness * 0.6}) saturate(0.65) blur(2px)`,
@@ -232,7 +234,7 @@ export function StopScreen({
           <div
             className="absolute inset-0 bg-cover bg-[center_30%]"
             style={{
-              backgroundImage: `url('${photoUrl}')`,
+              backgroundImage: `url('${photoUrl.src}')`,
               filter: `brightness(${brightness}) saturate(0.8)`,
             }}
           />

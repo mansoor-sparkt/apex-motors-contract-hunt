@@ -45,7 +45,8 @@ export function SplashScreen({
           <div
             className="absolute inset-0"
             style={{
-              backgroundImage: `url('${IMAGE_URLS.splashHero}')`,
+              backgroundImage: `url('${IMAGE_URLS.splashHero.src}')`,
+
               backgroundSize: "cover",
               backgroundPosition: "center 40%",
               filter: "brightness(0.45) saturate(0.85)",

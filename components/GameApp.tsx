@@ -25,6 +25,9 @@ import type {
   RosterEntry,
   StopCompletion,
 } from "@/lib/game-types";
+import { AuthScreen } from "./AuthScreen";
+import { OtpScreen } from "./OtpScreen";
+import { GameService } from "@/lib/game.service";
 
 function ScreenSlot({
   active,
@@ -57,6 +60,10 @@ function ScreenSlot({
 
 export function GameApp() {
   const [screen, setScreen] = useState<AppScreen>("splash");
+
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [authEmail, setAuthEmail] = useState("");
+
   const [player, setPlayer] = useState<PlayerProfile>(DEFAULT_PLAYER);
   const [registerDraft, setRegisterDraft] = useState<RegisterDraft | null>(null);
   const [stopsDone, setStopsDone] = useState<Record<number, StopCompletion>>({});
@@ -149,107 +156,92 @@ export function GameApp() {
     setScreen("hunt");
   };
 
+  // NEW: The Core Authentication Logic
+  const handleAuthSubmit = async (email: string) => {
+    setIsAuthenticating(true);
+    setAuthEmail(email);
+    // const payloade = {
+    //   email: email,
+    //   olduser: false,
+    // }
+    localStorage.setItem("user", email)
+    const oldUser = localStorage.getItem("userType") === 'old' ? true : localStorage.setItem("userType", "new")
+
+
+
+
+    try {
+      // TODO: Replace this with your actual Next.js API call later
+      // const res = await fetch('/api/auth', { method: 'POST', body: JSON.stringify({ email }) });
+      // const data = await res.json();
+
+      // Simulating a network request for 1 second
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // MOCK LOGIC: If they type "alex@school.edu", pretend they are a returning user.
+
+
+      const oldUserEmail = localStorage.getItem("user")
+      const isReturningUser = oldUser
+
+      if (isReturningUser) {
+
+        // Hydrate state from "Database" and go straight to game
+        setPlayer({
+          name: "Alex Johnson",
+          email: oldUserEmail || '',
+          school: "Lincoln Tech",
+          role: "Student",
+          avatarIndex: 0,
+        });
+
+        setScreen("otp");
+        showToast("WELCOME BACK, OPERATOR");
+      } else {
+
+        setScreen("register");
+      }
+    } catch (error) {
+      showToast("⚠️ CONNECTION ERROR");
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  // Step 2: Submit OTP
+  const handleOtpSubmit = async (code: string) => {
+    setIsAuthenticating(true);
+
+    try {
+      const data = await GameService.verifyOtp(authEmail, code);
+
+      if (data.success) {
+        // Hydrate state from DB and go to game
+        setPlayer(data?.user as PlayerProfile);
+        setScreen("hunt");
+        showToast("WELCOME BACK, OPERATOR");
+      } else {
+        showToast("⚠️ INVALID CODE");
+      }
+    } catch (error) {
+      showToast("⚠️ CONNECTION ERROR");
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+
+  const handleingAvater = (p: PlayerProfile) => {
+    localStorage.setItem('userType', 'old')
+
+    setPlayer(p);
+    setRegisterDraft(null);
+    enterHuntHub("stops");
+  }
   return (
 
 
-    // <div className="relative w-full max-w-[390px] min-h-screen sm:h-[844px] flex-shrink-0 mx-auto flex flex-col bg-black">
-    //   <PhotoBg />
-    //   <ViewportChrome />
 
-    //   <div
-    //     className="relative flex-1 sm:absolute sm:inset-0  z-10 w-full h-full  overflow-y-auto sm:overflow-hidden"
-    //     style={{
-    //       boxShadow:
-    //         "0 0 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.06)",
-    //     }}
-    //   >
-    //     {/* A: Splash */}
-    //     <ScreenSlot active={screen === "splash"} direction="fade">
-    //       <SplashScreen
-    //         onStart={() => setScreen("register")}
-    //         onDemo={quickDemo}
-    //       />
-    //     </ScreenSlot>
-
-    //     {/* B: Register */}
-    //     <ScreenSlot active={screen === "register"} direction="fwd">
-    //       <RegisterScreen
-    //         onNext={(draft) => {
-    //           setRegisterDraft(draft);
-    //           setScreen("avatar");
-    //         }}
-    //         onBack={() => setScreen("splash")}
-    //       />
-    //     </ScreenSlot>
-
-    //     {/* C: Choose Avatar */}
-    //     <ScreenSlot active={screen === "avatar"} direction="fwd">
-    //       {registerDraft ? (
-    //         <AvatarScreen
-    //           draft={registerDraft}
-    //           onComplete={(p) => {
-    //             setPlayer(p);
-    //             setRegisterDraft(null);
-    //             enterHuntHub("stops");
-    //           }}
-    //           onBack={() => setScreen("register")}
-    //         />
-    //       ) : (
-    //         <RegisterScreen
-    //           onNext={(draft) => {
-    //             setRegisterDraft(draft);
-    //             setScreen("avatar");
-    //           }}
-    //         />
-    //       )}
-    //     </ScreenSlot>
-
-    //     {/* D: Hunt Hub (Stops | Shorts | Board | Traveler) */}
-    //     <ScreenSlot active={screen === "hunt"} direction="fwd">
-    //       <HuntScreen
-    //         player={player}
-    //         score={score}
-    //         stopsDone={stopsDone}
-    //         shortsDone={shortsDone}
-    //         roster={roster}
-    //         activeTab={huntTab}
-    //         onTabChange={setHuntTab}
-    //         onOpenStop={openStop}
-    //         onShortComplete={(slug) => {
-    //           setShortsDone((prev) => ({ ...prev, [slug]: true }));
-    //         }}
-    //         onCelebrate={(state) => {
-    //           setCelebrationDismiss(null);
-    //           openCelebration(state, "shorts");
-    //         }}
-    //         onToast={showToast}
-    //       />
-    //     </ScreenSlot>
-
-    //     {/* E: Stop Detail */}
-    //     <ScreenSlot active={screen === "stop"} direction="fwd">
-    //       <StopScreen
-    //         stopIndex={curStop}
-    //         player={player}
-    //         stopsDone={stopsDone}
-    //         onBack={() => setScreen("hunt")}
-    //         onSubmit={handleStopSubmit}
-    //         onNavigate={openStop}
-    //         onToast={showToast}
-    //         onCelebrate={(state) => openCelebration(state, "stop")}
-    //       />
-    //     </ScreenSlot>
-
-    //     {/* I: Celebration → D (or H when 8 stops done) */}
-    //     <CelebrationModal
-    //       state={celebration}
-    //       onClose={dismissCelebration}
-    //       onContinue={dismissCelebration}
-    //     />
-
-    //     <GameToast message={toast} onDone={() => setToast(null)} />
-    //   </div>
-    // </div>
 
 
     <div className="mx-auto w-full max-w-[390px] min-h-dvh overflow-x-hidden overflow-y-auto">
@@ -266,34 +258,73 @@ export function GameApp() {
               "0 0 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.06)",
           }}
         >
+
+          {/* background overlays  */}
+          <div
+            className="absolute inset-0 z-[3] pointer-events-none opacity-60"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E")`,
+              mixBlendMode: 'overlay',
+            }}
+          />
+
+          <div
+            className="absolute inset-0 z-[4] pointer-events-none"
+            style={{
+
+
+              background:
+                `repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0, 0, 0, 0.06) 3px, rgba(0, 0, 0, 0.06) 4px)`
+
+            }}
+          />
           {/* A: Splash */}
           <ScreenSlot active={screen === "splash"} direction="fade">
             <SplashScreen
-              onStart={() => setScreen("register")}
+              onStart={() => setScreen("auth")}
               onDemo={quickDemo}
             />
           </ScreenSlot>
 
-          {/* B: Register */}
-          <ScreenSlot active={screen === "register"} direction="fwd">
-            <RegisterScreen
-              onNext={(draft) => {
-                setRegisterDraft(draft);
-                setScreen("avatar");
-              }}
+          {/* B: Auth (NEW) */}
+          <ScreenSlot active={screen === "auth"} direction="fwd">
+            <AuthScreen
+              isLoading={isAuthenticating}
+              onNext={handleAuthSubmit}
               onBack={() => setScreen("splash")}
             />
           </ScreenSlot>
 
-          {/* C: Choose Avatar */}
+          {/* B2: OTP Verification (For returning users) */}
+          <ScreenSlot active={screen === "otp"} direction="fwd">
+            <OtpScreen
+              email={authEmail}
+              isLoading={isAuthenticating}
+              onVerify={handleOtpSubmit}
+              onBack={() => setScreen("auth")}
+            />
+          </ScreenSlot>
+
+          {/* C: Register */}
+          <ScreenSlot active={screen === "register"} direction="fwd">
+            <RegisterScreen
+              initialEmail={authEmail}
+              onNext={(draft) => {
+                setRegisterDraft(draft);
+                setScreen("avatar");
+              }}
+              onBack={() => setScreen("auth")}
+            />
+          </ScreenSlot>
+
+          {/* D: Choose Avatar */}
           <ScreenSlot active={screen === "avatar"} direction="fwd">
             {registerDraft ? (
               <AvatarScreen
                 draft={registerDraft}
                 onComplete={(p) => {
-                  setPlayer(p);
-                  setRegisterDraft(null);
-                  enterHuntHub("stops");
+                  handleingAvater(p)
+
                 }}
                 onBack={() => setScreen("register")}
               />
@@ -307,7 +338,7 @@ export function GameApp() {
             )}
           </ScreenSlot>
 
-          {/* D: Hunt Hub */}
+          {/* E: Hunt Hub */}
           <ScreenSlot active={screen === "hunt"} direction="fwd">
             <HuntScreen
               player={player}
@@ -325,7 +356,7 @@ export function GameApp() {
             />
           </ScreenSlot>
 
-          {/* E: Stop Detail */}
+          {/* F: Stop Detail */}
           <ScreenSlot active={screen === "stop"} direction="fwd">
             <StopScreen
               stopIndex={curStop}
@@ -339,7 +370,7 @@ export function GameApp() {
             />
           </ScreenSlot>
 
-          {/* I: Celebration Modal */}
+          {/* G: Celebration Modal */}
           <CelebrationModal
             state={celebration}
             onClose={dismissCelebration}

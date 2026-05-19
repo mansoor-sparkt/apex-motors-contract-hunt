@@ -35,6 +35,8 @@ export type HuntTab = "stops" | "shorts" | "board" | "comp";
  */
 export type AppScreen =
   | "splash"
+  | "auth"
+  | "otp"
   | "register"
   | "avatar"
   | "hunt"

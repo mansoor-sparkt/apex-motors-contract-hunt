@@ -45,16 +45,18 @@ export function JobTravelerScreen({
 
   return (
     <div className="game-scroll flex-1 min-h-0 pb-20 h-full">
-      <div className="comp-hero px-4 py-4 text-center flex-shrink-0 bg-gradient-to-b from-[rgba(241,92,48,0.08)] to-transparent">
+      <div className="comp-hero px-4 py-4 text-center flex-shrink-0 bg-gradient-to-b from-[rgba(241,92,48,0.08)] to-transparent ">
         <div className="game-bc flex justify-center mb-2">
           HUNT <span style={{ margin: "0 5px", color: "var(--o)" }}>›</span>{" "}
           <span style={{ color: "var(--o)" }}>JOB TRAVELER</span>
         </div>
-        <div
-          className="text-[52px] mb-2"
-          style={{ animation: "compBounce 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}
-        >
-          🏭
+        <div className="flex justify-center">
+          <div
+            className="text-[52px] w-fit  mb-2"
+            style={{ animation: "compBounce 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}
+          >
+            🏭
+          </div>
         </div>
         <h2 className="font-orbitron text-[22px] font-black tracking-[0.04em] leading-tight my-2.5">
           500 BRACKETS

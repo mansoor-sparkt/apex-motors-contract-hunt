@@ -1,24 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HUDBar, GameButton } from "./GameComponents";
 import { ROLES, IMAGE_URLS } from "@/constants";
 import type { RegisterDraft } from "@/lib/game-types";
 
 export function RegisterScreen({
+  initialEmail,
   onNext,
   onBack,
 }: {
+  initialEmail?: string;
   onNext: (draft: RegisterDraft) => void;
   onBack?: () => void;
 }) {
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail || "");
   const [school, setSchool] = useState("");
   const [role, setRole] = useState("Student");
 
+  console.log(email)
+
   // 1. Add error state tracking
   const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+
+
+  useEffect(() => {
+    if (initialEmail) {
+      setEmail(initialEmail);
+    }
+  }, [initialEmail]);
 
   // 2. Simple email regex validation
   const validateEmail = (emailStr: string) => {
@@ -48,6 +59,7 @@ export function RegisterScreen({
 
     // Clear errors on success
     setErrors({});
+
 
     onNext({
       name: name.trim(),
@@ -110,6 +122,7 @@ export function RegisterScreen({
               placeholder="alex@school.edu"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              readOnly={!!initialEmail}
             />
           </div>
           <div className="game-field">
