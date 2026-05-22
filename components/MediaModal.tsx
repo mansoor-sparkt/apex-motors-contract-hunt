@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+
 
 // ── MEDIA PREVIEW MODAL ──────────────────────────────────────────────────────
 const MediaModal = ({
@@ -37,8 +37,8 @@ const MediaModal = ({
           }}
         >
 
-          <Dialog.Title asChild>
-            <VisuallyHidden>{title}</VisuallyHidden>
+          <Dialog.Title style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap", border: 0 }}>
+            {title}
           </Dialog.Title>
           <div
             style={{
