@@ -3,11 +3,27 @@ export interface PlayerProfile {
   email: string;
   school: string;
   role: string;
+  shopName: string;
   avatarIndex: number;
 }
 
-/** Registration form data before avatar selection (Splash → Register → Avatar). */
+export interface PlayeRegisterProfile {
+  emailId: string;
+  operatorName: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string; // Default since it's not in UI
+  profilePicture: string;
+  schoolOrCompany: string;
+  shopName?: string;
+  role: string;
+  machinistCharacter: string;
+  isProfileComplete: boolean;
+}
+
+/** Registration form data before avatar selection (Splash → Intro → Register → Avatar). */
 export interface RegisterDraft {
+  shopName: string;
   name: string;
   email: string;
   school: string;
@@ -19,6 +35,13 @@ export interface StopCompletion {
   badge: string | null;
   rn?: string;
   qs?: number;
+}
+
+/** Shop floor short submission with local media preview. */
+export interface ShortCompletion {
+  mediaType: "image" | "video";
+  previewUrl: string;
+  badge: string;
 }
 
 export interface RosterEntry {
@@ -35,6 +58,7 @@ export type HuntTab = "stops" | "shorts" | "board" | "comp";
  */
 export type AppScreen =
   | "splash"
+  | "intro"
   | "auth"
   | "otp"
   | "register"

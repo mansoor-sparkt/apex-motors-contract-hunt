@@ -25,7 +25,7 @@ export function AvatarScreen({
 
   return (
     <div className="absolute inset-0 flex flex-col h-full overflow-hidden">
-      <HUDBar title="SELECT OPERATOR" onBack={onBack} />
+      <HUDBar title="SELECT MACHINIST" onBack={onBack} />
 
       <div className="relative flex-1 overflow-hidden flex flex-col">
         <div
@@ -34,15 +34,15 @@ export function AvatarScreen({
         />
         <div className="game-form-scroll">
           <div className="game-bc">
-            REGISTER <span>›</span> OPERATOR
+            SETUP <span>›</span> CHARACTER
           </div>
           <h1 className="game-form-title">
-            CHOOSE YOUR
+            PICK YOUR
             <br />
             MACHINIST
           </h1>
           <p className="game-form-sub">
-            THIS CHARACTER APPEARS ON YOUR JOB TRAVELER
+            YOUR CHARACTER TITLE APPEARS ON EVERY MISSION CARD
           </p>
 
           <div className="game-av-g">
@@ -59,8 +59,8 @@ export function AvatarScreen({
                 >
                   {av.em}
                 </div>
-                <div className="game-av-name">{av.n}</div>
-                <div className="game-av-role">{av.role}</div>
+                <div className="game-av-name">{av.title}</div>
+                <div className="game-av-role whitespace-pre-line">{av.role}</div>
               </button>
             ))}
           </div>

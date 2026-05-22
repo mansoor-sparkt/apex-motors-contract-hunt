@@ -73,10 +73,30 @@ export const ROLES = [
 ];
 
 export const AVS = [
-  { em: "🧑‍🔧", n: "RICKY REYES", role: "Speed demon. Tight tolerances." },
-  { em: "👩‍🔬", n: "MAYA TORRES", role: "Quality first. CMM is her weapon." },
-  { em: "🧑‍💻", n: "DEV PATEL", role: "CAM wizard. Toolpaths are art." },
-  { em: "👩‍🏭", n: "SAM OKAFOR", role: "Shop floor veteran. Seen it all." },
+  {
+    em: "⚡",
+    title: "SPEED DEMON",
+    n: "SPEED DEMON",
+    role: "Fastest cycle times.\nDeadlines don't scare you.",
+  },
+  {
+    em: "🎯",
+    title: "TOLERANCE MASTER",
+    n: "TOLERANCE MASTER",
+    role: "±0.001\" all day.\nFirst article, every time.",
+  },
+  {
+    em: "💻",
+    title: "CHIP SLAYER",
+    n: "CHIP SLAYER",
+    role: "Toolpaths are art.\nCAM is your superpower.",
+  },
+  {
+    em: "🔬",
+    title: "PRECISION PRO",
+    n: "PRECISION PRO",
+    role: "Quality champion.\nCMM is your weapon.",
+  },
 ];
 
 export const STOPS = [
@@ -88,7 +108,8 @@ export const STOPS = [
       "Apex Motors just called. They need 500 brake caliper brackets in 6 weeks. You take the job. Time to figure out what you're working with.",
     fi: "Photo of any part on display or booth banner",
     bt: "calc" as const,
-    bp: "What material is this part most likely made of? Use your knowledge of manufacturing processes.",
+    bp: "What material is this part most likely made of? Use the Phillips Machinist app to research.",
+    calc: "Material Identifier",
     b1: "Material Whisperer",
     b2: "Alloy Guesser",
     b3: "Chump Change",
@@ -114,7 +135,8 @@ export const STOPS = [
       "CAD is locked in. 500 parts in 6 weeks means cycle time is everything. Every second on the machine is money made or lost.",
     fi: "Photo of any Mastercam toolpath screen",
     bt: "calc" as const,
-    bp: "MRR challenge: Roughing 6061 aluminum. Open Phillips Machinist app and calculate your material removal rate.",
+    bp: "MRR challenge: Roughing 6061 aluminum. Open Phillips Machinist and calculate your material removal rate.",
+    calc: "MRR Calculator",
     b1: "Chip Slinger",
     b2: "Roughing It",
     b3: "Butter Cutter",
@@ -140,7 +162,8 @@ export const STOPS = [
       "First part comes off the machine. Before you run another 499, you need to prove this one is right.",
     fi: "Photo of any Mitutoyo measuring tool",
     bt: "calc" as const,
-    bp: "Unit conversion sprint! Open Phillips Machinist and convert 3 values from the bracket drawing.",
+    bp: "Unit conversion sprint! Convert 3 values from the bracket drawing using the Phillips Machinist app.",
+    calc: "Unit Converter",
     b1: "Decimal Demon",
     b2: "Close Enough",
     b3: "Lost in Translation",
@@ -166,7 +189,8 @@ export const STOPS = [
       "Word's getting around that you can deliver. Deere's procurement team asks if you can quote a hydraulic fitting job.",
     fi: "Photo of any Deere part on display",
     bt: "calc" as const,
-    bp: "Multi-select: Which manufacturing processes were likely involved in the Deere part you found?",
+    bp: "Multi-select: Which manufacturing processes were likely involved in making this Deere part?",
+    calc: "Process Identifier",
     b1: "Process Boss",
     b2: "Shop Tourist",
     b3: "Window Shopper",
@@ -254,13 +278,13 @@ export const SHORTS = [
 ];
 
 export const FLB = [
-  { n: "Taylor R.", s: "Lincoln Tech", sc: 155, b: 12, av: "👩‍🔬" },
-  { n: "Jordan K.", s: "West Side CTC", sc: 140, b: 10, av: "🧑‍🔧" },
-  { n: "Priya S.", s: "Metro Tech", sc: 135, b: 9, av: "👩‍🏭" },
-  { n: "Marcus D.", s: "Southern Poly", sc: 120, b: 8, av: "🧑‍💻" },
-  { n: "Casey W.", s: "Northeast CTE", sc: 110, b: 7, av: "🧑‍🔧" },
-  { n: "Sam L.", s: "Gateway Votech", sc: 95, b: 6, av: "👩‍🔬" },
-  { n: "Eli T.", s: "Central HS", sc: 85, b: 5, av: "🧑‍💻" },
+  { n: "Taylor R.", s: "Lincoln Tech", base: 120, bonus: 35, b: 12, av: "⚡" },
+  { n: "Jordan K.", s: "West Side CTC", base: 100, bonus: 40, b: 10, av: "🎯" },
+  { n: "Priya S.", s: "Metro Tech", base: 110, bonus: 25, b: 9, av: "🔬" },
+  { n: "Marcus D.", s: "Southern Poly", base: 90, bonus: 30, b: 8, av: "💻" },
+  { n: "Casey W.", s: "Northeast CTE", base: 80, bonus: 30, b: 7, av: "⚡" },
+  { n: "Sam L.", s: "Gateway Votech", base: 70, bonus: 25, b: 6, av: "🎯" },
+  { n: "Eli T.", s: "Central HS", base: 60, bonus: 25, b: 5, av: "💻" },
 ];
 
 export const DEFAULT_PLAYER: PlayerProfile = {
@@ -268,8 +292,31 @@ export const DEFAULT_PLAYER: PlayerProfile = {
   email: "",
   school: "—",
   role: "Student",
+  shopName: "",
   avatarIndex: 0,
 };
+
+export function computeBaseScore(
+  stopsDone: Record<number, { bonus: boolean }>,
+  shortsDone: Record<string, unknown>,
+): number {
+  let base = 0;
+  Object.keys(stopsDone).forEach((k) => {
+    if (stopsDone[Number(k)]) base += 10;
+  });
+  base += Object.keys(shortsDone).length * 5;
+  return base;
+}
+
+export function computeBonusScore(
+  stopsDone: Record<number, { bonus: boolean }>,
+): number {
+  let bonus = 0;
+  Object.keys(stopsDone).forEach((k) => {
+    if (stopsDone[Number(k)]?.bonus) bonus += 5;
+  });
+  return bonus;
+}
 
 export function getActiveStopIndex(
   stopsDone: Record<number, { bonus: boolean }>,
@@ -282,21 +329,14 @@ export function getActiveStopIndex(
 
 export function computeScore(
   stopsDone: Record<number, { bonus: boolean }>,
-  shortsDone: Record<string, boolean>,
+  shortsDone: Record<string, unknown>,
 ): number {
-  let score = 0;
-  Object.keys(stopsDone).forEach((k) => {
-    const i = Number(k);
-    const d = stopsDone[i];
-    if (d) score += 10 + (d.bonus ? 5 : 0);
-  });
-  score += Object.keys(shortsDone).length * 5;
-  return score;
+  return computeBaseScore(stopsDone, shortsDone) + computeBonusScore(stopsDone);
 }
 
-export function getRank(score: number, playerName: string): number {
+export function getRank(score: number, _playerName?: string): number {
   const all = [
-    ...FLB.map((p) => ({ sc: p.sc, isYou: false })),
+    ...FLB.map((p) => ({ sc: p.base + p.bonus, isYou: false })),
     { sc: score, isYou: true },
   ].sort((a, b) => b.sc - a.sc);
   return all.findIndex((p) => p.isYou) + 1;

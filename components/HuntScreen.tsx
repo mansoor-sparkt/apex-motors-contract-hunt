@@ -4,7 +4,7 @@ import {
   HUDBar,
   ProgressPips,
   HuntStopRow,
-  ScoreRow,
+  PointsSplitRow,
   StatusTag,
 } from "./GameComponents";
 import { ShortsScreen } from "./ShortsScreen";
@@ -18,7 +18,8 @@ import {
   MAX_SCORE,
   getActiveStopIndex,
   getRank,
-
+  computeBaseScore,
+  computeBonusScore,
   IMAGE_URLS,
 } from "@/constants";
 import type {
@@ -27,12 +28,13 @@ import type {
   PlayerProfile,
   RosterEntry,
   StopCompletion,
+  ShortCompletion,
 } from "@/lib/game-types";
 
 const SUB_TAB_TITLES: Record<Exclude<HuntTab, "stops">, string> = {
   shorts: "SHOP FLOOR SHORTS",
   board: "LEADERBOARD",
-  comp: "JOB TRAVELER",
+  comp: "MISSION REPORT",
 };
 
 export function HuntScreen({
@@ -51,12 +53,12 @@ export function HuntScreen({
   player: PlayerProfile;
   score: number;
   stopsDone: Record<number, StopCompletion>;
-  shortsDone: Record<string, boolean>;
+  shortsDone: Record<string, ShortCompletion>;
   roster: RosterEntry[];
   activeTab: HuntTab;
   onTabChange: (tab: HuntTab) => void;
   onOpenStop: (index: number) => void;
-  onShortComplete: (slug: string) => void;
+  onShortComplete: (slug: string, data: ShortCompletion) => void;
   onCelebrate: (state: CelebrationState) => void;
   onToast?: (msg: string) => void;
 }) {
@@ -64,6 +66,11 @@ export function HuntScreen({
   const activeIdx = getActiveStopIndex(stopsDone);
   const stopsCount = Object.keys(stopsDone).length;
   const rank = getRank(score, player.name);
+  const baseScore = computeBaseScore(stopsDone, shortsDone);
+  const bonusScore = computeBonusScore(stopsDone);
+  const huntTitle = player.shopName
+    ? player.shopName.toUpperCase()
+    : "CONTRACT: APEX MOTORS";
   const isStopsTab = activeTab === "stops";
 
   return (
@@ -78,16 +85,16 @@ export function HuntScreen({
 
       {isStopsTab ? (
         <>
-          <HUDBar title="CONTRACT: APEX MOTORS" showLogo />
+          <HUDBar title={huntTitle} showLogo />
 
           <div className="game-hunt-hdr">
         <div className="flex items-center gap-2 relative z-[1]">
           <div className="game-hunt-av">{av.em}</div>
           <div>
-            <div className="font-orbitron text-xs font-bold tracking-[0.06em]">
-              {(player.name.split(" ")[0] || "OPERATOR").toUpperCase()}
+            <div className="font-orbitron text-[11px] font-bold tracking-[0.06em]">
+              {av.title}
             </div>
-            <div className="font-share-mono text-[10px] text-[var(--mut)]">
+            <div className="font-share-mono text-[9px] text-[var(--mut)]">
               {player.school}
             </div>
           </div>
@@ -99,11 +106,12 @@ export function HuntScreen({
         </div>
       </div>
 
-      <div className="game-sc-row">
-        <ScoreRow label="SCORE" value={score} valueColor="var(--o)" />
-        <ScoreRow label="RANK" value={`#${rank}`} valueColor="var(--c)" />
-        <ScoreRow label="STOPS" value={`${stopsCount}/${TOTAL_STOPS}`} />
-      </div>
+      <PointsSplitRow
+        base={baseScore}
+        bonus={bonusScore}
+        rank={`#${rank}`}
+        stops={`${stopsCount}/${TOTAL_STOPS}`}
+      />
 
           <ProgressPips
             total={TOTAL_STOPS}
@@ -143,39 +151,33 @@ export function HuntScreen({
       )}
 
       {activeTab === "shorts" && (
-        <div className="flex-1 min-h-0 flex flex-col">
-          <ShortsScreen
-            shortsDone={shortsDone}
-            onComplete={onShortComplete}
-            onCelebrate={onCelebrate}
-          />
-        </div>
+        <ShortsScreen
+          shortsDone={shortsDone}
+          onComplete={onShortComplete}
+          onCelebrate={onCelebrate}
+        />
       )}
 
       {activeTab === "board" && (
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <LeaderboardScreen
-            player={player}
-            score={score}
-            stopsDone={stopsDone}
-            shortsDone={shortsDone}
-          />
-        </div>
+        <LeaderboardScreen
+          player={player}
+          score={score}
+          stopsDone={stopsDone}
+          shortsDone={shortsDone}
+        />
       )}
 
       {activeTab === "comp" && (
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <JobTravelerScreen
-            player={player}
-            score={score}
-            stopsDone={stopsDone}
-            shortsDone={shortsDone}
-            roster={roster}
-            onShare={() => onToast?.("📤 Sharing your Job Traveler…")}
-            onViewLeaderboard={() => onTabChange("board")}
-            onBackToHunt={() => onTabChange("stops")}
-          />
-        </div>
+        <JobTravelerScreen
+          player={player}
+          score={score}
+          stopsDone={stopsDone}
+          shortsDone={shortsDone}
+          roster={roster}
+          onToast={onToast}
+          onViewLeaderboard={() => onTabChange("board")}
+          onBackToHunt={() => onTabChange("stops")}
+        />
       )}
 
       <BottomNav active={activeTab} onChange={onTabChange} />

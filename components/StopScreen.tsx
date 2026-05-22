@@ -77,8 +77,11 @@ export function StopScreen({
 
   const photoUrl = STOP_IMAGE_MAP[stopIndex + 1] ?? STOP_IMAGE_MAP[1];
   const brightness = STOP_BRIGHTNESS[stopIndex] ?? 0.45;
-
-  console.log(photoUrl, "hjsdgfjsh")
+  const calcLabel =
+    s.bt === "calc" && "calc" in s && s.calc
+      ? `Open ${s.calc} in app →`
+      : "Tap to open the calculator in the app";
+  const shopLabel = (player.shopName || "MY SHOP").toUpperCase();
 
 
   const openPicker = () => {
@@ -303,10 +306,10 @@ export function StopScreen({
                 }}
               >
                 <div className="font-share-mono text-[8px] text-[var(--mut)] tracking-[0.14em] uppercase">
-                  CONTRACT
+                  SHOP
                 </div>
-                <div className="font-orbitron text-[10px] font-bold text-[var(--o)]">
-                  APEX MOTORS
+                <div className="font-orbitron text-[9px] font-bold text-[var(--o)]">
+                  {shopLabel}
                 </div>
                 <div className="font-share-mono text-[9px] text-[var(--mut)]">
                   500 PCS · 6 WKS
@@ -586,6 +589,23 @@ export function StopScreen({
               : `► SUBMIT STOP ${stopIndex + 1}`}
           </GameButton>
         </div>
+
+        {s.bt === "calc" && (
+          <div className="px-[14px] pb-2.5">
+            <button
+              type="button"
+              className="game-app-cta w-full"
+              onClick={() => onToast("📱 Opening Phillips Machinist…")}
+            >
+              <span className="game-app-cta-icon">📱</span>
+              <span className="game-app-cta-text">
+                <div className="game-app-cta-title">OPEN IN PHILLIPS MACHINIST</div>
+                <div className="game-app-cta-sub">{calcLabel}</div>
+              </span>
+              <span className="game-app-cta-arrow">►</span>
+            </button>
+          </div>
+        )}
 
         <p className="font-share-mono text-[9px] text-[var(--dim)] text-center pb-3 tracking-[0.08em]">
           ← SWIPE OR USE ARROWS BELOW →

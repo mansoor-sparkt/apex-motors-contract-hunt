@@ -131,21 +131,22 @@ export function SplashScreen({
             <div className="px-5 pt-10 pb-5">
               <div className="flex items-center gap-2 mb-2 font-(--font-share-mono) text-[10px] text-[var(--c)] tracking-[0.2em] uppercase">
                 <span className="w-6 h-px bg-[var(--c)]" />
-                CONTRACT ACTIVE
+                CONTRACT INCOMING
               </div>
               <div className="font-orbitron text-[26px] font-black leading-[1.05] tracking-[0.02em]">
-                THE
+                PHILLIPS
+                <br />
+                MACHINIST
+                <br />
                 <span
-                  className="block text-[var(--o)]"
+                  className="text-[var(--o)]"
                   style={{ textShadow: "0 0 28px rgba(241,92,48,0.7)" }}
                 >
-                  APEX MOTORS
+                  CHALLENGE
                 </span>
-                <br />
-                CONTRACT
               </div>
               <div className="flex gap-[6px] mt-[10px]">
-                <SplashStat value="500" label="BRACKETS" />
+                <SplashStat value="500" label="PARTS" />
                 <SplashStat value="6 WKS" label="DEADLINE" />
                 <SplashStat value="8" label="STOPS" />
                 <SplashStat value="160" label="MAX PTS" />
@@ -159,10 +160,10 @@ export function SplashScreen({
           style={{ background: "rgba(4, 5, 6, 0.88)" }}
         >
           <GameButton variant="primary" onClick={onStart}>
-            ► TAKE THE CONTRACT
+            ► ACCEPT THE CONTRACT
           </GameButton>
           <GameButton variant="secondary" onClick={onDemo}>
-            QUICK DEMO — SKIP FORM
+            QUICK DEMO — SKIP SETUP
           </GameButton>
           <div className="font-share-mono text-[9px] text-[var(--dim)] text-center tracking-[0.08em]">
             JUN 2–4 · NLSC 2026 · POWERED BY PHILLIPS MACHINIST

@@ -3,6 +3,7 @@
 import React, { useCallback, useState } from "react";
 import { PhotoBg, ViewportChrome } from "./Background";
 import { SplashScreen } from "./SplashScreen";
+import { IntroScreen } from "./IntroScreen";
 import { RegisterScreen } from "./RegisterScreen";
 import { AvatarScreen } from "./AvatarScreen";
 import { HuntScreen } from "./HuntScreen";
@@ -24,6 +25,7 @@ import type {
   RegisterDraft,
   RosterEntry,
   StopCompletion,
+  ShortCompletion,
 } from "@/lib/game-types";
 import { AuthScreen } from "./AuthScreen";
 import { OtpScreen } from "./OtpScreen";
@@ -67,7 +69,7 @@ export function GameApp() {
   const [player, setPlayer] = useState<PlayerProfile>(DEFAULT_PLAYER);
   const [registerDraft, setRegisterDraft] = useState<RegisterDraft | null>(null);
   const [stopsDone, setStopsDone] = useState<Record<number, StopCompletion>>({});
-  const [shortsDone, setShortsDone] = useState<Record<string, boolean>>({});
+  const [shortsDone, setShortsDone] = useState<Record<string, ShortCompletion>>({});
   const [roster, setRoster] = useState<RosterEntry[]>([]);
   const [huntTab, setHuntTab] = useState<HuntTab>("stops");
   const [curStop, setCurStop] = useState(0);
@@ -113,6 +115,7 @@ export function GameApp() {
       email: "alex@school.edu",
       school: "Lincoln Tech",
       role: "Student",
+      shopName: "Apex Precision Works",
       avatarIndex: 0,
     });
     setRegisterDraft(null);
@@ -120,7 +123,7 @@ export function GameApp() {
       0: { bonus: true, badge: "Material Whisperer" },
       1: { bonus: false, badge: null },
     });
-    setShortsDone({ "action-hero": true });
+    setShortsDone({});
     setRoster([]);
     setHuntTab("stops");
     setCelebrationDismiss(null);
@@ -158,70 +161,133 @@ export function GameApp() {
 
   // NEW: The Core Authentication Logic
   const handleAuthSubmit = async (email: string) => {
-    setIsAuthenticating(true);
-    setAuthEmail(email);
-    // const payloade = {
-    //   email: email,
-    //   olduser: false,
+    // setIsAuthenticating(true);
+    // setAuthEmail(email);
+    // // const payloade = {
+    // //   email: email,
+    // //   olduser: false,
+    // // }
+    // localStorage.setItem("user", email)
+    // const oldUser = localStorage.getItem("userType") === 'old' ? true : localStorage.setItem("userType", "new")
+
+
+
+
+    // try {
+    //   // TODO: Replace this with your actual Next.js API call later
+    //   // const res = await fetch('/api/auth', { method: 'POST', body: JSON.stringify({ email }) });
+    //   // const data = await res.json();
+
+    //   // Simulating a network request for 1 second
+    //   await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    //   // MOCK LOGIC: If they type "alex@school.edu", pretend they are a returning user.
+
+
+    //   const oldUserEmail = localStorage.getItem("user")
+    //   const isReturningUser = oldUser
+
+    //   if (isReturningUser) {
+
+    //     // Hydrate state from "Database" and go straight to game
+    //     setPlayer({
+    //       name: "Alex Johnson",
+    //       email: oldUserEmail || '',
+    //       school: "Lincoln Tech",
+    //       role: "Student",
+    //       avatarIndex: 0,
+    //     });
+
+    //     setScreen("otp");
+    //     showToast("WELCOME BACK, OPERATOR");
+    //   } else {
+
+    //     setScreen("register");
+    //   }
+    // } catch (error) {
+    //   showToast("⚠️ CONNECTION ERROR");
+    // } finally {
+    //   setIsAuthenticating(false);
     // }
-    localStorage.setItem("user", email)
-    const oldUser = localStorage.getItem("userType") === 'old' ? true : localStorage.setItem("userType", "new")
 
 
-
+    setIsAuthenticating(true);
+    setAuthEmail(email); // Save email so Register or OTP screen can use it
 
     try {
-      // TODO: Replace this with your actual Next.js API call later
-      // const res = await fetch('/api/auth', { method: 'POST', body: JSON.stringify({ email }) });
-      // const data = await res.json();
+      // 1. Call your clean service layer using the email directly
+      // const data = await GameService.registerEmail(email);
+      const data = {
+        success: true
+      }
 
-      // Simulating a network request for 1 second
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // MOCK LOGIC: If they type "alex@school.edu", pretend they are a returning user.
+      // 2. Check standardized success response
+      if (data.success) {
 
 
-      const oldUserEmail = localStorage.getItem("user")
-      const isReturningUser = oldUser
-
-      if (isReturningUser) {
-
-        // Hydrate state from "Database" and go straight to game
-        setPlayer({
-          name: "Alex Johnson",
-          email: oldUserEmail || '',
-          school: "Lincoln Tech",
-          role: "Student",
-          avatarIndex: 0,
-        });
-
+        // It's a returning user! Go to OTP Verification
         setScreen("otp");
-        showToast("WELCOME BACK, OPERATOR");
-      } else {
+        showToast("SECURITY CODE SENT TO EMAIL");
 
-        setScreen("register");
+
+      } else {
+        // 3. Handle errors safely (e.g., "External API is down")
+        // showToast(`⚠️ ${data.error.toUpperCase()}`);
       }
     } catch (error) {
-      showToast("⚠️ CONNECTION ERROR");
+      showToast("⚠️ FATAL CONNECTION ERROR");
     } finally {
       setIsAuthenticating(false);
     }
   };
 
-  // Step 2: Submit OTP
-  const handleOtpSubmit = async (code: string) => {
+  // Step 2: Submit OTP & Check Profile Status
+  const handleOtpSubmit = async (otp: string) => {
     setIsAuthenticating(true);
 
     try {
-      const data = await GameService.verifyOtp(authEmail, code);
+      // const data = await GameService.verifyOtp(authEmail, otp);
+
+      const data = {
+        success: true,
+        isProfileComplete: true,
+        user: {
+          operatorName: 'Machiniest',
+          firstName: 'John',
+          emailId: "machine@gmail.com",
+          schoolOrCompany: '',
+          role: '',
+          machinistCharacter: '',
+          shopName: ''
+        }
+
+
+      }
 
       if (data.success) {
-        // Hydrate state from DB and go to game
-        setPlayer(data?.user as PlayerProfile);
-        setScreen("hunt");
-        showToast("WELCOME BACK, OPERATOR");
+        // OTP was correct! Now, are they fully setup?
+        if (data.isProfileComplete) {
+          // Returning player with a complete profile!
+
+          // Note: Make sure data.user matches your PlayerProfile state structure. 
+          // You might need to map it if the database keys are different.
+          setPlayer({
+            name: data.user.operatorName || data.user.firstName || "Operator",
+            email: data.user.emailId,
+            school: data.user.schoolOrCompany || "My School",
+            role: data.user.role || "Student",
+            shopName: data.user.shopName || data.user.schoolOrCompany || "",
+            avatarIndex: data.user.machinistCharacter ? parseInt(data.user.machinistCharacter) : 0,
+          });
+
+          setScreen("hunt");
+          showToast("WELCOME BACK, OPERATOR");
+        } else {
+          // New player, OR player who verified email but never picked an avatar
+          setScreen("register");
+        }
       } else {
-        showToast("⚠️ INVALID CODE");
+        // showToast(`⚠️ ${data.error?.toUpperCase() || "INVALID CODE"}`);
       }
     } catch (error) {
       showToast("⚠️ CONNECTION ERROR");
@@ -230,14 +296,57 @@ export function GameApp() {
     }
   };
 
+  const registerHadnler = async (p: PlayerProfile) => {
+    setIsAuthenticating(true); // Show loading state
 
-  const handleingAvater = (p: PlayerProfile) => {
-    localStorage.setItem('userType', 'old')
+    try {
+      // 1. Build the exact payload the backend expects
+      const nameParts = p.name.split(" ");
+      const firstName = nameParts[0];
+      const lastName = nameParts.slice(1).join(" ") || "Player";
 
-    setPlayer(p);
-    setRegisterDraft(null);
-    enterHuntHub("stops");
+      const backendPayload = {
+        emailId: p.email,
+        operatorName: p.name,
+        firstName: firstName,
+        lastName: lastName,
+        phoneNumber: "0000000000",
+        profilePicture: "",
+        schoolOrCompany: p.school,
+        shopName: p.shopName,
+        role: p.role,
+        machinistCharacter: p.avatarIndex.toString(),
+        isProfileComplete: true,
+      };
+
+      // 2. Call the Next.js API
+      const data = await GameService.registerUser(backendPayload);
+
+      if (data.success) {
+        // 3. Success! Set player, clear draft, move to game
+        setPlayer(p);
+        setRegisterDraft(null);
+
+        enterHuntHub("stops");
+        showToast("PROFILE CREATED!");
+      } else {
+        showToast(`⚠️ ${data.error.toUpperCase()}`);
+      }
+    } catch (err) {
+      showToast("⚠️ FAILED TO SAVE PROFILE");
+    } finally {
+      setIsAuthenticating(false);
+    }
   }
+
+
+  // const handleingAvater = (p: PlayerProfile) => {
+  //   // localStorage.setItem('userType', 'old')
+
+  //   setPlayer(p);
+  //   setRegisterDraft(null);
+  //   enterHuntHub("stops");
+  // }
   return (
 
 
@@ -281,12 +390,20 @@ export function GameApp() {
           {/* A: Splash */}
           <ScreenSlot active={screen === "splash"} direction="fade">
             <SplashScreen
-              onStart={() => setScreen("auth")}
+              onStart={() => setScreen("intro")}
               onDemo={quickDemo}
             />
           </ScreenSlot>
 
-          {/* B: Auth (NEW) */}
+          {/* A2: Mission brief */}
+          <ScreenSlot active={screen === "intro"} direction="fwd">
+            <IntroScreen
+              onNext={() => setScreen("auth")}
+              onBack={() => setScreen("splash")}
+            />
+          </ScreenSlot>
+
+          {/* B: Auth */}
           <ScreenSlot active={screen === "auth"} direction="fwd">
             <AuthScreen
               isLoading={isAuthenticating}
@@ -309,6 +426,7 @@ export function GameApp() {
           <ScreenSlot active={screen === "register"} direction="fwd">
             <RegisterScreen
               initialEmail={authEmail}
+              draft={registerDraft}
               onNext={(draft) => {
                 setRegisterDraft(draft);
                 setScreen("avatar");
@@ -322,10 +440,11 @@ export function GameApp() {
             {registerDraft ? (
               <AvatarScreen
                 draft={registerDraft}
-                onComplete={(p) => {
-                  handleingAvater(p)
+                onComplete={(p) => registerHadnler(p)}
+                // onComplete={(p) => {
+                //   handleingAvater(p)
 
-                }}
+                // }}
                 onBack={() => setScreen("register")}
               />
             ) : (
@@ -349,10 +468,13 @@ export function GameApp() {
               activeTab={huntTab}
               onTabChange={setHuntTab}
               onOpenStop={openStop}
-              onShortComplete={(slug) => {
-                setShortsDone((prev) => ({ ...prev, [slug]: true }));
+
+
+              onShortComplete={(slug, data) => {
+                setShortsDone((prev) => ({ ...prev, [slug]: data }));
               }}
               onCelebrate={(state) => openCelebration(state, "shorts")}
+              onToast={showToast}
             />
           </ScreenSlot>
 

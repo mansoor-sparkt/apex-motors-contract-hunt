@@ -3,7 +3,7 @@
 import React from 'react';
 
 const SN_CLIP =
-  'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))';
+  'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))';
 
 export function GameButton({
   children,
@@ -126,45 +126,44 @@ export function HuntStopRow({
   bonus?: boolean;
   onClick?: () => void;
 }) {
-  const pts = done
-    ? `${bonus ? 15 : 10} PTS`
-    : active
-      ? '10–15 PTS'
-      : '';
+  const showBase = done || active;
+  const showBonus = done && bonus;
 
   const boxClass = done
-    ? 'bg-[rgba(57,255,20,0.12)] text-[var(--g)]'
+    ? 'game-sn-d'
     : active
-      ? 'bg-[var(--o)] text-white shadow-[0_0_14px_rgba(241,92,48,0.6)]'
-      : 'bg-[rgba(255,255,255,0.04)] text-[var(--dim)]';
+      ? 'game-sn-a'
+      : 'game-sn-l';
 
   return (
     <div
       role={locked ? undefined : 'button'}
+      tabIndex={locked ? undefined : 0}
       onClick={locked ? undefined : onClick}
+      onKeyDown={
+        locked
+          ? undefined
+          : (e) => {
+              if (e.key === 'Enter' || e.key === ' ') onClick?.();
+            }
+      }
       className={`game-stop-row${done ? ' done' : ''}${active ? ' act' : ''}${locked ? ' lock' : ''}`}
     >
-      <div
-        className={`w-[34px] h-[34px] flex items-center justify-center font-orbitron text-xs font-bold flex-shrink-0 ${boxClass}`}
-        style={{ clipPath: SN_CLIP }}
-      >
+      <div className={`game-sn-box ${boxClass}`} style={{ clipPath: SN_CLIP }}>
         {done ? '✓' : locked ? '🔒' : index + 1}
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="font-orbitron text-xs font-bold tracking-[0.04em]">
-          {company}
-        </div>
-        <div className="font-share-mono text-[10px] text-[var(--mut)] mt-[1px] truncate">
-          {task}
-        </div>
+      <div className="game-stop-info">
+        <div className="game-stop-co">{company}</div>
+        <div className="game-stop-tk">{task}</div>
       </div>
-      <div className="text-right flex-shrink-0">
-        {pts ? (
-          <div className="font-orbitron text-[11px] font-bold text-[var(--g)]">
-            {pts}
-          </div>
+      <div className="game-stop-pts">
+        {showBase ? (
+          <div className="game-stop-base-pts">10 BASE</div>
         ) : null}
-        {!locked && <div className="text-sm text-[var(--o)] mt-[2px]">►</div>}
+        {showBonus ? (
+          <div className="game-stop-bonus-pts">+5 BONUS</div>
+        ) : null}
+        {!locked ? <div className="game-stop-arrow">►</div> : null}
       </div>
     </div>
   );
@@ -185,6 +184,39 @@ export function ScoreRow({
         {value}
       </div>
       <div className="game-sc-lbl">{label}</div>
+    </div>
+  );
+}
+
+export function PointsSplitRow({
+  base,
+  bonus,
+  rank,
+  stops,
+}: {
+  base: number;
+  bonus: number;
+  rank: string;
+  stops: string;
+}) {
+  return (
+    <div className="game-pts-split">
+      <div className="game-pts-base">
+        <div className="game-pts-val text-[var(--o)]">{base}</div>
+        <div className="game-pts-lbl">BASE PTS</div>
+      </div>
+      <div className="game-pts-bonus">
+        <div className="game-pts-val text-[var(--am)]">+{bonus}</div>
+        <div className="game-pts-lbl">BONUS PTS</div>
+      </div>
+      <div className="game-pts-base">
+        <div className="game-pts-val text-[var(--c)]">{rank}</div>
+        <div className="game-pts-lbl">RANK</div>
+      </div>
+      <div className="game-pts-base">
+        <div className="game-pts-val">{stops}</div>
+        <div className="game-pts-lbl">STOPS</div>
+      </div>
     </div>
   );
 }

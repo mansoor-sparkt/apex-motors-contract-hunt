@@ -7,61 +7,60 @@ import type { RegisterDraft } from "@/lib/game-types";
 
 export function RegisterScreen({
   initialEmail,
+  draft,
   onNext,
   onBack,
 }: {
   initialEmail?: string;
+  draft?: RegisterDraft | null;
   onNext: (draft: RegisterDraft) => void;
   onBack?: () => void;
 }) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState(initialEmail || "");
-  const [school, setSchool] = useState("");
-  const [role, setRole] = useState("Student");
+  const [shopName, setShopName] = useState(draft?.shopName || "");
+  const [name, setName] = useState(draft?.name || "");
+  const [email, setEmail] = useState(draft?.email || initialEmail || "");
+  const [school, setSchool] = useState(draft?.school || "");
+  const [role, setRole] = useState(draft?.role || "Student");
 
-  console.log(email)
-
-  // 1. Add error state tracking
-  const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
-
+  const [errors, setErrors] = useState<{
+    shopName?: string;
+    name?: string;
+    email?: string;
+  }>({});
 
   useEffect(() => {
-    if (initialEmail) {
+    if (initialEmail && !draft?.email) {
       setEmail(initialEmail);
     }
-  }, [initialEmail]);
+  }, [initialEmail, draft]);
 
-  // 2. Simple email regex validation
   const validateEmail = (emailStr: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailStr);
   };
 
   const submit = () => {
-    const newErrors: { name?: string; email?: string } = {};
+    const newErrors: { shopName?: string; name?: string; email?: string } = {};
 
-    // Validate Name
+    if (!shopName.trim()) {
+      newErrors.shopName = "⚠️ SHOP NAME REQUIRED";
+    }
     if (!name.trim()) {
       newErrors.name = "⚠️ OPERATOR NAME REQUIRED";
     }
-
-    // Validate Email
     if (!email.trim()) {
       newErrors.email = "⚠️ RESUME KEY / EMAIL REQUIRED";
     } else if (!validateEmail(email.trim())) {
       newErrors.email = "⚠️ INVALID EMAIL FORMAT";
     }
 
-    // If there are errors, block submission and update state
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    // Clear errors on success
     setErrors({});
-
-
     onNext({
+      shopName: shopName.trim(),
       name: name.trim(),
       email: email.trim(),
       school: school.trim() || "My School",
@@ -71,7 +70,7 @@ export function RegisterScreen({
 
   return (
     <div className="absolute inset-0 flex flex-col h-full overflow-hidden">
-      <HUDBar title="OPERATOR REGISTRATION" onBack={onBack} />
+      <HUDBar title="NAME YOUR SHOP" onBack={onBack} />
 
       <div className="relative flex-1 overflow-hidden flex flex-col">
         <div
@@ -80,18 +79,38 @@ export function RegisterScreen({
         />
         <div className="game-form-scroll">
           <div className="game-bc">
-            HOME <span>›</span> REGISTER
+            INTRO <span>›</span> SHOP SETUP
           </div>
           <h1 className="game-form-title">
-            WHO&apos;S TAKING
+            WHAT&apos;S YOUR
             <br />
-            THIS JOB?
+            SHOP CALLED?
           </h1>
-          <p className="game-form-sub">NO ACCOUNT · NO PASSWORD · JUST START</p>
+          <p className="game-form-sub">
+            YOUR SHOP NAME APPEARS ON EVERY MISSION CARD
+          </p>
 
           <div className="game-field">
-            <label>Operator Name</label>
-
+            <label>Shop Name</label>
+            {errors.shopName && (
+              <span className="text-red-500 text-xs font-bold tracking-wider animate-pulse">
+                {errors.shopName}
+              </span>
+            )}
+            <input
+              className={`game-input ${errors.shopName ? "border-red-500 focus:border-red-500" : ""}`}
+              type="text"
+              placeholder="Apex Precision Works"
+              value={shopName}
+              onChange={(e) => {
+                setShopName(e.target.value);
+                if (errors.shopName)
+                  setErrors((prev) => ({ ...prev, shopName: undefined }));
+              }}
+            />
+          </div>
+          <div className="game-field">
+            <label>Your Name</label>
             {errors.name && (
               <span className="text-red-500 text-xs font-bold tracking-wider animate-pulse">
                 {errors.name}
@@ -104,31 +123,35 @@ export function RegisterScreen({
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
-                if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
+                if (errors.name)
+                  setErrors((prev) => ({ ...prev, name: undefined }));
               }}
             />
           </div>
           <div className="game-field">
             <label>Email — your resume key</label>
-
             {errors.email && (
               <span className="text-red-500 text-xs font-bold tracking-wider animate-pulse">
                 {errors.email}
               </span>
             )}
             <input
-              className={`game-input ${errors.name ? "border-red-500 focus:border-red-500" : ""}`}
+              className={`game-input ${errors.email ? "border-red-500 focus:border-red-500" : ""}`}
               type="email"
               placeholder="alex@school.edu"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (errors.email)
+                  setErrors((prev) => ({ ...prev, email: undefined }));
+              }}
               readOnly={!!initialEmail}
             />
           </div>
           <div className="game-field">
             <label>School / Company</label>
             <input
-              className={`game-input ${errors.name ? "border-red-500 focus:border-red-500" : ""}`}
+              className="game-input"
               type="text"
               placeholder="Lincoln Tech"
               value={school}
@@ -136,7 +159,7 @@ export function RegisterScreen({
             />
           </div>
           <div className="game-field">
-            <label>Role</label>
+            <label>You are a…</label>
             <div className="game-role-g">
               {ROLES.map((r) => (
                 <button
@@ -153,7 +176,7 @@ export function RegisterScreen({
           </div>
 
           <div className="h-[14px]" />
-          <GameButton onClick={submit}>► NEXT: CHOOSE MACHINIST</GameButton>
+          <GameButton onClick={submit}>► CHOOSE YOUR MACHINIST</GameButton>
         </div>
       </div>
     </div>

@@ -1,6 +1,12 @@
 "use client";
 
-import { AVS, FLB, getRank } from "@/constants";
+import {
+  AVS,
+  FLB,
+  computeBaseScore,
+  computeBonusScore,
+  getRank,
+} from "@/constants";
 import type { PlayerProfile } from "@/lib/game-types";
 
 export function LeaderboardScreen({
@@ -12,17 +18,21 @@ export function LeaderboardScreen({
   player: PlayerProfile;
   score: number;
   stopsDone: Record<number, { bonus: boolean; badge: string | null }>;
-  shortsDone: Record<string, boolean>;
+  shortsDone: Record<string, unknown>;
 }) {
   const badgeCount =
     Object.keys(stopsDone).length + Object.keys(shortsDone).length;
   const av = AVS[player.avatarIndex] ?? AVS[0];
+  const baseScore = computeBaseScore(stopsDone, shortsDone);
+  const bonusScore = computeBonusScore(stopsDone);
 
   const all = [
     ...FLB.map((p) => ({
       n: p.n,
       s: p.s,
-      sc: p.sc,
+      base: p.base,
+      bonus: p.bonus,
+      total: p.base + p.bonus,
       b: p.b,
       av: p.av,
       isYou: false,
@@ -30,91 +40,75 @@ export function LeaderboardScreen({
     {
       n: player.name || "You",
       s: player.school,
-      sc: score,
+      base: baseScore,
+      bonus: bonusScore,
+      total: score,
       b: badgeCount,
       av: av.em,
       isYou: true,
     },
-  ].sort((a, b) => b.sc - a.sc);
+  ].sort((a, b) => b.total - a.total);
 
   const rank = getRank(score, player.name);
   const dateStr = new Date().toLocaleDateString();
 
   return (
-    <div className="game-scroll flex-1 min-h-0 pb-20">
-      <div className="px-[14px] pt-2.5 flex-shrink-0">
+    <div className="game-hub-panel">
+      <div className="game-lb-hdr">
         <div className="game-bc">
           HUNT <span>›</span> LEADERBOARD
         </div>
-        <p className="font-share-mono text-[10px] text-[var(--mut)] tracking-[0.08em] mb-2.5">
+        <p className="font-share-mono text-[10px] text-[var(--mut)] tracking-[0.08em] mb-2">
           {all.length + 180} PARTICIPANTS · {dateStr}
         </p>
       </div>
 
-      <div
-        className="mx-[14px] mb-2.5 flex items-center gap-2.5 p-[11px_14px] border border-[var(--bdr)] bg-[rgba(241,92,48,0.09)]"
-        style={{
-          clipPath:
-            "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
-        }}
-      >
-        <div className="font-orbitron text-xl font-black text-[var(--o)] min-w-9">
-          #{rank}
-        </div>
-        <div
-          className="w-7 h-7 flex items-center justify-center text-[15px] bg-[rgba(255,255,255,0.04)] border border-[var(--bdr)] flex-shrink-0"
-          style={{
-            clipPath:
-              "polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px))",
-          }}
-        >
-          {av.em}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="font-orbitron text-xs font-semibold text-[var(--o)] truncate">
+      <div className="game-lb-you">
+        <div className="game-lb-rank">#{rank}</div>
+        <div className="game-lb-av">{av.em}</div>
+        <div className="game-lb-info">
+          <div className="game-lb-pn you">
             {(player.name || "YOU").toUpperCase()}
           </div>
-          <div className="font-share-mono text-[10px] text-[var(--mut)]">
+          <div className="game-lb-sc">
             {player.school} · {badgeCount} BADGES
           </div>
         </div>
-        <div className="font-orbitron text-sm font-black text-[var(--o)]">
-          {score}
+        <div className="game-lb-score-wrap">
+          <div>
+            <span className="game-lb-you-total">{baseScore}</span>
+            <span className="game-lb-you-bonus"> +{bonusScore}</span>
+          </div>
+          <div className="game-lb-you-sub">BASE + BONUS</div>
         </div>
       </div>
 
-      {all.map((p, i) => (
-        <div
-          key={`${p.n}-${i}`}
-          className={`flex items-center gap-2.5 px-[14px] py-2.5 border-b border-[rgba(255,255,255,0.04)]${p.isYou ? " bg-[rgba(241,92,48,0.05)]" : ""
-            }`}
-        >
-          <div className="font-orbitron text-xs font-bold min-w-[22px] text-[var(--mut)]">
-            {i + 1}
-          </div>
+      <div className="game-scroll game-lb-list flex-1 min-h-0">
+        {all.map((p, i) => (
           <div
-            className="w-7 h-7 flex items-center justify-center text-[15px] bg-[rgba(255,255,255,0.04)] border border-[var(--bdr)] flex-shrink-0"
-            style={{
-              clipPath:
-                "polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px))",
-            }}
+            key={`${p.n}-${i}`}
+            className={`game-lb-row${p.isYou ? " you" : ""}`}
           >
-            {p.isYou ? av.em : p.av}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="font-orbitron text-xs font-semibold truncate">
-              {(p.n || "").toUpperCase()}
-              {p.isYou ? " ◄" : ""}
+            <div className="game-lb-n">{i + 1}</div>
+            <div className="game-lb-av">{p.isYou ? av.em : p.av}</div>
+            <div className="game-lb-info">
+              <div className={`game-lb-pn${p.isYou ? " you" : ""}`}>
+                {(p.n || "").toUpperCase()}
+                {p.isYou ? " ◄" : ""}
+              </div>
+              <div className="game-lb-sc">
+                {p.s} · {p.b} BADGES
+              </div>
             </div>
-            <div className="font-share-mono text-[10px] text-[var(--mut)]">
-              {p.s} · {p.b} BADGES
+            <div className="game-lb-score-wrap">
+              <div className="game-lb-score">{p.total}</div>
+              <div className="game-lb-score-sub">
+                {p.base}+{p.bonus}
+              </div>
             </div>
           </div>
-          <div className="font-orbitron text-sm font-black text-[var(--o)]">
-            {p.sc}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

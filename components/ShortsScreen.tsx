@@ -1,88 +1,272 @@
 "use client";
 
-import { StatusTag } from "./GameComponents";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SHORTS } from "@/constants";
-import type { CelebrationState } from "@/lib/game-types";
+import type { CelebrationState, ShortCompletion } from "@/lib/game-types";
+import MediaModal from "./MediaModal";
+
+type ShortDef = (typeof SHORTS)[number];
+
+type PendingMedia = {
+  previewUrl: string;
+  mediaType: "image" | "video";
+};
+
+function ShortTag({
+  children,
+  variant,
+}: {
+  children: React.ReactNode;
+  variant: "cyan" | "purple" | "green";
+}) {
+  const v =
+    variant === "cyan"
+      ? "game-tag-c"
+      : variant === "purple"
+        ? "game-tag-pu"
+        : "game-tag-g";
+  return <span className={`game-tag game-tag-sm ${v}`}>{children}</span>;
+}
+
+function ShortCard({
+  short,
+  completion,
+  onComplete,
+  onCelebrate,
+}: {
+  short: ShortDef;
+  completion?: ShortCompletion;
+  onComplete: (slug: string, data: ShortCompletion) => void;
+  onCelebrate: (state: CelebrationState) => void;
+}) {
+  const done = !!completion;
+  const isPhoto = short.type === "photo";
+
+  const [pending, setPending] = useState<PendingMedia | null>(null);
+  // const [expanded, setExpanded] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const previewUrl = completion?.previewUrl ?? pending?.previewUrl ?? null;
+  const mediaType =
+    completion?.mediaType ??
+    pending?.mediaType ??
+    (isPhoto ? "image" : "video");
+
+  const revokePending = useCallback((url: string | null) => {
+    if (url && url.startsWith("blob:")) {
+      URL.revokeObjectURL(url);
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (pending?.previewUrl) revokePending(pending.previewUrl);
+    };
+  }, [pending?.previewUrl, revokePending]);
+
+  const openPicker = () => {
+    if (done) return;
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || done) return;
+
+    const isImage = file.type.startsWith("image/");
+    const isVideo = file.type.startsWith("video/");
+
+    if (isPhoto && !isImage) return;
+    if (!isPhoto && !isVideo) return;
+
+    setPending((prev) => {
+      if (prev?.previewUrl) revokePending(prev.previewUrl);
+      return {
+        previewUrl: URL.createObjectURL(file),
+        mediaType: isImage ? "image" : "video",
+      };
+    });
+  };
+
+  const handleRetake = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (done) return;
+    setPending((prev) => {
+      if (prev?.previewUrl) revokePending(prev.previewUrl);
+      return null;
+    });
+    fileInputRef.current?.click();
+  };
+
+  const handleSubmit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (done || !pending) return;
+
+    const data: ShortCompletion = {
+      mediaType: pending.mediaType,
+      previewUrl: pending.previewUrl,
+      badge: short.badge,
+    };
+
+    onComplete(short.slug, data);
+    setPending(null);
+    onCelebrate({
+      icon: short.type === "video" ? "🎬" : "📸",
+      title: "SHORT SUBMITTED!",
+      sub: "+5 BONUS PTS EARNED.",
+      badge: short.badge,
+    });
+  };
+  const hasPending = !!pending;
+  const hasSubmitted = done && !!completion?.previewUrl;
+
+  return (
+    <>
+      {modalOpen && previewUrl && (
+        <MediaModal
+          previewUrl={previewUrl}
+          mediaType={mediaType as "image" | "video"}
+          title={short.title}
+          onClose={() => setModalOpen(false)}
+        />
+      )}
+
+      <div className={`game-sc2${done ? " done" : ""}`}>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={isPhoto ? "image/*" : "video/*"}
+          className="sr-only"
+          tabIndex={-1}
+          aria-hidden
+          onChange={handleFileChange}
+        />
+
+        <div className="text-2xl leading-none">{short.em}</div>
+        <div className="game-sc2-title">{short.title}</div>
+        <div className="game-sc2-desc">{short.desc}</div>
+
+        {/* Upload zone */}
+        <button
+          type="button"
+          onClick={!done ? openPicker : undefined}
+          style={{
+            width: "100%",
+            border: `1px dashed ${done ? "rgba(57,255,20,0.45)" : hasPending ? "rgba(241,92,48,0.70)" : "rgba(241,92,48,0.40)"}`,
+            padding: "14px 10px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 5,
+            cursor: done ? "default" : "pointer",
+            background: done ? "rgba(57,255,20,0.04)" : hasPending ? "rgba(241,92,48,0.07)" : "rgba(241,92,48,0.03)",
+            position: "relative",
+            overflow: "hidden",
+            clipPath: "polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px))",
+            transition: "all .2s",
+          }}
+        >
+          <span style={{ fontSize: 24, lineHeight: 1 }}>
+            {done ? "✅" : hasPending ? (isPhoto ? "📷" : "🎬") : isPhoto ? "📷" : "🎬"}
+          </span>
+          <span style={{ fontFamily: "var(--fm)", fontSize: 10, color: done ? "var(--g)" : hasPending ? "var(--o)" : "var(--mut)", letterSpacing: ".08em", textTransform: "uppercase" }}>
+            {done ? "✓ SUBMITTED" : hasPending ? (isPhoto ? "PHOTO READY" : "VIDEO READY") : isPhoto ? "TAP TO ADD PHOTO" : "TAP TO ADD VIDEO"}
+          </span>
+          <span style={{ fontFamily: "var(--fm)", fontSize: 9, color: "var(--mut)", letterSpacing: ".06em", textTransform: "uppercase" }}>
+            {done ? "EVIDENCE LOGGED" : hasPending ? "SUBMIT BELOW" : isPhoto ? "PHOTO REQUIRED" : "VIDEO REQUIRED"}
+          </span>
+        </button>
+
+        {/* View button — only when media exists */}
+        {(hasSubmitted || hasPending) && (
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            style={{
+              width: "100%",
+              padding: "7px 10px",
+              background: done ? "rgba(57,255,20,0.08)" : "rgba(0,229,255,0.08)",
+              border: `1px solid ${done ? "rgba(57,255,20,0.35)" : "rgba(0,229,255,0.30)"}`,
+              color: done ? "var(--g)" : "var(--c)",
+              fontFamily: "var(--fm)",
+              fontSize: 10,
+              letterSpacing: ".1em",
+              cursor: "pointer",
+              clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 5,
+            }}
+          >
+            <span>{isPhoto ? "🔍" : "▶"}</span>
+            {done ? "VIEW SUBMITTED" : "PREVIEW"} {isPhoto ? "PHOTO" : "VIDEO"}
+          </button>
+        )}
+
+        <div className="game-sc2-foot">
+          <ShortTag variant={isPhoto ? "cyan" : "purple"}>
+            {isPhoto ? "📷 PHOTO" : "🎬 VIDEO"}
+          </ShortTag>
+          {done ? (
+            <ShortTag variant="green">✓ DONE</ShortTag>
+          ) : (
+            <span className="font-orbitron text-[11px] font-bold text-[var(--g)]">
+              +5 PTS
+            </span>
+          )}
+        </div>
+
+        {!done && hasPending && (
+          <>
+            <button type="button" className="game-sc2-retake" onClick={handleRetake}>
+              ↺ CHANGE {isPhoto ? "PHOTO" : "VIDEO"}
+            </button>
+            <button type="button" className="game-sc2-upload" onClick={handleSubmit}>
+              ► SUBMIT FOR +5 PTS
+            </button>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
 
 export function ShortsScreen({
   shortsDone,
   onComplete,
   onCelebrate,
 }: {
-  shortsDone: Record<string, boolean>;
-  onComplete: (slug: string) => void;
+  shortsDone: Record<string, ShortCompletion>;
+  onComplete: (slug: string, data: ShortCompletion) => void;
   onCelebrate: (state: CelebrationState) => void;
 }) {
   return (
-    <div className="game-scroll flex-1 min-h-0">
-      <div className="px-[14px] pt-3 pb-2 flex-shrink-0">
+    <div className="game-hub-panel">
+      <div className="game-sub-hdr">
         <div className="game-bc">
-          HUNT <span>›</span> SHOP FLOOR SHORTS
+          HUNT <span>›</span> SHORTS
         </div>
-        <p className="font-share-mono text-[10px] text-[var(--mut)] tracking-[0.08em]">
+        <p className="font-share-mono text-[10px] text-[var(--mut)] tracking-[0.08em] mt-0">
           ALL UNLOCKED · ANY ORDER · +5 PTS + BADGE EACH
         </p>
       </div>
-      <div className="grid grid-cols-2 gap-2 px-[14px] pb-[100px]">
-        {SHORTS.map((s) => {
-          const done = !!shortsDone[s.slug];
-          return (
-            <button
+
+      <div className="game-scroll flex-1 min-h-0">
+        <div className="game-shorts-g">
+          {SHORTS.map((s) => (
+            <ShortCard
               key={s.slug}
-              type="button"
-              disabled={done}
-              onClick={() => {
-                onComplete(s.slug);
-                onCelebrate({
-                  icon: "🎬",
-                  title: `${s.title} SUBMITTED!`,
-                  sub: "+5 PTS EARNED.",
-                  badge: s.badge,
-                });
-              }}
-              className={`text-left p-3 border flex flex-col gap-[7px] relative transition-all duration-[0.18s] ${done
-                ? "border-[rgba(57,255,20,0.3)] bg-[rgba(5,6,8,0.88)]"
-                : "border-[var(--bdr)] bg-[rgba(5,6,8,0.88)] hover:-translate-y-0.5 hover:border-[rgba(241,92,48,0.5)] cursor-pointer"
-                }`}
-              style={{
-                clipPath:
-                  "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
-              }}
-            >
-              <div
-                className="absolute top-0 left-0 right-0 h-px opacity-35"
-                style={{
-                  background: done
-                    ? "linear-gradient(90deg, var(--g), transparent 50%)"
-                    : "linear-gradient(90deg, var(--o), transparent 50%)",
-                }}
-              />
-              <div className="text-2xl">{s.em}</div>
-              <div className="font-orbitron text-[11px] font-bold tracking-[0.04em] leading-tight">
-                {s.title}
-              </div>
-              <div className="font-rajdhani text-[11px] text-[var(--mut)] leading-snug">
-                {s.desc}
-              </div>
-              <div className="flex items-center justify-between">
-                <StatusTag variant={s.type === "photo" ? "cyan" : "purple"}>
-                  <span className="text-[9px]">
-                    {s.type === "photo" ? "📷 PHOTO" : "🎬 VIDEO"}
-                  </span>
-                </StatusTag>
-                {done ? (
-                  <StatusTag variant="green">
-                    <span className="text-[9px]">✓ DONE</span>
-                  </StatusTag>
-                ) : (
-                  <span className="font-orbitron text-[11px] font-bold text-[var(--g)]">
-                    +5 PTS
-                  </span>
-                )}
-              </div>
-            </button>
-          );
-        })}
+              short={s}
+              completion={shortsDone[s.slug]}
+              onComplete={onComplete}
+              onCelebrate={onCelebrate}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
