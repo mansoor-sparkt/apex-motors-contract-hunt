@@ -266,26 +266,26 @@ export function GameApp() {
 
       if (data.success) {
         // OTP was correct! Now, are they fully setup?
-        if (data.isProfileComplete) {
-          // Returning player with a complete profile!
+        // if (data.isProfileComplete) {
+        //   // Returning player with a complete profile!
 
-          // Note: Make sure data.user matches your PlayerProfile state structure. 
-          // You might need to map it if the database keys are different.
-          setPlayer({
-            name: data.user.operatorName || data.user.firstName || "Operator",
-            email: data.user.emailId,
-            school: data.user.schoolOrCompany || "My School",
-            role: data.user.role || "Student",
-            shopName: data.user.shopName || data.user.schoolOrCompany || "",
-            avatarIndex: data.user.machinistCharacter ? parseInt(data.user.machinistCharacter) : 0,
-          });
+        //   // Note: Make sure data.user matches your PlayerProfile state structure. 
+        //   // You might need to map it if the database keys are different.
+        //   setPlayer({
+        //     name: data.user.operatorName || data.user.firstName || "Operator",
+        //     email: data.user.emailId,
+        //     school: data.user.schoolOrCompany || "My School",
+        //     role: data.user.role || "Student",
+        //     shopName: data.user.shopName || data.user.schoolOrCompany || "",
+        //     avatarIndex: data.user.machinistCharacter ? parseInt(data.user.machinistCharacter) : 0,
+        //   });
 
-          setScreen("hunt");
-          showToast("WELCOME BACK, OPERATOR");
-        } else {
-          // New player, OR player who verified email but never picked an avatar
-          setScreen("register");
-        }
+        //   setScreen("hunt");
+        //   showToast("WELCOME BACK, OPERATOR");
+        // } else {
+        // New player, OR player who verified email but never picked an avatar
+        setScreen("register");
+        // }
       } else {
         // showToast(`⚠️ ${data.error?.toUpperCase() || "INVALID CODE"}`);
       }
@@ -320,12 +320,15 @@ export function GameApp() {
       };
 
       // 2. Call the Next.js API
-      const data = await GameService.registerUser(backendPayload);
-
+      // const data = await GameService.registerUser(backendPayload);
+      const data = {
+        success: true,
+        error: 'something wrong'
+      }
       if (data.success) {
         // 3. Success! Set player, clear draft, move to game
         setPlayer(p);
-        setRegisterDraft(null);
+        // setRegisterDraft(null);
 
         enterHuntHub("stops");
         showToast("PROFILE CREATED!");

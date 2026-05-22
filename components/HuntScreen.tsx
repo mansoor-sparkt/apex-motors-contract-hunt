@@ -88,30 +88,30 @@ export function HuntScreen({
           <HUDBar title={huntTitle} showLogo />
 
           <div className="game-hunt-hdr">
-        <div className="flex items-center gap-2 relative z-[1]">
-          <div className="game-hunt-av">{av.em}</div>
-          <div>
-            <div className="font-orbitron text-[11px] font-bold tracking-[0.06em]">
-              {av.title}
+            <div className="flex items-center gap-2 relative z-[1]">
+              <div className="game-hunt-av">{av.em}</div>
+              <div>
+                <div className="font-orbitron text-[11px] font-bold tracking-[0.06em]">
+                  {av.title}
+                </div>
+                <div className="font-share-mono text-[9px] text-[var(--mut)]">
+                  {player.school}
+                </div>
+              </div>
             </div>
-            <div className="font-share-mono text-[9px] text-[var(--mut)]">
-              {player.school}
+            <div className="relative z-[1]">
+              <StatusTag variant="orange">
+                {score} / {MAX_SCORE} PTS
+              </StatusTag>
             </div>
           </div>
-        </div>
-        <div className="relative z-[1]">
-          <StatusTag variant="orange">
-            {score} / {MAX_SCORE} PTS
-          </StatusTag>
-        </div>
-      </div>
 
-      <PointsSplitRow
-        base={baseScore}
-        bonus={bonusScore}
-        rank={`#${rank}`}
-        stops={`${stopsCount}/${TOTAL_STOPS}`}
-      />
+          <PointsSplitRow
+            base={baseScore}
+            bonus={bonusScore}
+            rank={`#${rank}`}
+            stops={`${stopsCount}/${TOTAL_STOPS}`}
+          />
 
           <ProgressPips
             total={TOTAL_STOPS}

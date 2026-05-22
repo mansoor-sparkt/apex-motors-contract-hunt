@@ -1,6 +1,7 @@
 "use client";
 
 import { HUDBar, GameButton, Panel } from "./GameComponents";
+import { IMAGE_URLS } from "@/constants";
 
 export function IntroScreen({
   onNext,
@@ -14,7 +15,17 @@ export function IntroScreen({
       <HUDBar title="INCOMING TRANSMISSION" onBack={onBack} />
 
       <div className="game-scroll flex-1 min-h-0">
-        <div className="px-4 py-5">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url('${IMAGE_URLS.splashHero.src}')`,
+
+            backgroundSize: "cover",
+            backgroundPosition: "center 40%",
+            filter: "brightness(0.45) saturate(0.85)",
+          }}
+        />
+        <div className="px-4 py-5 relative z-2">
           <div className="game-bc">
             HOME <span>›</span> MISSION BRIEF
           </div>
