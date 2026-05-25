@@ -132,7 +132,9 @@ export function GameApp() {
 
   const handleStopSubmit = (index: number, data: StopCompletion) => {
     if (index < TOTAL_STOPS - 1) {
-      setCelebrationDismiss({ type: "nextStop", index: index + 1 });
+      // setCelebrationDismiss({ type: "nextStop", index: index + 1 });
+
+      setCelebrationDismiss(null)
     } else {
       setCelebrationDismiss({ type: "traveler" });
     }

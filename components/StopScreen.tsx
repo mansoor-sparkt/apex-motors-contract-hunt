@@ -126,9 +126,10 @@ export function StopScreen({
       return;
     }
     if (done) {
-      const next = stopIndex + 1;
-      if (next < TOTAL_STOPS) onNavigate(next);
-      else onBack();
+      // const next = stopIndex + 1;
+      // if (next < TOTAL_STOPS) onNavigate(next);
+      // else
+      onBack();
       return;
     }
 
@@ -369,31 +370,7 @@ export function StopScreen({
             <p className="font-share-mono text-[11px] text-[var(--mut)] mb-2.5 tracking-[0.04em]">
               {s.fi}
             </p>
-            {/* <button
-              type="button"
-              onClick={mockUpload}
-              disabled={done}
-              className={`game-photo-box w-full${photoUp || done ? " up" : ""}`}
-            >
-              <span
-                className={`text-[30px] ${photoUp || done ? "ok" : ""}`}
-                style={{
-                  filter: photoUp || done
-                    ? "drop-shadow(0 0 8px rgba(57,255,20,0.6))"
-                    : "drop-shadow(0 0 8px rgba(241,92,48,0.5))",
-                }}
-              >
-                {photoUp || done ? "✅" : "📷"}
-              </span>
-              <span
-                className={`font-share-mono text-[11px] tracking-[0.06em] text-center ${photoUp || done ? "text-[var(--g)]" : "text-[var(--mut)]"
-                  }`}
-              >
-                {photoUp || done
-                  ? "PHOTO UPLOADED — EVIDENCE LOGGED"
-                  : "TAP TO OPEN CAMERA · GALLERY"}
-              </span>
-            </button> */}
+
 
             <button
               type="button"
