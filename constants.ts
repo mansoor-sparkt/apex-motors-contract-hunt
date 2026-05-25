@@ -62,7 +62,7 @@ export const STOP_IMAGE_MAP: Record<number, StaticImageData> = {
 };
 
 export const STOP_BRIGHTNESS: number[] = [
-  0.4, 0.52, 0.48, 0.45, 0.48, 0.5, 0.42, 0.55,
+  0.4, 0.52, 0.48, 0.45, 0.5, 0.5, 0.52, 0.58,
 ];
 
 export const ROLES = [
@@ -83,7 +83,7 @@ export const AVS = [
     em: "🎯",
     title: "TOLERANCE MASTER",
     n: "TOLERANCE MASTER",
-    role: "±0.001\" all day.\nFirst article, every time.",
+    role: '±0.001" all day.\nFirst article, every time.',
   },
   {
     em: "💻",
@@ -105,9 +105,9 @@ export const STOPS = [
     co: "Markforged",
     task: "The contract starts here",
     story:
-      "Apex Motors just called. They need 500 brake caliper brackets in 6 weeks. You take the job. Time to figure out what you're working with.",
-    fi: "Photo of any part on display or booth banner",
-    bt: "calc" as const,
+      "Apex Motors just handed you the job. 500 brake caliper brackets, 6 weeks. Your first move is figuring out what you're working with — material, tolerances, and whether your shop can deliver.",
+    fi: "Photo of any part on display or the booth banner",
+    bt: "calc",
     bp: "What material is this part most likely made of? Use the Phillips Machinist app to research.",
     calc: "Material Identifier",
     b1: "Material Whisperer",
@@ -119,22 +119,23 @@ export const STOPS = [
     co: "Autodesk",
     task: "Read the print, plan the build",
     story:
-      "The CAD file just arrived. Before you can program a single toolpath, you need to understand what you're actually cutting.",
-    fi: "Photo of Fusion 360 demo running on screen",
-    bt: "conv" as const,
+      "The CAD file just landed in your inbox. Before a single toolpath gets programmed, you need to understand every dimension, every tolerance, every critical feature on this bracket.",
+    fi: "Photo of Fusion 360 demo running on a screen",
+    bt: "conv",
     q1: "How does Fusion 360 handle CAM for multi-axis jobs?",
     q2: "What's the learning curve for a first-year student?",
     rc: "Autodesk",
     b1: "CAD Whisperer",
+    calc: "Fusion 360 Demo",
   },
   {
     n: 3,
     co: "Mastercam",
     task: "Program the toolpaths, hit the deadline",
     story:
-      "CAD is locked in. 500 parts in 6 weeks means cycle time is everything. Every second on the machine is money made or lost.",
+      "CAD is locked. 500 parts in 6 weeks means cycle time is everything — every second on the machine is either money made or money burned.",
     fi: "Photo of any Mastercam toolpath screen",
-    bt: "calc" as const,
+    bt: "calc",
     bp: "MRR challenge: Roughing 6061 aluminum. Open Phillips Machinist and calculate your material removal rate.",
     calc: "MRR Calculator",
     b1: "Chip Slinger",
@@ -146,22 +147,23 @@ export const STOPS = [
     co: "Haas",
     task: "Pick the machine, dial in the cut",
     story:
-      "You've got the toolpaths dialed. Now you need iron to run them on. 500-part runs don't care about excuses.",
+      "Toolpaths are dialed. Now you need iron to run them on. 500-part runs don't care about excuses — you need the right machine for the job, and you need it today.",
     fi: "Photo of a Haas machine on display",
-    bt: "conv" as const,
+    bt: "conv",
     q1: "What's the best Haas model for 500-piece aluminum runs?",
     q2: "How does Haas support first-time machine buyers?",
     rc: "Haas",
     b1: "Iron Talker",
+    calc: "Haas Machine Info",
   },
   {
     n: 5,
     co: "Mitutoyo",
     task: "First article inspection",
     story:
-      "First part comes off the machine. Before you run another 499, you need to prove this one is right.",
+      "First part just came off the machine. Before you run another 499, you need to prove this one is right. One bad first article times 500 is an expensive mistake.",
     fi: "Photo of any Mitutoyo measuring tool",
-    bt: "calc" as const,
+    bt: "calc",
     bp: "Unit conversion sprint! Convert 3 values from the bracket drawing using the Phillips Machinist app.",
     calc: "Unit Converter",
     b1: "Decimal Demon",
@@ -173,22 +175,23 @@ export const STOPS = [
     co: "Zeiss",
     task: "CMM verification on critical features",
     story:
-      "Two features got flagged as critical. Calipers won't cut it — you need a full CMM report before this lot ships.",
+      "Two features got flagged as critical by Apex Motors. Calipers won't cut it — you need a full CMM report before this lot ships.",
     fi: "Photo of Zeiss CMM on display",
-    bt: "conv" as const,
+    bt: "conv",
     q1: "What CMM features matter most for aerospace-grade tolerances?",
     q2: "How long does it take to program a CMM for a new part?",
     rc: "Zeiss",
     b1: "Measurement Mouth",
+    calc: "Zeiss CMM Info",
   },
   {
     n: 7,
     co: "Deere",
     task: "A second contract on the table",
     story:
-      "Word's getting around that you can deliver. Deere's procurement team asks if you can quote a hydraulic fitting job.",
+      "Word's getting around that your shop delivers. Deere's procurement team just asked if you can quote a hydraulic fitting job. Your reputation is opening doors.",
     fi: "Photo of any Deere part on display",
-    bt: "calc" as const,
+    bt: "calc",
     bp: "Multi-select: Which manufacturing processes were likely involved in making this Deere part?",
     calc: "Process Identifier",
     b1: "Process Boss",
@@ -200,13 +203,14 @@ export const STOPS = [
     co: "Caterpillar",
     task: "What's next for your shop",
     story:
-      "Contract delivered. 500 brackets shipped on time. Now Cat's asking what kind of machinist you want to become.",
+      "Contract delivered. 500 brackets shipped on time. Now Cat's asking what kind of machinist you want to become. This is your moment to think bigger than the next job.",
     fi: "Photo of Cat component or career signage",
-    bt: "conv" as const,
+    bt: "conv",
     q1: "What career paths lead to programming CNC machines at Cat?",
     q2: "How did you personally get started in manufacturing?",
     rc: "Caterpillar",
     b1: "Future Builder",
+    calc: "Cat Career Info",
   },
 ];
 
