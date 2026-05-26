@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GameButton } from "./GameComponents";
 import {
   AVS,
@@ -11,9 +11,11 @@ import {
 import type { PlayerProfile, RosterEntry, StopCompletion } from "@/lib/game-types";
 import { openMachinistApp } from "@/lib/machinist-app";
 import {
+  type MissionReportShareFallback,
   prepareMissionReportShareFile,
-  shareMissionReportFile,
+  shareMissionReport,
 } from "@/lib/mission-report-share";
+import { ShareMissionFallbackModal } from "@/components/ShareMissionFallbackModal";
 
 const BADGE_COLORS = [
   { bg: "rgba(241,92,48,0.15)", text: "#F15C30", border: "rgba(241,92,48,0.3)" },
@@ -74,72 +76,72 @@ export function JobTravelerScreen({
 
   const timeDisplay = totalSeconds > 0 ? `${formatTime(totalSeconds)} MIN` : "0:00 MIN";
 
-  const reportRef = useRef<HTMLDivElement>(null);
+  /** Only the card content captured for share (stops at “Powered by”). */
+  const shareCaptureRef = useRef<HTMLDivElement>(null);
   const shareFileRef = useRef<File | null>(null);
   const [sharing, setSharing] = useState(false);
-  const [shareReady, setShareReady] = useState(false);
+  const [shareFallback, setShareFallback] =
+    useState<MissionReportShareFallback | null>(null);
 
-  const shareData = {
-    playerName: av.title,
-    metaLine,
-    baseScore,
-    bonusScore,
-    rank,
-    timeDisplay,
-    badges,
-  };
+  const badgeKey = useMemo(
+    () =>
+      [
+        ...Object.values(stopsDone)
+          .filter((v) => v?.badge)
+          .map((v) => v.badge as string),
+        ...Object.keys(shortsDone)
+          .map((k) => SHORTS.find((s) => s.slug === k)?.badge || "")
+          .filter(Boolean),
+      ].join("|"),
+    [stopsDone, shortsDone]
+  );
 
-  // Pre-render share image so the tap opens the native sheet immediately (user gesture).
+  const shareData = useMemo(
+    () => ({
+      playerName: av.title,
+      metaLine,
+      baseScore,
+      bonusScore,
+      rank,
+      timeDisplay,
+      badges,
+    }),
+    [av.title, metaLine, baseScore, bonusScore, rank, timeDisplay, badgeKey]
+  );
+
+  // Pre-cache image so native share runs right after tap (keeps user gesture on HTTPS).
   useEffect(() => {
-    const el = reportRef.current;
+    const el = shareCaptureRef.current;
     if (!el) return;
 
     let cancelled = false;
     shareFileRef.current = null;
-    setShareReady(false);
 
     const timer = window.setTimeout(() => {
-      void prepareMissionReportShareFile(el)
+      void prepareMissionReportShareFile(el, shareData)
         .then((file) => {
-          if (!cancelled) {
-            shareFileRef.current = file;
-            setShareReady(true);
-          }
+          if (!cancelled) shareFileRef.current = file;
         })
-        .catch(() => {
-          if (!cancelled) setShareReady(false);
-        });
-    }, 400);
+        .catch(() => {});
+    }, 600);
 
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [
-    baseScore,
-    bonusScore,
-    rank,
-    timeDisplay,
-    badges,
-    av.title,
-    metaLine,
-    roster.length,
-  ]);
+  }, [badgeKey, baseScore, bonusScore, rank, timeDisplay, av.title, metaLine, shareData]);
 
   const handleShare = useCallback(async () => {
-    const el = reportRef.current;
+    const el = shareCaptureRef.current;
     if (!el || sharing) return;
 
     setSharing(true);
     try {
-      let file = shareFileRef.current;
-      if (!file) {
-        onToast?.("📸 Preparing report…");
-        file = await prepareMissionReportShareFile(el);
-        shareFileRef.current = file;
-      }
-
-      await shareMissionReportFile(file, shareData, onToast);
+      await shareMissionReport(el, shareData, {
+        onToast,
+        cachedFile: shareFileRef.current,
+        onFallback: setShareFallback,
+      });
     } finally {
       setSharing(false);
     }
@@ -147,6 +149,16 @@ export function JobTravelerScreen({
 
   return (
     <div className="game-hub-panel">
+      {shareFallback && (
+        <ShareMissionFallbackModal
+          imageUrl={shareFallback.imageUrl}
+          summaryText={shareFallback.summaryText}
+          file={shareFallback.file}
+          needsHttps={shareFallback.needsHttps}
+          onClose={() => setShareFallback(null)}
+          onToast={onToast}
+        />
+      )}
       <div className="game-scroll flex-1 min-h-0 game-comp-scroll">
         <div className="game-comp-hero">
           <div className="game-bc">
@@ -177,7 +189,8 @@ export function JobTravelerScreen({
           </p>
         </div>
 
-        <div className="game-traveler" ref={reportRef}>
+        <div className="game-traveler">
+          <div ref={shareCaptureRef}>
           <div className="game-trav-top">
             <div className="game-trav-av">{av.em}</div>
             <div className="min-w-0">
@@ -268,23 +281,27 @@ export function JobTravelerScreen({
               )}
             </div>
 
-            <div className="game-trav-sec text-center">
-              <p className="font-share-mono text-[10px] text-[var(--mut)] mb-[5px] m-0">
+            <div className="game-trav-sec text-center pb-0">
+              <p className="font-share-mono text-[10px] text-[var(--mut)] m-0">
                 POWERED BY PHILLIPS MACHINIST
               </p>
-              <button
-                type="button"
-                className="game-app-dl-strip"
-                onClick={() => {
-                  openMachinistApp();
-                  onToast?.("📱 Opening Phillips Machinist…");
-                }}
-              >
-                <span className="game-app-dl-label">
-                  📱 DOWNLOAD / OPEN THE APP
-                </span>
-              </button>
             </div>
+          </div>
+          </div>
+
+          <div className="game-trav-sec text-center px-[14px] pb-[14px] -mt-1">
+            <button
+              type="button"
+              className="game-app-dl-strip w-full"
+              onClick={() => {
+                openMachinistApp();
+                onToast?.("📱 Opening Phillips Machinist…");
+              }}
+            >
+              <span className="game-app-dl-label">
+                📱 DOWNLOAD / OPEN THE APP
+              </span>
+            </button>
           </div>
         </div>
 
@@ -294,11 +311,7 @@ export function JobTravelerScreen({
             disabled={sharing}
             onClick={() => void handleShare()}
           >
-            {sharing
-              ? "OPENING SHARE…"
-              : shareReady
-                ? "► SHARE MISSION REPORT"
-                : "► PREPARING SHARE…"}
+            {sharing ? "OPENING SHARE…" : "► SHARE MISSION REPORT"}
           </GameButton>
         </div>
 

@@ -1565,6 +1565,91 @@
     margin-top: 0;
   }
 
+  .game-share-fallback {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(4, 5, 6, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .game-share-fallback-panel {
+    width: 100%;
+    max-width: 380px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: rgba(8, 9, 12, 0.98);
+    border: 1px solid var(--bdr);
+    padding: 14px;
+    clip-path: polygon(
+      0 0,
+      calc(100% - 12px) 0,
+      100% 12px,
+      100% 100%,
+      12px 100%,
+      0 calc(100% - 12px)
+    );
+  }
+
+  .game-share-fallback-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .game-share-fallback-title {
+    font-family: var(--font-orbitron);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    color: var(--o);
+  }
+
+  .game-share-fallback-close {
+    background: transparent;
+    border: 1px solid var(--bdr);
+    color: var(--mut);
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+
+  .game-share-fallback-note {
+    font-family: var(--font-share-mono);
+    font-size: 10px;
+    line-height: 1.55;
+    color: var(--c);
+    margin: 0 0 10px;
+  }
+
+  .game-share-fallback-img {
+    width: 100%;
+    display: block;
+    border: 1px solid var(--bdr);
+    margin-bottom: 10px;
+    -webkit-touch-callout: default;
+    user-select: auto;
+  }
+
+  .game-share-fallback-hint {
+    font-family: var(--font-share-mono);
+    font-size: 10px;
+    color: var(--mut);
+    margin: 0 0 12px;
+    line-height: 1.5;
+  }
+
+  .game-share-fallback-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
   .game-q-opt {
     padding: 11px 14px;
     border: 1px solid var(--bdr);
