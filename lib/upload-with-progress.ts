@@ -16,6 +16,7 @@ export function postFormDataWithProgress(
   return new Promise((resolve) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", url);
+    xhr.withCredentials = true;
 
     xhr.upload.addEventListener("progress", (event) => {
       if (!onProgress) return;

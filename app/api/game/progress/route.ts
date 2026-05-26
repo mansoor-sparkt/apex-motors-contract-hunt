@@ -1,4 +1,11 @@
 import { NextResponse } from "next/server";
+import {
+  emailsMatch,
+  getSessionFromRequest,
+  sessionForbidden,
+  sessionUnauthorized,
+} from "@/lib/game-session";
+import { decryptProgressPayload } from "@/lib/progress-payload-crypto";
 
 interface ProgressType {
   request: Request;
@@ -15,7 +22,27 @@ async function forwardProgress(
   failedText: string,
 ) {
   try {
-    const body = await request.json();
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return sessionUnauthorized();
+    }
+
+    const raw = await request.json();
+    let body: { emailId: string; gameProgress: string };
+
+    try {
+      body = await decryptProgressPayload(raw);
+    } catch (decryptError) {
+      console.error("Progress payload decrypt error:", decryptError);
+      return NextResponse.json(
+        { success: false, error: "Invalid or corrupted progress payload" },
+        { status: 400 },
+      );
+    }
+
+    if (!emailsMatch(body.emailId, session.email)) {
+      return sessionForbidden();
+    }
 
     const baseUrl = process.env.BACKEND_API_URL;
     if (!baseUrl) {
@@ -25,35 +52,48 @@ async function forwardProgress(
       );
     }
 
-    const res = await fetch(`${baseUrl}/GameProgress`, {
-      method: method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    const forwardToBackend = (httpMethod: "POST" | "PUT") =>
+      fetch(`${baseUrl}/GameProgress`, {
+        method: httpMethod,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+    let res = await forwardToBackend(method);
+
+    // Phillips returns 409 when POST is used but progress already exists — update instead
+    if (!res.ok && method === "POST" && res.status === 409) {
+      res = await forwardToBackend("PUT");
+    }
+
+    const data = await res.json().catch(() => null);
 
     if (!res.ok) {
       return NextResponse.json(
-        { success: false, error: "External API is down" },
-        { status: res.status },
+        {
+          success: false,
+          error:
+            data?.errors?.[0] ||
+            `External API error (${res.status})`,
+        },
+        { status: res.status === 409 ? 400 : res.status },
       );
     }
 
-    const data = await res.json();
-
-    if (data.statusCode === 200) {
+    if (data?.statusCode === 200) {
       return NextResponse.json({
         success: true,
         message: data.message?.[0] || successText,
       });
-    } else {
-      return NextResponse.json(
-        {
-          success: false,
-          error: data.errors?.[0] || failedText,
-        },
-        { status: 400 },
-      );
     }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: data?.errors?.[0] || failedText,
+      },
+      { status: 400 },
+    );
     // return NextResponse.json({ success: true, data });
   } catch (error) {
     console.error(`Progress ${method} Error:`, error);
@@ -85,15 +125,12 @@ export async function PUT(req: Request) {
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const emailId = searchParams.get("emailId");
-
-    if (!emailId) {
-      return NextResponse.json(
-        { success: false, error: "Email parameter is required" },
-        { status: 400 },
-      );
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return sessionUnauthorized();
     }
+
+    const emailId = session.email;
 
     const baseUrl = process.env.BACKEND_API_URL;
     if (!baseUrl) {

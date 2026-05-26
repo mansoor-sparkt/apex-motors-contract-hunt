@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { PhotoBg, ViewportChrome } from "./Background";
 import { SplashScreen } from "./SplashScreen";
 import { IntroScreen } from "./IntroScreen";
@@ -92,6 +92,9 @@ export function GameApp() {
   >(null);
   const [toast, setToast] = useState<string | null>(null);
 
+  /** True after cloud hydrate finds an existing GameProgress row for this email. */
+  const cloudProgressExistsRef = useRef(false);
+
   // const score = computeScore(stopsDone, shortsDone);
   const coreScore = computeBaseScore(stopsDone);
   const bonusScore = computeBonusScore(shortsDone);
@@ -146,11 +149,13 @@ export function GameApp() {
             setShortsDone(decodedSnapshot.shorts);
           }
 
+          cloudProgressExistsRef.current = true;
           setProgressStatus("loaded");
           console.log("⚡ Cloud metrics synchronized successfully.");
           return true;
         }
 
+        cloudProgressExistsRef.current = false;
         setProgressStatus("loaded");
         console.log("ℹ️ No previous progress metrics found in cloud. Starting fresh.");
         return false;
@@ -169,14 +174,34 @@ export function GameApp() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const savedSession = localStorage.getItem("hunt_user_session");
-    if (!savedSession) return;
-
     const restoreSession = async () => {
       try {
-        const parsedPlayer = JSON.parse(savedSession) as PlayerProfile;
-        setPlayer(parsedPlayer);
-        await hydrateRemoteProgress(parsedPlayer.email);
+        const sessionRes = await GameService.getSession();
+        if (!sessionRes.success || !sessionRes.email) {
+          localStorage.removeItem("hunt_user_session");
+          return;
+        }
+
+        const savedSession = localStorage.getItem("hunt_user_session");
+        let parsedPlayer: PlayerProfile | null = null;
+
+        if (savedSession) {
+          parsedPlayer = JSON.parse(savedSession) as PlayerProfile;
+          if (
+            parsedPlayer.email?.toLowerCase() !==
+            String(sessionRes.email).toLowerCase()
+          ) {
+            parsedPlayer = null;
+          }
+        }
+
+        if (parsedPlayer) {
+          setPlayer(parsedPlayer);
+        } else {
+          setPlayer({ ...DEFAULT_PLAYER, email: sessionRes.email });
+        }
+
+        await hydrateRemoteProgress(sessionRes.email);
         setScreen("hunt");
       } catch (error) {
         console.error("Session restore dropped:", error);
@@ -185,7 +210,7 @@ export function GameApp() {
       }
     };
 
-    restoreSession();
+    void restoreSession();
   }, [hydrateRemoteProgress]);
 
   const quickDemo = () => {
@@ -372,8 +397,9 @@ export function GameApp() {
 
 
       if (data.success) {
-        // 3. Success! Set player, clear draft, move to game
         setPlayer(p);
+        localStorage.setItem("hunt_user_session", JSON.stringify(p));
+        cloudProgressExistsRef.current = false;
         setProgressStatus("loaded");
 
         enterHuntHub("stops");
@@ -389,28 +415,27 @@ export function GameApp() {
   }
 
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await GameService.logout();
+
     if (typeof window !== "undefined") {
       localStorage.removeItem("hunt_user_session");
+      cloudProgressExistsRef.current = false;
 
-      // Optional: Clear your gameplay state pools too so the next user starts fresh
-      setPlayer(
-        {
-          name: '',
-          email: '',
-          school: '',
-          role: '',
-          shopName: '',
-          avatarIndex: 0,
-          avatarName: '',
-        }
-
-      );
+      setPlayer({
+        name: "",
+        email: "",
+        school: "",
+        role: "",
+        shopName: "",
+        avatarIndex: 0,
+        avatarName: "",
+      });
       setStopsDone({});
       setShortsDone({});
       setProgressStatus("idle");
 
-      setScreen("auth"); // Throw them back to the start lines
+      setScreen("auth");
       showToast("👋 LOGGED OUT SUCCESSFULLY");
     }
   };
@@ -437,21 +462,22 @@ export function GameApp() {
       shorts: updatedShorts,
     };
 
-    // Check if player has already completed any stops to pick between POST or PUT
-    const isExistingRecord =
-      Object.keys(stopsDone).length > 0 || Object.keys(shortsDone).length > 0;
+    const isUpdate =
+      cloudProgressExistsRef.current ||
+      Object.keys(stopsDone).length > 0 ||
+      Object.keys(shortsDone).length > 0 ||
+      Object.keys(updatedStops).length > 0 ||
+      Object.keys(updatedShorts).length > 0;
 
     try {
-
-      console.log(snapshotData, "from savegame snapshot")
       const res = await GameService.syncProgress(
         player.email,
         snapshotData,
-        isExistingRecord
+        isUpdate
       );
 
       if (res.success) {
-        // Quiet success inside developer log to avoid distracting the player
+        cloudProgressExistsRef.current = true;
         console.log("💾 Game progress auto-saved:", res.message);
       } else {
         // Handles business rule rejections (e.g., bad format or missing record)

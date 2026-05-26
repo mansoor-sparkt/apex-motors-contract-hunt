@@ -8,6 +8,8 @@ import {
   postFormDataWithProgress,
   type UploadProgressHandler,
 } from "@/lib/upload-with-progress";
+import { apiFetch } from "@/lib/api-client";
+import { encryptProgressPayload } from "@/lib/progress-payload-crypto";
 
 export const GameService = {
   /**
@@ -24,7 +26,7 @@ export const GameService = {
 
   async registerEmail(email: string) {
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await apiFetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -83,7 +85,7 @@ export const GameService = {
         emailId: email,
         otp: code,
       };
-      const response = await fetch("/api/auth/verify-otp", {
+      const response = await apiFetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payloade),
@@ -99,7 +101,7 @@ export const GameService = {
    */
   async registerUser(profile: PlayeRegisterProfile) {
     try {
-      const response = await fetch("/api/auth/register", {
+      const response = await apiFetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profile),
@@ -114,7 +116,7 @@ export const GameService = {
    * 3. Submit a completed stop to calculate score
    */
   async submitStop(stopIndex: number, data: StopCompletion) {
-    const response = await fetch("/api/submit-stop", {
+    const response = await apiFetch("/api/submit-stop", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ stopIndex, data }),
@@ -187,14 +189,27 @@ export const GameService = {
     try {
       const payload = {
         emailId: emailId,
-        // Convert the entire stops/shorts object into a single string!
         gameProgress: JSON.stringify(progressData),
       };
 
-      const response = await fetch("/api/game/progress", {
+      let body;
+      try {
+        body = await encryptProgressPayload(payload);
+      } catch (encryptError) {
+        console.error("Progress encryption error:", encryptError);
+        return {
+          success: false,
+          error:
+            encryptError instanceof Error
+              ? encryptError.message
+              : "Progress encryption failed",
+        };
+      }
+
+      const response = await apiFetch("/api/game/progress", {
         method: isUpdate ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(body),
       });
 
       return await response.json();
@@ -208,16 +223,37 @@ export const GameService = {
    */
   async fetchProgress(emailId: string) {
     try {
-      const response = await fetch(
-        `/api/game/progress?emailId=${encodeURIComponent(emailId)}`,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      const response = await apiFetch("/api/game/progress", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
       return await response.json();
     } catch (error) {
       return { success: false, error: "Failed to download cloud progress" };
+    }
+  },
+
+  /** Check HttpOnly session (after OTP). */
+  async getSession() {
+    try {
+      const response = await apiFetch("/api/auth/session", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      return await response.json();
+    } catch {
+      return { success: false, error: "Session check failed" };
+    }
+  },
+
+  async logout() {
+    try {
+      const response = await apiFetch("/api/auth/logout", {
+        method: "POST",
+      });
+      return await response.json();
+    } catch {
+      return { success: false, error: "Logout failed" };
     }
   },
 
@@ -229,7 +265,7 @@ export const GameService = {
       const query = emailId
         ? `?emailId=${encodeURIComponent(emailId)}`
         : "";
-      const response = await fetch(`/api/game/leaderboard${query}`, {
+      const response = await apiFetch(`/api/game/leaderboard${query}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         cache: "no-store",

@@ -1,12 +1,27 @@
 import { NextResponse } from "next/server";
+import {
+  emailsMatch,
+  getSessionFromRequest,
+  sessionForbidden,
+  sessionUnauthorized,
+} from "@/lib/game-session";
 import { resolveMediaPreviewUrl } from "@/lib/media-url";
 import { ensurePngForUpload } from "@/lib/server/ensure-png-upload";
 
 export async function POST(request: Request) {
   try {
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return sessionUnauthorized();
+    }
+
     const incoming = await request.formData();
     const rawFile = incoming.get("UploadPicture");
     const emailId = incoming.get("EmailId");
+
+    if (typeof emailId !== "string" || !emailsMatch(emailId, session.email)) {
+      return sessionForbidden();
+    }
 
     if (!(rawFile instanceof File)) {
       return NextResponse.json(

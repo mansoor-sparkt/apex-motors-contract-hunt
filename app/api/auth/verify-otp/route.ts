@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { withSessionCookie } from "@/lib/game-session";
 
 const baseUrl = process.env.BACKEND_API_URL;
 
@@ -30,12 +31,15 @@ export async function POST(request: Request) {
     const data = await res.json();
 
     if (data.statusCode === 200 && data.result) {
-      return NextResponse.json({
-        success: true,
-        isProfileComplete: data.result.isProfileComplete, // Extract the flag!
-        user: data.result.user, // Send the user data down
-        message: data.message?.[0] || "OTP Verified",
-      });
+      return withSessionCookie(
+        NextResponse.json({
+          success: true,
+          isProfileComplete: data.result.isProfileComplete,
+          user: data.result.user,
+          message: data.message?.[0] || "OTP Verified",
+        }),
+        emailId
+      );
     } else {
       // Handle the 404 "Invalid OTP" error
       return NextResponse.json(
