@@ -78,7 +78,7 @@ export function HuntScreen({
   onOpenStop: (index: number) => void;
   onShortComplete: (slug: string, data: ShortCompletion) => void;
   onCelebrate: (state: CelebrationState) => void;
-  onToast?: (msg: string) => void;
+  onToast: (msg: string) => void;
   onOpenMap: () => void;
 }) {
   const av = AVS[player.avatarIndex] ?? AVS[0];
@@ -247,6 +247,7 @@ export function HuntScreen({
           onComplete={onShortComplete}
           onCelebrate={onCelebrate}
           bonusPercent={bonusPercent}
+          onToast={onToast}
         />
       )}
 

@@ -13,15 +13,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // 1. FAKE DELAY (Remove this later)
-    // await new Promise((resolve) => setTimeout(resolve, 800));
-
-    // // 2. FAKE LOGIC: If email is "alex@school.edu", pretend they exist
-    // if (email === "alex@school.edu") {
-    //   return NextResponse.json({ isNewUser: false });
-    // }
-    // return NextResponse.json({ isNewUser: true });
-
     const externalApiPayload = {
       emailId: email,
     };

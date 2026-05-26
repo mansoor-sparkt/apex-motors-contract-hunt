@@ -37,6 +37,7 @@ export interface StopCompletion {
   rn?: string;
   qs?: number;
   timeSpent?: number;
+  previewUrl?: string;
 }
 
 /** Shop floor short submission with local media preview. */

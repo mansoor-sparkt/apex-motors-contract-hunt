@@ -14,15 +14,38 @@ export async function POST(request: Request) {
     }
 
     // 2. Forward the exact FormData directly to the backend
-    const backendRes = await fetch(`${baseUrl}/Profile/UploadHuntImage`, {
+    const res = await fetch(`${baseUrl}/Profile/UploadHuntImage`, {
       method: "POST",
       body: formData,
     });
 
-    const data = await backendRes.json();
+    if (!res.ok) {
+      return NextResponse.json(
+        { success: false, error: "External API is down" },
+        { status: res.status },
+      );
+    }
+
+    const data = await res.json();
+
+    if (data.statusCode === 200 && data.result) {
+      return NextResponse.json({
+        success: true,
+        cdnUrl: data.result.cdnUrl, // Flatten out the direct path string
+        message: data.message?.[0] || "Success",
+      });
+    } else {
+      return NextResponse.json(
+        {
+          success: false,
+          error: data.errors?.[0] || "Upload validation failed",
+        },
+        { status: 400 },
+      );
+    }
 
     // Return the response (which should contain your string path!)
-    return NextResponse.json({ success: true, data });
+    // return NextResponse.json({ success: true, data });
   } catch (error) {
     console.error("Upload API Error:", error);
     return NextResponse.json(

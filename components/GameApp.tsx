@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { PhotoBg, ViewportChrome } from "./Background";
 import { SplashScreen } from "./SplashScreen";
 import { IntroScreen } from "./IntroScreen";
@@ -33,6 +33,8 @@ import { AuthScreen } from "./AuthScreen";
 import { OtpScreen } from "./OtpScreen";
 import { GameService } from "@/lib/game.service";
 import MapModal from "./modals/MapModal";
+
+
 
 function ScreenSlot({
   active,
@@ -95,6 +97,8 @@ export function GameApp() {
   const bonusScore = computeBonusScore(shortsDone);
   const combinedScore = coreScore + bonusScore;
 
+
+
   const showToast = useCallback((msg: string) => setToast(msg), []);
 
   const openCelebration = useCallback(
@@ -121,6 +125,25 @@ export function GameApp() {
     }
     setScreen("hunt");
   }, [celebrationDismiss]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedSession = localStorage.getItem("hunt_user_session");
+      if (savedSession) {
+        try {
+          const parsedPlayer = JSON.parse(savedSession);
+          setPlayer(parsedPlayer);
+          setScreen("hunt");
+
+          // ── NEW: Instant sync down tracking sheets from the cloud database ──
+          hydrateRemoteProgress(parsedPlayer.email);
+        } catch (error) {
+          console.error("Session restore dropped:", error);
+          localStorage.removeItem("hunt_user_session");
+        }
+      }
+    }
+  }, []);
 
   const quickDemo = () => {
     setPlayer({
@@ -155,7 +178,12 @@ export function GameApp() {
       setCelebrationDismiss({ type: "traveler" });
     }
 
-    setStopsDone((prev) => ({ ...prev, [index]: data }));
+    // setStopsDone((prev) => ({ ...prev, [index]: data }));
+    setStopsDone((prev) => {
+      const next = { ...prev, [index]: data };
+      saveGameSnapshot(next, shortsDone); // <-- Trigger auto-save here
+      return next;
+    });
 
     if (data.rn) {
       const s = STOPS[index];
@@ -231,18 +259,27 @@ export function GameApp() {
         if (data.isProfileComplete) {
           // Returning player with a complete profile!
 
-          // Note: Make sure data.user matches your PlayerProfile state structure. 
-          // You might need to map it if the database keys are different.
-          setPlayer({
+          const playerProfile = {
             name: data.user.firstName + data.user.lastName || "Operator",
             email: data.user.emailId,
             school: data.user.schoolOrCompany || "My School",
             role: data.user.role || "Student",
             shopName: data.user.operatorName,
             avatarIndex: data.user.machinistCharacter ? parseInt(data.user.machinistCharacter) : 0,
-          });
+          }
 
+          // Note: Make sure data.user matches your PlayerProfile state structure. 
+          // You might need to map it if the database keys are different.
+          setPlayer(
+            playerProfile
+          );
+
+
+
+          localStorage.setItem("hunt_user_session", JSON.stringify(playerProfile));
           setScreen("hunt");
+          // ── NEW: Pull historical scores down the pipe before switching view panels ──
+          await hydrateRemoteProgress(playerProfile.email);
           //   showToast("WELCOME BACK, OPERATOR");
         } else {
           // New player, OR player who verified email but never picked an avatar
@@ -310,17 +347,113 @@ export function GameApp() {
   }
 
 
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("hunt_user_session");
+
+      // Optional: Clear your gameplay state pools too so the next user starts fresh
+      setPlayer(
+        {
+          name: '',
+          email: '',
+          school: '',
+          role: '',
+          shopName: '',
+          avatarIndex: 0,
+          avatarName: '',
+        }
+
+      );
+      setStopsDone({});
+      setShortsDone({});
+
+      setScreen("auth"); // Throw them back to the start lines
+      showToast("👋 LOGGED OUT SUCCESSFULLY");
+    }
+  };
+
+
 
 
   const backHandler = () => {
     setScreen("hunt")
   }
+
+
+
+
+  /**
+   * Universal progress auto-saver with explicit error handling
+   */
+  const saveGameSnapshot = async (updatedStops: any, updatedShorts: any) => {
+    if (!player.email) return;
+
+    // Package both tracking layers into a unified snapshot object
+    const snapshotData = {
+      stops: updatedStops,
+      shorts: updatedShorts,
+    };
+
+    // Check if player has already completed any stops to pick between POST or PUT
+    const isExistingRecord =
+      Object.keys(stopsDone).length > 0 || Object.keys(shortsDone).length > 0;
+
+    // try {
+
+    console.log(snapshotData, "from savegame snapshot")
+    // const res = await GameService.syncProgress(
+    //   player.email,
+    //   snapshotData,
+    //   isExistingRecord
+    // );
+
+    //   if (res.success) {
+    //     // Quiet success inside developer log to avoid distracting the player
+    //     console.log("💾 Game progress auto-saved:", res.message);
+    //   } else {
+    //     // Handles business rule rejections (e.g., bad format or missing record)
+    //     console.warn("⚠️ Cloud sync rejected:", res.error);
+    //     showToast(`⚠️ SYNC WARNING: ${res.error.toUpperCase()}`);
+    //   }
+    // } catch (error) {
+    //   // Handles total network drops (e.g., cell service lost inside convention hall)
+    //   console.error("Failed to execute background auto-save:", error);
+    //   showToast("⚠️ CLOUD SYNC FAILED — CHECK YOUR CONNECTION");
+    // }
+  }
+
+
+
+
+  /**
+   * Cloud Synchronizer: Resolves remote progress and populates client memory banks
+   */
+  const hydrateRemoteProgress = async (emailId: string) => {
+    try {
+      const res = await GameService.fetchProgress(emailId);
+
+      if (res.success && res.gameProgress) {
+        // Decompress the backend string back into structured database tables
+        const decodedSnapshot = JSON.parse(res.gameProgress);
+
+        if (decodedSnapshot.stops) {
+          setStopsDone(decodedSnapshot.stops);
+        }
+        if (decodedSnapshot.shorts) {
+          setShortsDone(decodedSnapshot.shorts);
+        }
+
+        console.log("⚡ Cloud metrics synchronized successfully.");
+      } else {
+        console.log("ℹ️ No previous progress metrics found in cloud. Starting fresh.");
+      }
+    } catch (error) {
+      console.error("Critical Exception encountered during engine hydration:", error);
+      showToast("⚠️ CLOUD DATA CORRUPTED — SYNCHRONIZING FRESH STATE");
+    }
+  };
+
   return (
-
-
-
-
-
     <div className="mx-auto w-full max-w-[390px] min-h-dvh overflow-x-hidden overflow-y-auto">
       <div
         className="relative flex w-full min-h-dvh flex-shrink-0 flex-col"
@@ -442,8 +575,16 @@ export function GameApp() {
               onOpenStop={openStop}
 
 
+              // onShortComplete={(slug, data) => {
+              //   setShortsDone((prev) => ({ ...prev, [slug]: data }));
+              // }}
+
               onShortComplete={(slug, data) => {
-                setShortsDone((prev) => ({ ...prev, [slug]: data }));
+                setShortsDone((prev) => {
+                  const next = { ...prev, [slug]: data };
+                  saveGameSnapshot(stopsDone, next); // <-- Trigger auto-save here
+                  return next;
+                });
               }}
               onCelebrate={(state) => openCelebration(state, "shorts")}
               onToast={showToast}

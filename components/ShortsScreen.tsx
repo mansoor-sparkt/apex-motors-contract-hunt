@@ -523,6 +523,7 @@ import { useRef, useState } from "react";
 import { SHORTS } from "@/constants";
 import type { CelebrationState, ShortCompletion } from "@/lib/game-types";
 import MediaModal from "./MediaModal";
+import { GameService } from "@/lib/game.service";
 
 type ShortDef = (typeof SHORTS)[number];
 
@@ -547,11 +548,13 @@ function ShortCard({
   completion,
   onComplete,
   onCelebrate,
+  onToast
 }: {
   short: ShortDef;
   completion?: ShortCompletion;
   onComplete: (slug: string, data: ShortCompletion) => void;
   onCelebrate: (state: CelebrationState) => void;
+  onToast: (msg: string) => void;
 }) {
   const isApp = short.type === "app";
   const isPhoto = short.type === "photo" || isApp;
@@ -573,9 +576,40 @@ function ShortCard({
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
+  //   e.target.value = "";
+  //   if (!file || photoDone) return;
+
+  //   const isImage = file.type.startsWith("image/");
+  //   const isVideo = file.type.startsWith("video/");
+
+  //   if (isPhoto && !isImage) return;
+  //   if (!isPhoto && !isVideo) return;
+
+  //   const url = URL.createObjectURL(file);
+  //   const mType = isImage ? "image" : "video";
+
+  //   const data: ShortCompletion = {
+  //     mediaType: mType,
+  //     previewUrl: url,
+  //     badge: short.badge,
+  //     qAnswered: false, // Explicitly false initially for App challenges
+  //   };
+
+  //   onComplete(short.slug, data);
+
+  //   // ── DYNAMIC CELEBRATION ──
+  //   onCelebrate({
+  //     icon: "📸",
+  //     title: isApp ? "SCREENSHOT LOGGED!" : "CHALLENGE COMPLETE!",
+  //     sub: isApp ? "+10 PTS EARNED. NOW ANSWER THE QUESTION." : `+${short.pts} BONUS PTS LOGGED.`,
+  //     badge: isApp ? "HALF WAY THERE" : (short.badge || "BONUS MASTER"),
+  //   });
+  // };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    e.target.value = "";
     if (!file || photoDone) return;
 
     const isImage = file.type.startsWith("image/");
@@ -584,25 +618,41 @@ function ShortCard({
     if (isPhoto && !isImage) return;
     if (!isPhoto && !isVideo) return;
 
-    const url = URL.createObjectURL(file);
-    const mType = isImage ? "image" : "video";
+    onToast("⚡ UPLOADING BONUS MEDIA...");
 
-    const data: ShortCompletion = {
-      mediaType: mType,
-      previewUrl: url,
-      badge: short.badge,
-      qAnswered: false, // Explicitly false initially for App challenges
-    };
+    try {
+      // Execute live backend file upload
+      const res = await GameService.uploadMedia(file, short.slug); // Using slug or email context
 
-    onComplete(short.slug, data);
+      if (res.success) {
+        // Extract server-backed file path
+        const serverPath = res.cdnUrl
+        const mType = isImage ? "image" : "video";
 
-    // ── DYNAMIC CELEBRATION ──
-    onCelebrate({
-      icon: "📸",
-      title: isApp ? "SCREENSHOT LOGGED!" : "CHALLENGE COMPLETE!",
-      sub: isApp ? "+10 PTS EARNED. NOW ANSWER THE QUESTION." : `+${short.pts} BONUS PTS LOGGED.`,
-      badge: isApp ? "HALF WAY THERE" : (short.badge || "BONUS MASTER"),
-    });
+        const data: ShortCompletion = {
+          mediaType: mType,
+          previewUrl: serverPath, // Persistent server string saved to global state
+          badge: short.badge,
+          qAnswered: false,
+        };
+
+        // INSTANT PROGRESS: Update global state engine immediately
+        onComplete(short.slug, data);
+
+        onCelebrate({
+          icon: "📸",
+          title: isApp ? "SCREENSHOT LOGGED!" : "CHALLENGE COMPLETE!",
+          sub: isApp ? "+10 PTS EARNED. NOW ANSWER THE QUESTION." : `+${short.pts} BONUS PTS LOGGED.`,
+          badge: isApp ? "HALF WAY THERE" : (short.badge || "BONUS MASTER"),
+        });
+      } else {
+        onToast(`❌ ${res.error || "UPLOAD FAILED"}`);
+      }
+    } catch (err) {
+      onToast("❌ SERVER CONNECTION ERROR");
+    } finally {
+      e.target.value = "";
+    }
   };
 
   // ── NEW: Handle the 2nd Phase Question Submit ──
@@ -771,13 +821,15 @@ export function ShortsScreen({
   bonusScore,
   onComplete,
   onCelebrate,
-  bonusPercent
+  bonusPercent,
+  onToast,
 }: {
   shortsDone: Record<string, ShortCompletion>;
   bonusScore: number,
   onComplete: (slug: string, data: ShortCompletion) => void;
   onCelebrate: (state: CelebrationState) => void;
-  bonusPercent: number
+  bonusPercent: number;
+  onToast: (msg: string) => void;
 }) {
   return (
     <div className="game-hub-panel">
@@ -812,6 +864,7 @@ export function ShortsScreen({
               completion={shortsDone[s.slug]}
               onComplete={onComplete}
               onCelebrate={onCelebrate}
+              onToast={onToast}
             />
           ))}
         </div>

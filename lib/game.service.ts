@@ -163,4 +163,22 @@ export const GameService = {
       return { success: false, error: "Progress sync failed" };
     }
   },
+
+  /**
+   * 6. Retrieve remote stringified progress snapshot
+   */
+  async fetchProgress(emailId: string) {
+    try {
+      const response = await fetch(
+        `/api/game/progress?emailId=${encodeURIComponent(emailId)}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+      return await response.json();
+    } catch (error) {
+      return { success: false, error: "Failed to download cloud progress" };
+    }
+  },
 };
