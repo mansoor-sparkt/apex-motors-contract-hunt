@@ -1109,7 +1109,7 @@ export function StopScreen({
         onToast("📸 EVIDENCE SECURED ON SERVER");
         revokeObjectPreviewUrl(blobPreviewRef.current);
         blobPreviewRef.current = null;
-        setPreviewUrl(res.cdnUrl);
+        setPreviewUrl(res.cdnUrl || null);
       } else {
         onToast(`⚠️ ${res.error || "UPLOAD FAILED. PLEASE RETAKE."}`);
         revokeObjectPreviewUrl(blobPreviewRef.current);
@@ -1177,7 +1177,7 @@ export function StopScreen({
         return;
       }
 
-      questionText = selQ === 0 ? s.q1 : s.q2;
+      questionText = (selQ === 0 ? s.q1 : s.q2) || "";
       isCorrect = true;
     }
 
