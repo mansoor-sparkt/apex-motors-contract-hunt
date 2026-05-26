@@ -608,6 +608,7 @@ export function GameApp() {
               onCelebrate={(state) => openCelebration(state, "shorts")}
               onToast={showToast}
               onOpenMap={() => setIsMapOpen(true)}
+              logout={handleLogout}
             />
           </ScreenSlot>
 

@@ -157,12 +157,12 @@ export function HuntStopRow({
         <div className="game-stop-tk">{task}</div>
       </div>
       <div className="game-stop-pts">
-        {showBase ? (
-          <div className="game-stop-base-pts">10 BASE</div>
-        ) : null}
+        {/* {showBase ? ( */}
+        <div className="game-stop-base-pts">{done ? (bonus ? "20 PTS" : "10 PTS") : "20 PTS MAX"}</div>
+        {/* ) : null}
         {showBonus ? (
           <div className="game-stop-bonus-pts">+5 BONUS</div>
-        ) : null}
+        ) : null} */}
         {!locked ? <div className="game-stop-arrow">►</div> : null}
       </div>
     </div>
