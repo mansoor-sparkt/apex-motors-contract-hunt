@@ -642,7 +642,7 @@ function ShortCard({
 
       if (res.success) {
         // Extract server-backed file path
-        const serverPath = res.cdnUrl
+        const serverPath = res.cdnUrl || ''
         const mType = isImage ? "image" : "video";
 
         const data: ShortCompletion = {
