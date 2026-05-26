@@ -105,12 +105,13 @@ export async function GET(request: Request) {
 
     // Forward the payload via request parameter matching your backend structure
     const res = await fetch(
-      `${baseUrl}​/GameProgress​/ByEmail?emailId=${encodeURIComponent(emailId)}`,
+      `${baseUrl}/GameProgress/ByEmail?emailId=${emailId}`,
       {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       },
     );
+
 
     if (!res.ok) {
       return NextResponse.json(

@@ -24,6 +24,7 @@ import type {
   CelebrationState,
   HuntTab,
   PlayerProfile,
+  ProgressLoadStatus,
   RegisterDraft,
   RosterEntry,
   StopCompletion,
@@ -78,9 +79,8 @@ export function GameApp() {
   const [roster, setRoster] = useState<RosterEntry[]>([]);
   const [huntTab, setHuntTab] = useState<HuntTab>("stops");
   const [curStop, setCurStop] = useState(0);
-
-
-
+  const [progressStatus, setProgressStatus] =
+    useState<ProgressLoadStatus>("idle");
 
   const [celebration, setCelebration] = useState<CelebrationState | null>(null);
 
@@ -126,24 +126,67 @@ export function GameApp() {
     setScreen("hunt");
   }, [celebrationDismiss]);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedSession = localStorage.getItem("hunt_user_session");
-      if (savedSession) {
-        try {
-          const parsedPlayer = JSON.parse(savedSession);
-          setPlayer(parsedPlayer);
-          setScreen("hunt");
+  /**
+   * Cloud Synchronizer: Resolves remote progress and populates client memory banks
+   */
+  const hydrateRemoteProgress = useCallback(
+    async (emailId: string): Promise<boolean> => {
+      setProgressStatus("loading");
 
-          // ── NEW: Instant sync down tracking sheets from the cloud database ──
-          hydrateRemoteProgress(parsedPlayer.email);
-        } catch (error) {
-          console.error("Session restore dropped:", error);
-          localStorage.removeItem("hunt_user_session");
+      try {
+        const res = await GameService.fetchProgress(emailId);
+
+        if (res.success && res.gameProgress) {
+          const decodedSnapshot = JSON.parse(res.gameProgress);
+
+          if (decodedSnapshot.stops) {
+            setStopsDone(decodedSnapshot.stops);
+          }
+          if (decodedSnapshot.shorts) {
+            setShortsDone(decodedSnapshot.shorts);
+          }
+
+          setProgressStatus("loaded");
+          console.log("⚡ Cloud metrics synchronized successfully.");
+          return true;
         }
+
+        setProgressStatus("loaded");
+        console.log("ℹ️ No previous progress metrics found in cloud. Starting fresh.");
+        return false;
+      } catch (error) {
+        console.error("Critical Exception encountered during engine hydration:", error);
+        setProgressStatus("error");
+        showToast("⚠️ CLOUD DATA CORRUPTED — STARTING FRESH");
+        setStopsDone({});
+        setShortsDone({});
+        return false;
       }
-    }
-  }, []);
+    },
+    [showToast],
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const savedSession = localStorage.getItem("hunt_user_session");
+    if (!savedSession) return;
+
+    const restoreSession = async () => {
+      try {
+        const parsedPlayer = JSON.parse(savedSession) as PlayerProfile;
+        setPlayer(parsedPlayer);
+        await hydrateRemoteProgress(parsedPlayer.email);
+        setScreen("hunt");
+      } catch (error) {
+        console.error("Session restore dropped:", error);
+        localStorage.removeItem("hunt_user_session");
+        setProgressStatus("idle");
+      }
+    };
+
+    restoreSession();
+  }, [hydrateRemoteProgress]);
 
   const quickDemo = () => {
     setPlayer({
@@ -163,6 +206,7 @@ export function GameApp() {
     setRoster([]);
     setHuntTab("stops");
     setCelebrationDismiss(null);
+    setProgressStatus("loaded");
     setScreen("hunt");
   };
 
@@ -277,10 +321,8 @@ export function GameApp() {
 
 
           localStorage.setItem("hunt_user_session", JSON.stringify(playerProfile));
-          setScreen("hunt");
-          // ── NEW: Pull historical scores down the pipe before switching view panels ──
           await hydrateRemoteProgress(playerProfile.email);
-          //   showToast("WELCOME BACK, OPERATOR");
+          setScreen("hunt");
         } else {
           // New player, OR player who verified email but never picked an avatar
           setScreen("register");
@@ -332,7 +374,7 @@ export function GameApp() {
       if (data.success) {
         // 3. Success! Set player, clear draft, move to game
         setPlayer(p);
-        // setRegisterDraft(null);
+        setProgressStatus("loaded");
 
         enterHuntHub("stops");
         showToast("PROFILE CREATED!");
@@ -366,6 +408,7 @@ export function GameApp() {
       );
       setStopsDone({});
       setShortsDone({});
+      setProgressStatus("idle");
 
       setScreen("auth"); // Throw them back to the start lines
       showToast("👋 LOGGED OUT SUCCESSFULLY");
@@ -398,60 +441,36 @@ export function GameApp() {
     const isExistingRecord =
       Object.keys(stopsDone).length > 0 || Object.keys(shortsDone).length > 0;
 
-    // try {
+    try {
 
-    console.log(snapshotData, "from savegame snapshot")
-    // const res = await GameService.syncProgress(
-    //   player.email,
-    //   snapshotData,
-    //   isExistingRecord
-    // );
+      console.log(snapshotData, "from savegame snapshot")
+      const res = await GameService.syncProgress(
+        player.email,
+        snapshotData,
+        isExistingRecord
+      );
 
-    //   if (res.success) {
-    //     // Quiet success inside developer log to avoid distracting the player
-    //     console.log("💾 Game progress auto-saved:", res.message);
-    //   } else {
-    //     // Handles business rule rejections (e.g., bad format or missing record)
-    //     console.warn("⚠️ Cloud sync rejected:", res.error);
-    //     showToast(`⚠️ SYNC WARNING: ${res.error.toUpperCase()}`);
-    //   }
-    // } catch (error) {
-    //   // Handles total network drops (e.g., cell service lost inside convention hall)
-    //   console.error("Failed to execute background auto-save:", error);
-    //   showToast("⚠️ CLOUD SYNC FAILED — CHECK YOUR CONNECTION");
-    // }
+      if (res.success) {
+        // Quiet success inside developer log to avoid distracting the player
+        console.log("💾 Game progress auto-saved:", res.message);
+      } else {
+        // Handles business rule rejections (e.g., bad format or missing record)
+        console.warn("⚠️ Cloud sync rejected:", res.error);
+        showToast(`⚠️ SYNC WARNING: ${res.error.toUpperCase()}`);
+      }
+    } catch (error) {
+      // Handles total network drops (e.g., cell service lost inside convention hall)
+      console.error("Failed to execute background auto-save:", error);
+      showToast("⚠️ CLOUD SYNC FAILED — CHECK YOUR CONNECTION");
+    }
   }
 
 
 
 
-  /**
-   * Cloud Synchronizer: Resolves remote progress and populates client memory banks
-   */
-  const hydrateRemoteProgress = async (emailId: string) => {
-    try {
-      const res = await GameService.fetchProgress(emailId);
-
-      if (res.success && res.gameProgress) {
-        // Decompress the backend string back into structured database tables
-        const decodedSnapshot = JSON.parse(res.gameProgress);
-
-        if (decodedSnapshot.stops) {
-          setStopsDone(decodedSnapshot.stops);
-        }
-        if (decodedSnapshot.shorts) {
-          setShortsDone(decodedSnapshot.shorts);
-        }
-
-        console.log("⚡ Cloud metrics synchronized successfully.");
-      } else {
-        console.log("ℹ️ No previous progress metrics found in cloud. Starting fresh.");
-      }
-    } catch (error) {
-      console.error("Critical Exception encountered during engine hydration:", error);
-      showToast("⚠️ CLOUD DATA CORRUPTED — SYNCHRONIZING FRESH STATE");
-    }
-  };
+  const isProgressLoading = progressStatus === "loading";
+  const isProgressReady =
+    progressStatus === "loaded" || progressStatus === "error";
 
   return (
     <div className="mx-auto w-full max-w-[390px] min-h-dvh overflow-x-hidden overflow-y-auto">
@@ -560,7 +579,7 @@ export function GameApp() {
           </ScreenSlot>
 
           {/* E: Hunt Hub */}
-          <ScreenSlot active={screen === "hunt"} direction="fwd">
+          <ScreenSlot active={screen === "hunt" && isProgressReady} direction="fwd">
             <HuntScreen
               player={player}
 
@@ -593,7 +612,7 @@ export function GameApp() {
           </ScreenSlot>
 
           {/* F: Stop Detail */}
-          <ScreenSlot active={screen === "stop"} direction="fwd">
+          <ScreenSlot active={screen === "stop" && isProgressReady} direction="fwd">
             <StopScreen
               isActive={screen === "stop"}
               stopIndex={curStop}
@@ -622,6 +641,20 @@ export function GameApp() {
           />
 
           <GameToast message={toast} onDone={() => setToast(null)} />
+
+          {isProgressLoading && (
+            <div
+              className="absolute inset-0 z-[60] flex flex-col items-center justify-center gap-3"
+              style={{ background: "rgba(0,0,0,0.92)" }}
+            >
+              <div
+                className="font-share-mono text-[10px] tracking-[0.2em] text-[var(--c)]"
+                style={{ animation: "pulse 1.2s ease-in-out infinite" }}
+              >
+                SYNCING SAVED PROGRESS…
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

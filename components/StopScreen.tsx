@@ -951,6 +951,12 @@ import {
 } from "@/constants";
 import type { PlayerProfile, StopCompletion, CelebrationState } from "@/lib/game-types";
 import { GameService } from "@/lib/game.service";
+import { IMAGE_UPLOAD_ACCEPT, isImageFile } from "@/lib/image-to-png";
+import {
+  createImagePreviewUrl,
+  resolveMediaPreviewUrl,
+  revokeObjectPreviewUrl,
+} from "@/lib/media-preview";
 
 export function StopScreen({
   isActive,
@@ -998,6 +1004,13 @@ export function StopScreen({
   // LIVE TICKING SESSION TIMER STATE
   const [elapsedSeconds, setElapsedSeconds] = useState(previousStopsTime);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const blobPreviewRef = useRef<string | null>(null);
+
+  const displayPreviewUrl = resolveMediaPreviewUrl(previewUrl);
+
+  useEffect(() => {
+    return () => revokeObjectPreviewUrl(blobPreviewRef.current);
+  }, []);
 
   // Live Timer Effect Hook
   useEffect(() => {
@@ -1025,6 +1038,9 @@ export function StopScreen({
 
   // ── FIX: Hydrate state elements cleanly when navigating between stops ──
   useEffect(() => {
+    revokeObjectPreviewUrl(blobPreviewRef.current);
+    blobPreviewRef.current = null;
+
     const record = stopsDone[stopIndex] as any;
     setPhotoUp(!!record);
     setPreviewUrl(record?.previewUrl ?? null);
@@ -1054,7 +1070,25 @@ export function StopScreen({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const localBlobUrl = URL.createObjectURL(file);
+    if (!isImageFile(file)) {
+      onToast("⚠️ UNSUPPORTED FILE — USE A PHOTO (JPG, PNG, HEIC, ETC.)");
+      e.target.value = "";
+      return;
+    }
+
+    revokeObjectPreviewUrl(blobPreviewRef.current);
+    blobPreviewRef.current = null;
+
+    let localBlobUrl: string;
+    try {
+      localBlobUrl = await createImagePreviewUrl(file);
+    } catch {
+      onToast("⚠️ COULD NOT PREVIEW THIS IMAGE");
+      e.target.value = "";
+      return;
+    }
+
+    blobPreviewRef.current = localBlobUrl;
     setPreviewUrl(localBlobUrl);
     onToast("⚡ TRANSMITTING EVIDENCE...");
 
@@ -1064,13 +1098,19 @@ export function StopScreen({
       if (res.success) {
         setPhotoUp(true);
         onToast("📸 EVIDENCE SECURED ON SERVER");
+        revokeObjectPreviewUrl(blobPreviewRef.current);
+        blobPreviewRef.current = null;
         setPreviewUrl(res.cdnUrl);
       } else {
-        onToast("⚠️ UPLOAD FAILED. PLEASE RETAKE.");
+        onToast(`⚠️ ${res.error || "UPLOAD FAILED. PLEASE RETAKE."}`);
+        revokeObjectPreviewUrl(blobPreviewRef.current);
+        blobPreviewRef.current = null;
         setPreviewUrl(null);
       }
     } catch (err) {
       onToast("❌ CONNECTION ERROR DURING UPLOAD");
+      revokeObjectPreviewUrl(blobPreviewRef.current);
+      blobPreviewRef.current = null;
       setPreviewUrl(null);
     } finally {
       e.target.value = "";
@@ -1078,6 +1118,8 @@ export function StopScreen({
   };
 
   const handleRetake = () => {
+    revokeObjectPreviewUrl(blobPreviewRef.current);
+    blobPreviewRef.current = null;
     setPreviewUrl(null);
     setPhotoUp(false);
   };
@@ -1200,7 +1242,7 @@ export function StopScreen({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept={IMAGE_UPLOAD_ACCEPT}
         className="sr-only"
         tabIndex={-1}
         aria-hidden="true"
@@ -1270,9 +1312,9 @@ export function StopScreen({
           <Panel header={<><span style={{ color: "var(--c)" }}>① FIND-IT TASK</span><StatusTag variant="cyan">10 PTS · REQUIRED</StatusTag></>} headerColor="cyan" stopVariant>
             <p className="font-share-mono text-[11px] text-[var(--mut)] mb-2.5">{s.fi}</p>
             <button type="button" onClick={openPicker} disabled={done || photoUp} className={`game-photo-box w-full${photoUp || done ? " up" : ""}`}>
-              {previewUrl ? (
+              {displayPreviewUrl ? (
                 <div className="flex flex-col items-center gap-2 w-full">
-                  <img src={previewUrl} alt="Evidence Logged" className="w-full max-h-[120px] object-cover" />
+                  <img src={displayPreviewUrl} alt="Evidence Logged" className="w-full max-h-[120px] object-cover" />
                   <span className="font-share-mono text-[11px] text-[var(--g)]">✅ PHOTO UPLOADED — EVIDENCE LOGGED</span>
                 </div>
               ) : (

@@ -1,5 +1,7 @@
-import * as Dialog from "@radix-ui/react-dialog";
+"use client";
 
+import * as Dialog from "@radix-ui/react-dialog";
+import { resolveMediaPreviewUrl } from "@/lib/media-preview";
 
 // ── MEDIA PREVIEW MODAL ──────────────────────────────────────────────────────
 const MediaModal = ({
@@ -13,6 +15,8 @@ const MediaModal = ({
   title: string;
   onClose: () => void;
 }) => {
+  const resolvedSrc = resolveMediaPreviewUrl(previewUrl) ?? previewUrl;
+
   return (
     <Dialog.Root open onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
@@ -81,9 +85,9 @@ const MediaModal = ({
               {/* HUD frame */}
               <div style={{ position: "absolute", inset: 8, border: "1px solid rgba(241,92,48,0.2)", clipPath: "polygon(0 12px,12px 0,calc(100% - 12px) 0,100% 12px,100% calc(100% - 12px),calc(100% - 12px) 100%,12px 100%,0 calc(100% - 12px))", pointerEvents: "none", zIndex: 2 }} />
               {mediaType === "image" ? (
-                <img src={previewUrl} alt={title} style={{ width: "100%", maxHeight: 280, objectFit: "contain", display: "block" }} />
+                <img src={resolvedSrc} alt={title} style={{ width: "100%", maxHeight: 280, objectFit: "contain", display: "block" }} />
               ) : (
-                <video src={previewUrl} style={{ width: "100%", maxHeight: 280, display: "block" }} controls playsInline autoPlay />
+                <video src={resolvedSrc} style={{ width: "100%", maxHeight: 280, display: "block" }} controls playsInline autoPlay />
               )}
             </div>
 

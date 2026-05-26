@@ -6,6 +6,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  serverExternalPackages: ["heic-convert", "heic-decode"],
 }
 
 export default nextConfig

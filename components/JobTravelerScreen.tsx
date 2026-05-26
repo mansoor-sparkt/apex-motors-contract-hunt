@@ -4,7 +4,6 @@ import { GameButton } from "./GameComponents";
 import {
   AVS,
   SHORTS,
-  getRank,
   computeBaseScore,
   computeBonusScore,
 } from "@/constants";
@@ -34,18 +33,19 @@ export function JobTravelerScreen({
   onToast,
   onViewLeaderboard,
   onBackToHunt,
+  rank,
 }: {
   player: PlayerProfile;
   score: number;
   stopsDone: Record<number, StopCompletion>;
   shortsDone: Record<string, unknown>;
   roster: RosterEntry[];
+  rank: number;
   onToast?: (msg: string) => void;
   onViewLeaderboard?: () => void;
   onBackToHunt?: () => void;
 }) {
   const av = AVS[player.avatarIndex] ?? AVS[0];
-  const rank = getRank(score, player.name);
   const baseScore = computeBaseScore(stopsDone);
   const bonusScore = computeBonusScore(shortsDone);
   const metaLine = `${player.shopName || player.school} · ${player.role}`;

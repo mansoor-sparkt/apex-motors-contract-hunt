@@ -72,6 +72,9 @@ export type AppScreen =
 
 export type CelebrationSource = "stop" | "shorts";
 
+/** Cloud save hydration lifecycle for hunt progress state. */
+export type ProgressLoadStatus = "idle" | "loading" | "loaded" | "error";
+
 export interface CelebrationState {
   icon: string;
   title: string;

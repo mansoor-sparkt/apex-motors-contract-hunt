@@ -1,68 +1,38 @@
 "use client";
 
-import {
-  AVS,
-  FLB,
-  computeBaseScore,
-  computeBonusScore,
-  getRank,
-} from "@/constants";
+import type { useLeaderboard } from "@/hooks/useLeaderboard";
 import type { PlayerProfile } from "@/lib/game-types";
+
+function formatTime(secs: number) {
+  const mins = Math.floor(secs / 60);
+  const remainSecs = secs % 60;
+  return `${mins}:${remainSecs < 10 ? "0" : ""}${remainSecs}`;
+}
 
 export function LeaderboardScreen({
   player,
-  score,
-  stopsDone,
-  shortsDone,
+  leaderboard,
 }: {
   player: PlayerProfile;
-  score: number;
-  stopsDone: Record<number, { bonus: boolean; badge: string | null }>;
-  shortsDone: Record<string, unknown>;
+  leaderboard: ReturnType<typeof useLeaderboard>;
 }) {
-  const badgeCount =
-    Object.keys(stopsDone).length + Object.keys(shortsDone).length;
-  const av = AVS[player.avatarIndex] ?? AVS[0];
-  const baseScore = computeBaseScore(stopsDone);
-  const bonusScore = computeBonusScore(shortsDone);
+  const {
+    all,
+    rank,
+    totalParticipants,
+    loading,
+    error,
+    baseScore,
+    bonusScore,
+    badgeCount,
+    totalSeconds,
+    av,
+  } = leaderboard;
 
-  const all = [
-    ...FLB.map((p) => ({
-      n: p.n,
-      s: p.s,
-      base: p.base,
-      bonus: p.bonus,
-      total: p.base + p.bonus,
-      b: p.b,
-      av: p.av,
-      isYou: false,
-    })),
-    {
-      n: player.name || "You",
-      s: player.school,
-      base: baseScore,
-      bonus: bonusScore,
-      total: score,
-      b: badgeCount,
-      av: av.em,
-      isYou: true,
-    },
-  ].sort((a, b) => b.total - a.total);
-
-  const rank = getRank(score, player.name);
+  const timeDisplay =
+    totalSeconds > 0 ? `${formatTime(totalSeconds)} MIN` : "0:00 MIN";
   const dateStr = new Date().toLocaleDateString();
 
-  const totalSeconds = Object.values(stopsDone).reduce(
-    (acc, curr: any) => acc + (curr.timeSpent || 0),
-    0
-  );
-
-  const formatTime = (secs: number) => {
-    const mins = Math.floor(secs / 60);
-    const remainSecs = secs % 60;
-    return `${mins}:${remainSecs < 10 ? "0" : ""}${remainSecs}`;
-  };
-  const timeDisplay = totalSeconds > 0 ? `${formatTime(totalSeconds)} MIN` : "0:00 MIN";
   return (
     <div className="game-hub-panel">
       <div className="game-lb-hdr">
@@ -70,7 +40,9 @@ export function LeaderboardScreen({
           HUNT <span>›</span> LEADERBOARD
         </div>
         <p className="font-share-mono text-[10px] text-[var(--mut)] tracking-[0.08em] mb-2">
-          {all.length + 180} PARTICIPANTS · {dateStr}
+          {loading
+            ? "LOADING PARTICIPANTS…"
+            : `${totalParticipants || all.length} PARTICIPANTS · ${dateStr}`}
         </p>
       </div>
 
@@ -95,30 +67,43 @@ export function LeaderboardScreen({
       </div>
 
       <div className="game-scroll game-lb-list flex-1 min-h-0">
-        {all.map((p, i) => (
-          <div
-            key={`${p.n}-${i}`}
-            className={`game-lb-row${p.isYou ? " you" : ""}`}
-          >
-            <div className="game-lb-n">{i + 1}</div>
-            <div className="game-lb-av">{p.isYou ? av.em : p.av}</div>
-            <div className="game-lb-info">
-              <div className={`game-lb-pn${p.isYou ? " you" : ""}`}>
-                {(p.n || "").toUpperCase()}
-                {p.isYou ? " ◄" : ""}
+        {loading && (
+          <p className="font-share-mono text-[10px] text-[var(--mut)] p-4 tracking-[0.08em]">
+            SYNCING LEADERBOARD…
+          </p>
+        )}
+
+        {!loading && error && (
+          <p className="font-share-mono text-[10px] text-[var(--mut)] p-4 tracking-[0.08em]">
+            {error.toUpperCase()}
+          </p>
+        )}
+
+        {!loading &&
+          all.map((p, i) => (
+            <div
+              key={`${p.emailId}-${i}`}
+              className={`game-lb-row${p.isYou ? " you" : ""}`}
+            >
+              <div className="game-lb-n">{i + 1}</div>
+              <div className="game-lb-av">{p.avatar}</div>
+              <div className="game-lb-info">
+                <div className={`game-lb-pn${p.isYou ? " you" : ""}`}>
+                  {(p.name || "").toUpperCase()}
+                  {p.isYou ? " ◄" : ""}
+                </div>
+                <div className="game-lb-sc">
+                  {p.school} · {p.badges} BADGES
+                </div>
               </div>
-              <div className="game-lb-sc">
-                {p.s} · {p.b} BADGES
+              <div className="game-lb-score-wrap">
+                <div className="game-lb-score">{p.total}</div>
+                <div className="game-lb-score-sub">
+                  {p.base}+{p.bonus}
+                </div>
               </div>
             </div>
-            <div className="game-lb-score-wrap">
-              <div className="game-lb-score">{p.total}</div>
-              <div className="game-lb-score-sub">
-                {p.base}+{p.bonus}
-              </div>
-            </div>
-          </div>
-        ))}
+          ))}
       </div>
     </div>
   );

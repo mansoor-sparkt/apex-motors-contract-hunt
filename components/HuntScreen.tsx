@@ -11,15 +11,13 @@ import { ShortsScreen } from "./ShortsScreen";
 import { LeaderboardScreen } from "./LeaderboardScreen";
 import { JobTravelerScreen } from "./JobTravelerScreen";
 import { BottomNav } from "./BottomNav";
+import { useLeaderboard } from "@/hooks/useLeaderboard";
 import {
   STOPS,
   AVS,
   TOTAL_STOPS,
   MAX_SCORE,
   getActiveStopIndex,
-  getRank,
-  computeBaseScore,
-  computeBonusScore,
   IMAGE_URLS,
 
 } from "@/constants";
@@ -84,7 +82,8 @@ export function HuntScreen({
   const av = AVS[player.avatarIndex] ?? AVS[0];
   const activeIdx = getActiveStopIndex(stopsDone);
   const stopsCount = Object.keys(stopsDone).length;
-  const rank = getRank(score, player.name);
+  const leaderboard = useLeaderboard(player, score, stopsDone, shortsDone);
+  const { rank } = leaderboard;
   // const baseScore = computeBaseScore(stopsDone);
 
   // const baseScore = computeBaseScore(stopsDone, shortsDone);
@@ -244,6 +243,7 @@ export function HuntScreen({
         <ShortsScreen
           shortsDone={shortsDone}
           bonusScore={bonusScore}
+          emailId={player.email}
           onComplete={onShortComplete}
           onCelebrate={onCelebrate}
           bonusPercent={bonusPercent}
@@ -252,12 +252,7 @@ export function HuntScreen({
       )}
 
       {activeTab === "board" && (
-        <LeaderboardScreen
-          player={player}
-          score={score}
-          stopsDone={stopsDone}
-          shortsDone={shortsDone}
-        />
+        <LeaderboardScreen player={player} leaderboard={leaderboard} />
       )}
 
       {activeTab === "comp" && (
@@ -267,6 +262,7 @@ export function HuntScreen({
           stopsDone={stopsDone}
           shortsDone={shortsDone}
           roster={roster}
+          rank={rank}
           onToast={onToast}
           onViewLeaderboard={() => onTabChange("board")}
           onBackToHunt={() => onTabChange("stops")}

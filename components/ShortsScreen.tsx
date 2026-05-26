@@ -524,6 +524,7 @@ import { SHORTS } from "@/constants";
 import type { CelebrationState, ShortCompletion } from "@/lib/game-types";
 import MediaModal from "./MediaModal";
 import { GameService } from "@/lib/game.service";
+import { IMAGE_UPLOAD_ACCEPT, isImageFile } from "@/lib/image-to-png";
 
 type ShortDef = (typeof SHORTS)[number];
 
@@ -546,12 +547,14 @@ function ShortTag({
 function ShortCard({
   short,
   completion,
+  emailId,
   onComplete,
   onCelebrate,
-  onToast
+  onToast,
 }: {
   short: ShortDef;
   completion?: ShortCompletion;
+  emailId: string;
   onComplete: (slug: string, data: ShortCompletion) => void;
   onCelebrate: (state: CelebrationState) => void;
   onToast: (msg: string) => void;
@@ -612,17 +615,25 @@ function ShortCard({
     const file = e.target.files?.[0];
     if (!file || photoDone) return;
 
-    const isImage = file.type.startsWith("image/");
+    const isImage = isImageFile(file);
     const isVideo = file.type.startsWith("video/");
 
-    if (isPhoto && !isImage) return;
+    if (isPhoto && !isImage) {
+      onToast("⚠️ UNSUPPORTED FILE — USE A PHOTO (JPG, PNG, HEIC, ETC.)");
+      return;
+    }
     if (!isPhoto && !isVideo) return;
+
+    if (!emailId) {
+      onToast("⚠️ SIGN IN REQUIRED TO UPLOAD MEDIA");
+      e.target.value = "";
+      return;
+    }
 
     onToast("⚡ UPLOADING BONUS MEDIA...");
 
     try {
-      // Execute live backend file upload
-      const res = await GameService.uploadMedia(file, short.slug); // Using slug or email context
+      const res = await GameService.uploadMedia(file, emailId);
 
       if (res.success) {
         // Extract server-backed file path
@@ -695,7 +706,7 @@ function ShortCard({
         <input
           ref={fileInputRef}
           type="file"
-          accept={isPhoto ? "image/*" : "video/*"}
+          accept={isPhoto ? IMAGE_UPLOAD_ACCEPT : "video/*"}
           className="sr-only"
           tabIndex={-1}
           aria-hidden
@@ -819,13 +830,15 @@ function ShortCard({
 export function ShortsScreen({
   shortsDone,
   bonusScore,
+  emailId,
   onComplete,
   onCelebrate,
   bonusPercent,
   onToast,
 }: {
   shortsDone: Record<string, ShortCompletion>;
-  bonusScore: number,
+  bonusScore: number;
+  emailId: string;
   onComplete: (slug: string, data: ShortCompletion) => void;
   onCelebrate: (state: CelebrationState) => void;
   bonusPercent: number;
@@ -862,6 +875,7 @@ export function ShortsScreen({
               key={s.slug}
               short={s}
               completion={shortsDone[s.slug]}
+              emailId={emailId}
               onComplete={onComplete}
               onCelebrate={onCelebrate}
               onToast={onToast}

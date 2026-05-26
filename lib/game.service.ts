@@ -3,6 +3,7 @@ import type {
   PlayerProfile,
   StopCompletion,
 } from "@/lib/game-types";
+import { convertImageToPng } from "@/lib/image-to-png";
 
 export const GameService = {
   /**
@@ -121,19 +122,31 @@ export const GameService = {
    * 4. Upload an image/video to get the file path
    */
   async uploadMedia(file: File, emailId: string) {
-    const formData = new FormData();
-    formData.append("UploadPicture", file);
-    formData.append("EmailId", emailId);
+    let uploadFile = file;
 
     try {
+      uploadFile = await convertImageToPng(file);
+    } catch (error) {
+      // Client conversion can fail (e.g. heic2any + Next). Server converts HEIC → PNG.
+      console.warn("Client PNG conversion skipped:", error);
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("UploadPicture", uploadFile);
+      formData.append("EmailId", emailId);
+
       const response = await fetch("/api/game/mediaupload", {
         method: "POST",
-        // Do NOT set Content-Type here; browser handles multipart/form-data automatically
         body: formData,
       });
       return await response.json();
     } catch (error) {
-      return { success: false, error: "Media upload failed" };
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Media upload failed",
+      };
     }
   },
 
@@ -179,6 +192,25 @@ export const GameService = {
       return await response.json();
     } catch (error) {
       return { success: false, error: "Failed to download cloud progress" };
+    }
+  },
+
+  /**
+   * 7. Fetch dynamic leaderboard (all players)
+   */
+  async fetchLeaderboard(emailId?: string) {
+    try {
+      const query = emailId
+        ? `?emailId=${encodeURIComponent(emailId)}`
+        : "";
+      const response = await fetch(`/api/game/leaderboard${query}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+      });
+      return await response.json();
+    } catch (error) {
+      return { success: false, error: "Failed to load leaderboard" };
     }
   },
 };
