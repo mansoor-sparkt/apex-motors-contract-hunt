@@ -1,16 +1,530 @@
+// "use client";
+
+// import { useCallback, useEffect, useRef, useState } from "react";
+// import { SHORTS } from "@/constants";
+// import type { CelebrationState, ShortCompletion } from "@/lib/game-types";
+// import MediaModal from "./MediaModal";
+
+// type ShortDef = (typeof SHORTS)[number];
+
+// type PendingMedia = {
+//   previewUrl: string;
+//   mediaType: "image" | "video";
+// };
+
+// function ShortTag({
+//   children,
+//   variant,
+// }: {
+//   children: React.ReactNode;
+//   variant: "cyan" | "purple" | "green";
+// }) {
+//   const v =
+//     variant === "cyan"
+//       ? "game-tag-c"
+//       : variant === "purple"
+//         ? "game-tag-pu"
+//         : "game-tag-g";
+//   return <span className={`game-tag game-tag-sm ${v}`}>{children}</span>;
+// }
+
+// function ShortCard({
+//   short,
+//   completion,
+//   onComplete,
+//   onCelebrate,
+// }: {
+//   short: ShortDef;
+//   completion?: ShortCompletion;
+//   onComplete: (slug: string, data: ShortCompletion) => void;
+//   onCelebrate: (state: CelebrationState) => void;
+// }) {
+//   const done = !!completion;
+//   const isPhoto = short.type === "photo";
+
+//   const [pending, setPending] = useState<PendingMedia | null>(null);
+//   // const [expanded, setExpanded] = useState(false);
+//   const [modalOpen, setModalOpen] = useState(false);
+//   const fileInputRef = useRef<HTMLInputElement>(null);
+
+//   const previewUrl = completion?.previewUrl ?? pending?.previewUrl ?? null;
+//   const mediaType =
+//     completion?.mediaType ??
+//     pending?.mediaType ??
+//     (isPhoto ? "image" : "video");
+
+//   const revokePending = useCallback((url: string | null) => {
+//     if (url && url.startsWith("blob:")) {
+//       URL.revokeObjectURL(url);
+//     }
+//   }, []);
+
+//   useEffect(() => {
+//     return () => {
+//       if (pending?.previewUrl) revokePending(pending.previewUrl);
+//     };
+//   }, [pending?.previewUrl, revokePending]);
+
+//   const openPicker = () => {
+//     if (done) return;
+//     fileInputRef.current?.click();
+//   };
+
+//   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     const file = e.target.files?.[0];
+//     e.target.value = "";
+//     if (!file || done) return;
+
+//     const isImage = file.type.startsWith("image/");
+//     const isVideo = file.type.startsWith("video/");
+
+//     if (isPhoto && !isImage) return;
+//     if (!isPhoto && !isVideo) return;
+
+//     setPending((prev) => {
+//       if (prev?.previewUrl) revokePending(prev.previewUrl);
+//       return {
+//         previewUrl: URL.createObjectURL(file),
+//         mediaType: isImage ? "image" : "video",
+//       };
+//     });
+//   };
+
+//   const handleRetake = (e: React.MouseEvent) => {
+//     e.stopPropagation();
+//     if (done) return;
+//     setPending((prev) => {
+//       if (prev?.previewUrl) revokePending(prev.previewUrl);
+//       return null;
+//     });
+//     fileInputRef.current?.click();
+//   };
+
+//   const handleSubmit = (e: React.MouseEvent) => {
+//     e.stopPropagation();
+//     if (done || !pending) return;
+
+//     const data: ShortCompletion = {
+//       mediaType: pending.mediaType,
+//       previewUrl: pending.previewUrl,
+//       badge: short.badge,
+//     };
+
+//     onComplete(short.slug, data);
+//     setPending(null);
+//     onCelebrate({
+//       icon: short.type === "video" ? "🎬" : "📸",
+//       title: "SHORT SUBMITTED!",
+//       sub: "+5 BONUS PTS EARNED.",
+//       badge: short.badge,
+//     });
+//   };
+//   const hasPending = !!pending;
+//   const hasSubmitted = done && !!completion?.previewUrl;
+
+//   return (
+//     <>
+//       {modalOpen && previewUrl && (
+//         <MediaModal
+//           previewUrl={previewUrl}
+//           mediaType={mediaType as "image" | "video"}
+//           title={short.title}
+//           onClose={() => setModalOpen(false)}
+//         />
+//       )}
+
+//       <div className={`game-sc2${done ? " done" : ""}`}>
+//         <input
+//           ref={fileInputRef}
+//           type="file"
+//           accept={isPhoto ? "image/*" : "video/*"}
+//           className="sr-only"
+//           tabIndex={-1}
+//           aria-hidden
+//           onChange={handleFileChange}
+//         />
+
+//         <div className="text-2xl leading-none">{short.em}</div>
+//         <div className="game-sc2-title">{short.title}</div>
+//         <div className="game-sc2-desc">{short.desc}</div>
+
+//         {/* Upload zone */}
+//         <button
+//           type="button"
+//           onClick={!done ? openPicker : undefined}
+//           style={{
+//             width: "100%",
+//             border: `1px dashed ${done ? "rgba(57,255,20,0.45)" : hasPending ? "rgba(241,92,48,0.70)" : "rgba(241,92,48,0.40)"}`,
+//             padding: "14px 10px",
+//             display: "flex",
+//             flexDirection: "column",
+//             alignItems: "center",
+//             justifyContent: "center",
+//             gap: 5,
+//             cursor: done ? "default" : "pointer",
+//             background: done ? "rgba(57,255,20,0.04)" : hasPending ? "rgba(241,92,48,0.07)" : "rgba(241,92,48,0.03)",
+//             position: "relative",
+//             overflow: "hidden",
+//             clipPath: "polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px))",
+//             transition: "all .2s",
+//           }}
+//         >
+//           <span style={{ fontSize: 24, lineHeight: 1 }}>
+//             {done ? "✅" : hasPending ? (isPhoto ? "📷" : "🎬") : isPhoto ? "📷" : "🎬"}
+//           </span>
+//           <span style={{ fontFamily: "var(--fm)", fontSize: 10, color: done ? "var(--g)" : hasPending ? "var(--o)" : "var(--mut)", letterSpacing: ".08em", textTransform: "uppercase" }}>
+//             {done ? "✓ SUBMITTED" : hasPending ? (isPhoto ? "PHOTO READY" : "VIDEO READY") : isPhoto ? "TAP TO ADD PHOTO" : "TAP TO ADD VIDEO"}
+//           </span>
+//           <span style={{ fontFamily: "var(--fm)", fontSize: 9, color: "var(--mut)", letterSpacing: ".06em", textTransform: "uppercase" }}>
+//             {done ? "EVIDENCE LOGGED" : hasPending ? "SUBMIT BELOW" : isPhoto ? "PHOTO REQUIRED" : "VIDEO REQUIRED"}
+//           </span>
+//         </button>
+
+//         {/* View button — only when media exists */}
+//         {(hasSubmitted || hasPending) && (
+//           <button
+//             type="button"
+//             onClick={() => setModalOpen(true)}
+//             style={{
+//               width: "100%",
+//               padding: "7px 10px",
+//               background: done ? "rgba(57,255,20,0.08)" : "rgba(0,229,255,0.08)",
+//               border: `1px solid ${done ? "rgba(57,255,20,0.35)" : "rgba(0,229,255,0.30)"}`,
+//               color: done ? "var(--g)" : "var(--c)",
+//               fontFamily: "var(--fm)",
+//               fontSize: 10,
+//               letterSpacing: ".1em",
+//               cursor: "pointer",
+//               clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))",
+//               display: "flex",
+//               alignItems: "center",
+//               justifyContent: "center",
+//               gap: 5,
+//             }}
+//           >
+//             <span>{isPhoto ? "🔍" : "▶"}</span>
+//             {done ? "VIEW SUBMITTED" : "PREVIEW"} {isPhoto ? "PHOTO" : "VIDEO"}
+//           </button>
+//         )}
+
+//         <div className="game-sc2-foot">
+//           <ShortTag variant={isPhoto ? "cyan" : "purple"}>
+//             {isPhoto ? "📷 PHOTO" : "🎬 VIDEO"}
+//           </ShortTag>
+//           {done ? (
+//             <ShortTag variant="green">✓ DONE</ShortTag>
+//           ) : (
+//             <span className="font-orbitron text-[11px] font-bold text-[var(--g)]">
+//               +{short.pts} PTS
+//             </span>
+//           )}
+//         </div>
+
+//         {!done && hasPending && (
+//           <>
+//             <button type="button" className="game-sc2-retake" onClick={handleRetake}>
+//               ↺ CHANGE {isPhoto ? "PHOTO" : "VIDEO"}
+//             </button>
+//             <button type="button" className="game-sc2-upload" onClick={handleSubmit}>
+//               ► SUBMIT FOR +{short.pts} PTS
+//             </button>
+//           </>
+//         )}
+//       </div>
+//     </>
+//   );
+// }
+
+// export function ShortsScreen({
+//   shortsDone,
+//   onComplete,
+//   onCelebrate,
+// }: {
+//   shortsDone: Record<string, ShortCompletion>;
+//   onComplete: (slug: string, data: ShortCompletion) => void;
+//   onCelebrate: (state: CelebrationState) => void;
+// }) {
+//   return (
+//     <div className="game-hub-panel">
+//       <div className="game-sub-hdr">
+//         <div className="game-bc">
+//           HUNT <span>›</span> SHORTS
+//         </div>
+//         <p className="font-share-mono text-[10px] text-[var(--mut)] tracking-[0.08em] mt-0">
+//           ALL UNLOCKED · ANY ORDER · +5 PTS + BADGE EACH
+//         </p>
+//       </div>
+
+//       <div className="game-scroll flex-1 min-h-0">
+//         <div className="game-shorts-g">
+//           {SHORTS.map((s) => (
+//             <ShortCard
+//               key={s.slug}
+//               short={s}
+//               completion={shortsDone[s.slug]}
+//               onComplete={onComplete}
+//               onCelebrate={onCelebrate}
+//             />
+//           ))}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+// "use client";
+
+// import { useRef, useState } from "react";
+// import { SHORTS } from "@/constants";
+// import type { CelebrationState, ShortCompletion } from "@/lib/game-types";
+// import MediaModal from "./MediaModal";
+
+// type ShortDef = (typeof SHORTS)[number];
+
+// function ShortTag({
+//   children,
+//   variant,
+// }: {
+//   children: React.ReactNode;
+//   variant: "cyan" | "purple" | "green";
+// }) {
+//   const v =
+//     variant === "cyan"
+//       ? "game-tag-c"
+//       : variant === "purple"
+//         ? "game-tag-pu"
+//         : "game-tag-g";
+//   return <span className={`game-tag game-tag-sm ${v}`}>{children}</span>;
+// }
+
+// function ShortCard({
+//   short,
+//   completion,
+//   onComplete,
+//   onCelebrate,
+// }: {
+//   short: ShortDef;
+//   completion?: ShortCompletion;
+//   onComplete: (slug: string, data: ShortCompletion) => void;
+//   onCelebrate: (state: CelebrationState) => void;
+// }) {
+//   const done = !!completion;
+//   const isPhoto = short.type === "photo" || short.type === "app";
+
+//   const [modalOpen, setModalOpen] = useState(false);
+//   const fileInputRef = useRef<HTMLInputElement>(null);
+
+//   const previewUrl = completion?.previewUrl ?? null;
+//   const mediaType = completion?.mediaType ?? (isPhoto ? "image" : "video");
+
+//   const openPicker = () => {
+//     if (done) return;
+//     fileInputRef.current?.click();
+//   };
+
+//   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     const file = e.target.files?.[0];
+//     e.target.value = ""; // Reset input so same file can be clicked again if needed
+//     if (!file || done) return;
+
+//     const isImage = file.type.startsWith("image/");
+//     const isVideo = file.type.startsWith("video/");
+
+//     if (isPhoto && !isImage) return;
+//     if (!isPhoto && !isVideo) return;
+
+//     // 1. Generate local URL for preview
+//     const url = URL.createObjectURL(file);
+//     const mType = isImage ? "image" : "video";
+
+//     // 2. Build the exact submission data
+//     const data: ShortCompletion = {
+//       mediaType: mType,
+//       previewUrl: url,
+//       badge: short.badge,
+//     };
+
+//     // 3. INSTANT FIRE: Update global state immediately
+//     onComplete(short.slug, data);
+
+//     // 4. INSTANT FIRE: Pop the celebration modal with dynamic points
+//     onCelebrate({
+//       icon: short.type === "video" ? "🎬" : "📸",
+//       title: "CHALLENGE COMPLETE!",
+//       sub: `+${short.pts} BONUS PTS LOGGED.`,
+//       badge: short.badge || "BONUS MASTER",
+//     });
+//   };
+
+//   const hasSubmitted = done && !!completion?.previewUrl;
+
+//   return (
+//     <>
+//       {modalOpen && previewUrl && (
+//         <MediaModal
+//           previewUrl={previewUrl}
+//           mediaType={mediaType as "image" | "video"}
+//           title={short.title}
+//           onClose={() => setModalOpen(false)}
+//         />
+//       )}
+
+//       <div className={`game-sc2${done ? " done" : ""}`}>
+//         <input
+//           ref={fileInputRef}
+//           type="file"
+//           accept={isPhoto ? "image/*" : "video/*"}
+//           className="sr-only"
+//           tabIndex={-1}
+//           aria-hidden
+//           onChange={handleFileChange}
+//         />
+
+//         <div className="text-2xl leading-none">{short.em}</div>
+//         <div className="game-sc2-title">{short.title}</div>
+//         <div className="game-sc2-desc">{short.desc}</div>
+
+//         {/* Upload zone - simplified to directly show success state */}
+//         <button
+//           type="button"
+//           onClick={!done ? openPicker : undefined}
+//           style={{
+//             width: "100%",
+//             border: `1px dashed ${done ? "rgba(57,255,20,0.45)" : "rgba(241,92,48,0.40)"}`,
+//             padding: "14px 10px",
+//             display: "flex",
+//             flexDirection: "column",
+//             alignItems: "center",
+//             justifyContent: "center",
+//             gap: 5,
+//             cursor: done ? "default" : "pointer",
+//             background: done ? "rgba(57,255,20,0.04)" : "rgba(241,92,48,0.03)",
+//             position: "relative",
+//             overflow: "hidden",
+//             clipPath: "polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px))",
+//             transition: "all .2s",
+//           }}
+//         >
+//           <span style={{ fontSize: 24, lineHeight: 1 }}>
+//             {done ? "✅" : isPhoto ? "📷" : "🎬"}
+//           </span>
+//           <span style={{ fontFamily: "var(--fm)", fontSize: 10, color: done ? "var(--g)" : "var(--mut)", letterSpacing: ".08em", textTransform: "uppercase" }}>
+//             {done ? "✓ SUBMITTED" : isPhoto ? "TAP TO ADD PHOTO" : "TAP TO ADD VIDEO"}
+//           </span>
+//           <span style={{ fontFamily: "var(--fm)", fontSize: 9, color: "var(--mut)", letterSpacing: ".06em", textTransform: "uppercase" }}>
+//             {done ? "EVIDENCE LOGGED" : isPhoto ? "PHOTO REQUIRED" : "VIDEO REQUIRED"}
+//           </span>
+//         </button>
+
+//         {/* View button — shows immediately after the instant upload */}
+//         {hasSubmitted && (
+//           <button
+//             type="button"
+//             onClick={() => setModalOpen(true)}
+//             style={{
+//               width: "100%",
+//               padding: "7px 10px",
+//               background: "rgba(57,255,20,0.08)",
+//               border: "1px solid rgba(57,255,20,0.35)",
+//               color: "var(--g)",
+//               fontFamily: "var(--fm)",
+//               fontSize: 10,
+//               letterSpacing: ".1em",
+//               cursor: "pointer",
+//               clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))",
+//               display: "flex",
+//               alignItems: "center",
+//               justifyContent: "center",
+//               gap: 5,
+//             }}
+//           >
+//             <span>{isPhoto ? "🔍" : "▶"}</span>
+//             VIEW SUBMITTED {isPhoto ? "PHOTO" : "VIDEO"}
+//           </button>
+//         )}
+
+//         <div className="game-sc2-foot">
+//           <ShortTag variant={isPhoto ? "cyan" : "purple"}>
+//             {isPhoto ? "📷 PHOTO" : "🎬 VIDEO"}
+//           </ShortTag>
+//           {done ? (
+//             <ShortTag variant="green">✓ DONE</ShortTag>
+//           ) : (
+//             <span className="font-orbitron text-[11px] font-bold text-[var(--g)]">
+//               +{short.pts} PTS
+//             </span>
+//           )}
+//         </div>
+//       </div>
+//     </>
+//   );
+// }
+
+// export function ShortsScreen({
+//   shortsDone,
+//   bonusScore,
+//   onComplete,
+//   onCelebrate,
+//   bonusPercent
+// }: {
+//   shortsDone: Record<string, ShortCompletion>;
+//   bonusScore: number,
+//   onComplete: (slug: string, data: ShortCompletion) => void;
+//   onCelebrate: (state: CelebrationState) => void;
+//   bonusPercent: number
+// }) {
+//   return (
+//     <div className="game-hub-panel">
+//       <div className="game-sub-hdr">
+//         <div className="game-bc">
+//           HUNT <span>›</span> BONUS CHALLENGES
+//         </div>
+//         <p className="font-share-mono text-[10px] text-[var(--mut)] tracking-[0.08em] mt-0">
+//           ALL UNLOCKED · ANY ORDER · +10 OR +20 PTS EACH
+//         </p>
+//       </div>
+
+//       <div className="px-4 py-2 space-y-3 relative z-[1]">
+//         <div className="border border-[rgba(255,187,0,0.3)] bg-[rgba(0,0,0,0.65)] p-3"
+//           style={{ clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}>
+//           <div className="flex justify-between items-end mb-2">
+//             <div className="font-share-mono text-[9px] text-[#ffbb00] tracking-[0.1em]">EXTRA PRIZE: BONUS TRACK</div>
+//             <div className="font-orbitron text-[12px] font-bold text-[#ffbb00]">{bonusScore} / 100 PTS</div>
+//           </div>
+//           {/* Dedicated 100-Point Fill Bar */}
+//           <div className="h-2 w-full bg-[rgba(255,255,255,0.1)] overflow-hidden rounded-sm">
+//             <div className="h-full bg-[#ffbb00] transition-all duration-500 ease-out" style={{ width: `${bonusPercent}%` }} />
+//           </div>
+//         </div>
+//       </div>
+
+//       <div className="game-scroll flex-1 min-h-0 pb-20">
+//         <div className="game-shorts-g">
+//           {SHORTS.map((s) => (
+//             <ShortCard
+//               key={s.slug}
+//               short={s}
+//               completion={shortsDone[s.slug]}
+//               onComplete={onComplete}
+//               onCelebrate={onCelebrate}
+//             />
+//           ))}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { SHORTS } from "@/constants";
 import type { CelebrationState, ShortCompletion } from "@/lib/game-types";
 import MediaModal from "./MediaModal";
 
 type ShortDef = (typeof SHORTS)[number];
-
-type PendingMedia = {
-  previewUrl: string;
-  mediaType: "image" | "video";
-};
 
 function ShortTag({
   children,
@@ -39,41 +553,30 @@ function ShortCard({
   onComplete: (slug: string, data: ShortCompletion) => void;
   onCelebrate: (state: CelebrationState) => void;
 }) {
-  const done = !!completion;
-  const isPhoto = short.type === "photo";
+  const isApp = short.type === "app";
+  const isPhoto = short.type === "photo" || isApp;
 
-  const [pending, setPending] = useState<PendingMedia | null>(null);
-  // const [expanded, setExpanded] = useState(false);
+  // ── NEW LOGIC: Differentiate between uploading a photo and answering the question ──
+  const photoDone = !!completion;
+  const fullyDone = isApp ? !!completion?.qAnswered : !!completion;
+
   const [modalOpen, setModalOpen] = useState(false);
+  const [appAnswer, setAppAnswer] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const previewUrl = completion?.previewUrl ?? pending?.previewUrl ?? null;
-  const mediaType =
-    completion?.mediaType ??
-    pending?.mediaType ??
-    (isPhoto ? "image" : "video");
-
-  const revokePending = useCallback((url: string | null) => {
-    if (url && url.startsWith("blob:")) {
-      URL.revokeObjectURL(url);
-    }
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (pending?.previewUrl) revokePending(pending.previewUrl);
-    };
-  }, [pending?.previewUrl, revokePending]);
+  const previewUrl = completion?.previewUrl ?? null;
+  const mediaType = completion?.mediaType ?? (isPhoto ? "image" : "video");
 
   const openPicker = () => {
-    if (done) return;
+    if (photoDone) return;
     fileInputRef.current?.click();
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
-    if (!file || done) return;
+    if (!file || photoDone) return;
 
     const isImage = file.type.startsWith("image/");
     const isVideo = file.type.startsWith("video/");
@@ -81,46 +584,51 @@ function ShortCard({
     if (isPhoto && !isImage) return;
     if (!isPhoto && !isVideo) return;
 
-    setPending((prev) => {
-      if (prev?.previewUrl) revokePending(prev.previewUrl);
-      return {
-        previewUrl: URL.createObjectURL(file),
-        mediaType: isImage ? "image" : "video",
-      };
-    });
-  };
-
-  const handleRetake = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (done) return;
-    setPending((prev) => {
-      if (prev?.previewUrl) revokePending(prev.previewUrl);
-      return null;
-    });
-    fileInputRef.current?.click();
-  };
-
-  const handleSubmit = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (done || !pending) return;
+    const url = URL.createObjectURL(file);
+    const mType = isImage ? "image" : "video";
 
     const data: ShortCompletion = {
-      mediaType: pending.mediaType,
-      previewUrl: pending.previewUrl,
+      mediaType: mType,
+      previewUrl: url,
       badge: short.badge,
+      qAnswered: false, // Explicitly false initially for App challenges
     };
 
     onComplete(short.slug, data);
-    setPending(null);
+
+    // ── DYNAMIC CELEBRATION ──
     onCelebrate({
-      icon: short.type === "video" ? "🎬" : "📸",
-      title: "SHORT SUBMITTED!",
-      sub: "+5 BONUS PTS EARNED.",
-      badge: short.badge,
+      icon: "📸",
+      title: isApp ? "SCREENSHOT LOGGED!" : "CHALLENGE COMPLETE!",
+      sub: isApp ? "+10 PTS EARNED. NOW ANSWER THE QUESTION." : `+${short.pts} BONUS PTS LOGGED.`,
+      badge: isApp ? "HALF WAY THERE" : (short.badge || "BONUS MASTER"),
     });
   };
-  const hasPending = !!pending;
-  const hasSubmitted = done && !!completion?.previewUrl;
+
+  // ── NEW: Handle the 2nd Phase Question Submit ──
+  const handleAppSubmit = () => {
+    if (!appAnswer.trim()) {
+      setErrorMsg("⚠️ PLEASE ENTER AN ANSWER.");
+      return;
+    }
+
+    const isCorrect = appAnswer.trim().toLowerCase() === String(short.targetAnswer).toLowerCase();
+
+    if (isCorrect) {
+      setErrorMsg("");
+      // Update completion data to flip qAnswered to true
+      onComplete(short.slug, { ...completion!, qAnswered: true });
+
+      onCelebrate({
+        icon: "🎉",
+        title: "APP CHALLENGE 100% COMPLETE!",
+        sub: "+10 FINAL BONUS PTS LOGGED.",
+        badge: short.badge || "APP MASTER",
+      });
+    } else {
+      setErrorMsg("❌ INCORRECT. CHECK THE APP AGAIN.");
+    }
+  };
 
   return (
     <>
@@ -133,7 +641,7 @@ function ShortCard({
         />
       )}
 
-      <div className={`game-sc2${done ? " done" : ""}`}>
+      <div className={`game-sc2${fullyDone ? " done" : ""}`}>
         <input
           ref={fileInputRef}
           type="file"
@@ -148,21 +656,20 @@ function ShortCard({
         <div className="game-sc2-title">{short.title}</div>
         <div className="game-sc2-desc">{short.desc}</div>
 
-        {/* Upload zone */}
         <button
           type="button"
-          onClick={!done ? openPicker : undefined}
+          onClick={!photoDone ? openPicker : undefined}
           style={{
             width: "100%",
-            border: `1px dashed ${done ? "rgba(57,255,20,0.45)" : hasPending ? "rgba(241,92,48,0.70)" : "rgba(241,92,48,0.40)"}`,
+            border: `1px dashed ${photoDone ? "rgba(57,255,20,0.45)" : "rgba(241,92,48,0.40)"}`,
             padding: "14px 10px",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
             gap: 5,
-            cursor: done ? "default" : "pointer",
-            background: done ? "rgba(57,255,20,0.04)" : hasPending ? "rgba(241,92,48,0.07)" : "rgba(241,92,48,0.03)",
+            cursor: photoDone ? "default" : "pointer",
+            background: photoDone ? "rgba(57,255,20,0.04)" : "rgba(241,92,48,0.03)",
             position: "relative",
             overflow: "hidden",
             clipPath: "polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px))",
@@ -170,27 +677,62 @@ function ShortCard({
           }}
         >
           <span style={{ fontSize: 24, lineHeight: 1 }}>
-            {done ? "✅" : hasPending ? (isPhoto ? "📷" : "🎬") : isPhoto ? "📷" : "🎬"}
+            {photoDone ? "✅" : isPhoto ? "📷" : "🎬"}
           </span>
-          <span style={{ fontFamily: "var(--fm)", fontSize: 10, color: done ? "var(--g)" : hasPending ? "var(--o)" : "var(--mut)", letterSpacing: ".08em", textTransform: "uppercase" }}>
-            {done ? "✓ SUBMITTED" : hasPending ? (isPhoto ? "PHOTO READY" : "VIDEO READY") : isPhoto ? "TAP TO ADD PHOTO" : "TAP TO ADD VIDEO"}
+          <span style={{ fontFamily: "var(--fm)", fontSize: 10, color: photoDone ? "var(--g)" : "var(--mut)", letterSpacing: ".08em", textTransform: "uppercase" }}>
+            {fullyDone ? "✓ SUBMITTED" : photoDone ? "✓ SCREENSHOT LOGGED" : isPhoto ? "TAP TO ADD PHOTO" : "TAP TO ADD VIDEO"}
           </span>
           <span style={{ fontFamily: "var(--fm)", fontSize: 9, color: "var(--mut)", letterSpacing: ".06em", textTransform: "uppercase" }}>
-            {done ? "EVIDENCE LOGGED" : hasPending ? "SUBMIT BELOW" : isPhoto ? "PHOTO REQUIRED" : "VIDEO REQUIRED"}
+            {photoDone ? "EVIDENCE SECURED" : isPhoto ? "PHOTO REQUIRED" : "VIDEO REQUIRED"}
           </span>
         </button>
 
-        {/* View button — only when media exists */}
-        {(hasSubmitted || hasPending) && (
+        {/* ── NEW: In-App Question UI (Only shows for App challenges after photo upload) ── */}
+        {isApp && photoDone && !fullyDone && (
+          <div className="mt-3 p-3 bg-[rgba(255,187,0,0.05)] border border-[rgba(255,187,0,0.3)]" style={{ clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))" }}>
+            <div className="font-share-mono text-[10px] text-[#ffbb00] mb-2 tracking-[0.06em]">
+              ⚠️ REQUIRED FOR FINAL 10 PTS
+            </div>
+            <div className="font-[family:var(--font-rajdhani)] text-[13px] text-[rgba(232,234,240,0.85)] mb-2 leading-[1.5]">
+              {short.prompt}
+            </div>
+            {errorMsg && (
+              <div className="font-share-mono text-[9px] text-[var(--o)] mb-2">
+                {errorMsg}
+              </div>
+            )}
+            <input
+              type="text"
+              className="game-input mb-2"
+              placeholder="ENTER YOUR ANSWER..."
+              value={appAnswer}
+              onChange={(e) => {
+                setAppAnswer(e.target.value);
+                setErrorMsg("");
+              }}
+            />
+            <button
+              type="button"
+              className="w-full py-2 bg-[rgba(255,187,0,0.1)] hover:bg-[rgba(255,187,0,0.15)] text-[#ffbb00] border border-[rgba(255,187,0,0.3)] font-share-mono text-[10px] tracking-[0.1em] transition-colors"
+              onClick={handleAppSubmit}
+            >
+              ► SUBMIT ANSWER
+            </button>
+          </div>
+        )}
+
+        {/* View button — shows immediately after the instant upload */}
+        {photoDone && (
           <button
             type="button"
             onClick={() => setModalOpen(true)}
+            className="mt-3"
             style={{
               width: "100%",
               padding: "7px 10px",
-              background: done ? "rgba(57,255,20,0.08)" : "rgba(0,229,255,0.08)",
-              border: `1px solid ${done ? "rgba(57,255,20,0.35)" : "rgba(0,229,255,0.30)"}`,
-              color: done ? "var(--g)" : "var(--c)",
+              background: "rgba(57,255,20,0.08)",
+              border: "1px solid rgba(57,255,20,0.35)",
+              color: "var(--g)",
               fontFamily: "var(--fm)",
               fontSize: 10,
               letterSpacing: ".1em",
@@ -203,33 +745,22 @@ function ShortCard({
             }}
           >
             <span>{isPhoto ? "🔍" : "▶"}</span>
-            {done ? "VIEW SUBMITTED" : "PREVIEW"} {isPhoto ? "PHOTO" : "VIDEO"}
+            VIEW SUBMITTED {isPhoto ? "PHOTO" : "VIDEO"}
           </button>
         )}
 
-        <div className="game-sc2-foot">
+        <div className="game-sc2-foot mt-3">
           <ShortTag variant={isPhoto ? "cyan" : "purple"}>
             {isPhoto ? "📷 PHOTO" : "🎬 VIDEO"}
           </ShortTag>
-          {done ? (
+          {fullyDone ? (
             <ShortTag variant="green">✓ DONE</ShortTag>
           ) : (
             <span className="font-orbitron text-[11px] font-bold text-[var(--g)]">
-              +5 PTS
+              +{short.pts} PTS
             </span>
           )}
         </div>
-
-        {!done && hasPending && (
-          <>
-            <button type="button" className="game-sc2-retake" onClick={handleRetake}>
-              ↺ CHANGE {isPhoto ? "PHOTO" : "VIDEO"}
-            </button>
-            <button type="button" className="game-sc2-upload" onClick={handleSubmit}>
-              ► SUBMIT FOR +5 PTS
-            </button>
-          </>
-        )}
       </div>
     </>
   );
@@ -237,25 +768,42 @@ function ShortCard({
 
 export function ShortsScreen({
   shortsDone,
+  bonusScore,
   onComplete,
   onCelebrate,
+  bonusPercent
 }: {
   shortsDone: Record<string, ShortCompletion>;
+  bonusScore: number,
   onComplete: (slug: string, data: ShortCompletion) => void;
   onCelebrate: (state: CelebrationState) => void;
+  bonusPercent: number
 }) {
   return (
     <div className="game-hub-panel">
       <div className="game-sub-hdr">
         <div className="game-bc">
-          HUNT <span>›</span> SHORTS
+          HUNT <span>›</span> BONUS CHALLENGES
         </div>
         <p className="font-share-mono text-[10px] text-[var(--mut)] tracking-[0.08em] mt-0">
-          ALL UNLOCKED · ANY ORDER · +5 PTS + BADGE EACH
+          ALL UNLOCKED · ANY ORDER · +10 OR +20 PTS EACH
         </p>
       </div>
 
-      <div className="game-scroll flex-1 min-h-0">
+      <div className="px-4 py-2 space-y-3 relative z-[1]">
+        <div className="border border-[rgba(255,187,0,0.3)] bg-[rgba(0,0,0,0.65)] p-3"
+          style={{ clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}>
+          <div className="flex justify-between items-end mb-2">
+            <div className="font-share-mono text-[9px] text-[#ffbb00] tracking-[0.1em]">EXTRA PRIZE: BONUS TRACK</div>
+            <div className="font-orbitron text-[12px] font-bold text-[#ffbb00]">{bonusScore} / 160 PTS</div>
+          </div>
+          <div className="h-2 w-full bg-[rgba(255,255,255,0.1)] overflow-hidden rounded-sm">
+            <div className="h-full bg-[#ffbb00] transition-all duration-500 ease-out" style={{ width: `${bonusPercent}%` }} />
+          </div>
+        </div>
+      </div>
+
+      <div className="game-scroll flex-1 min-h-0 pb-20">
         <div className="game-shorts-g">
           {SHORTS.map((s) => (
             <ShortCard

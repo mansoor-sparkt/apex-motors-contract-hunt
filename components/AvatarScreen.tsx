@@ -22,6 +22,7 @@ export function AvatarScreen({
   onBack: () => void;
 }) {
   const [selAv, setSelAv] = useState(-1);
+  const [selAvName, setSelAvName] = useState('');
 
   return (
     <div className="absolute inset-0 flex flex-col h-full overflow-hidden">
@@ -51,7 +52,10 @@ export function AvatarScreen({
                 key={i}
                 type="button"
                 className={`game-av-c${selAv === i ? " sel" : ""}`}
-                onClick={() => setSelAv(i)}
+                onClick={() => {
+                  setSelAvName(av.n)
+                  setSelAv(i)
+                }}
               >
                 <div
                   className="game-av-face"
@@ -72,6 +76,7 @@ export function AvatarScreen({
               onComplete({
                 ...draft,
                 avatarIndex: selAv,
+                avatarName: selAvName
               })
             }
           >

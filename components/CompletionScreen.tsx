@@ -242,10 +242,18 @@ export function CompletionScreen({
         )}
 
         {/* ── CONTRACT DETAILS ── */}
-        <Panel header="CONTRACT" headerColor="cyan">
+        {/* <Panel header="CONTRACT" headerColor="cyan">
           <div className="font-share-mono text-[11px] text-[rgba(232,234,240,0.7)] leading-relaxed space-y-1">
             <div>APEX MOTORS · 500 BRAKE CALIPER BRACKETS</div>
             <div>MATERIAL: 6061 ALUMINUM</div>
+            <div className="text-[rgba(232,234,240,0.4)]">POWERED BY PHILLIPS MACHINIST</div>
+          </div>
+        </Panel> */}
+
+        <Panel header="CONTRACT" headerColor="cyan">
+          <div className="font-share-mono text-[11px] text-[rgba(232,234,240,0.7)] leading-relaxed space-y-1">
+            <div>REDLINE ROBOTICS · PLANETARY GEARBOX</div>
+            <div>MATERIAL: HYBRID (PRINTED & MACHINED)</div>
             <div className="text-[rgba(232,234,240,0.4)]">POWERED BY PHILLIPS MACHINIST</div>
           </div>
         </Panel>

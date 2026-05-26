@@ -23,8 +23,8 @@ export function LeaderboardScreen({
   const badgeCount =
     Object.keys(stopsDone).length + Object.keys(shortsDone).length;
   const av = AVS[player.avatarIndex] ?? AVS[0];
-  const baseScore = computeBaseScore(stopsDone, shortsDone);
-  const bonusScore = computeBonusScore(stopsDone);
+  const baseScore = computeBaseScore(stopsDone);
+  const bonusScore = computeBonusScore(shortsDone);
 
   const all = [
     ...FLB.map((p) => ({
@@ -52,6 +52,17 @@ export function LeaderboardScreen({
   const rank = getRank(score, player.name);
   const dateStr = new Date().toLocaleDateString();
 
+  const totalSeconds = Object.values(stopsDone).reduce(
+    (acc, curr: any) => acc + (curr.timeSpent || 0),
+    0
+  );
+
+  const formatTime = (secs: number) => {
+    const mins = Math.floor(secs / 60);
+    const remainSecs = secs % 60;
+    return `${mins}:${remainSecs < 10 ? "0" : ""}${remainSecs}`;
+  };
+  const timeDisplay = totalSeconds > 0 ? `${formatTime(totalSeconds)} MIN` : "0:00 MIN";
   return (
     <div className="game-hub-panel">
       <div className="game-lb-hdr">
@@ -71,7 +82,7 @@ export function LeaderboardScreen({
             {(player.name || "YOU").toUpperCase()}
           </div>
           <div className="game-lb-sc">
-            {player.school} · {badgeCount} BADGES
+            {player.school} · {badgeCount} BADGES {timeDisplay}
           </div>
         </div>
         <div className="game-lb-score-wrap">

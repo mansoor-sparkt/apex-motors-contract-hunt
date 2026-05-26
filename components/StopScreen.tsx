@@ -15,8 +15,10 @@ import {
   TOTAL_STOPS,
 } from "@/constants";
 import type { PlayerProfile, StopCompletion, CelebrationState } from "@/lib/game-types";
+import { GameService } from "@/lib/game.service";
 
 export function StopScreen({
+  isActive,
   stopIndex,
   player,
   stopsDone,
@@ -25,7 +27,9 @@ export function StopScreen({
   onNavigate,
   onToast,
   onCelebrate,
+  onOpenMap
 }: {
+  isActive: boolean;
   stopIndex: number;
   player: PlayerProfile;
   stopsDone: Record<number, StopCompletion>;
@@ -34,10 +38,27 @@ export function StopScreen({
   onNavigate: (index: number) => void;
   onToast: (msg: string) => void;
   onCelebrate: (state: CelebrationState) => void;
+  onOpenMap: () => void
 }) {
   const s = STOPS[stopIndex];
   const done = !!stopsDone[stopIndex];
   const av = AVS[player.avatarIndex] ?? AVS[0];
+
+
+  // ── 1. Calculate total active time spent BEFORE this stop ──
+  const previousStopsTime = Object.entries(stopsDone).reduce((acc, [key, value]: [string, any]) => {
+    // Only add time from other stops, not the current one if it's somehow already logged
+    if (Number(key) !== stopIndex) {
+      return acc + (value.timeSpent || 0);
+    }
+    return acc;
+  }, 0);
+
+  // ── 2. Memory Bank: Check if they have paused time for this specific stop ──
+  // const getSavedPartial = () => {
+  //   if (typeof window === "undefined") return 0;
+  //   return parseInt(sessionStorage.getItem(`partial_time_${stopIndex}`) || "0", 10);
+  // };
 
 
   const [photoUp, setPhotoUp] = useState(done);
@@ -49,8 +70,71 @@ export function StopScreen({
   const [repName, setRepName] = useState(stopsDone[stopIndex]?.rn ?? "");
   const [repAnswer, setRepAnswer] = useState("");
 
+  // ── LIVE TICKING SESSION TIMER STATE ──
+  const [elapsedSeconds, setElapsedSeconds] = useState(previousStopsTime);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Live Timer Effect Hook
+  // useEffect(() => {
+  //   if (done) {
+  //     // If this stop is already finished, show what the final total clock was at that moment
+  //     const currentStopTime = stopsDone[stopIndex]?.timeSpent || 0;
+  //     setElapsedSeconds(previousStopsTime + currentStopTime);
+  //     return;
+  //   }
+
+
+
+  //   // If it's a fresh stop, start counting up directly from where the last stop left off!
+  //   setElapsedSeconds(previousStopsTime + getSavedPartial());
+
+  //   const activeInterval = setInterval(() => {
+  //     setElapsedSeconds((prev) => {
+  //       const next = prev + 1;
+
+  //       // Every second, quietly save their progress to the browser's memory
+  //       if (typeof window !== "undefined") {
+  //         sessionStorage.setItem(`partial_time_${stopIndex}`, (next - previousStopsTime).toString());
+  //       }
+
+  //       return next;
+  //     });
+  //   }, 1000);
+
+  //   return () => clearInterval(activeInterval);
+  // }, [stopIndex, done, stopsDone, previousStopsTime]);
+
+
+  // Live Timer Effect Hook
+  useEffect(() => {
+    if (!isActive || done) {
+      // RULE 3: Stop the clock and show final frozen time.
+      const currentStopTime = stopsDone[stopIndex]?.timeSpent || 0;
+      setElapsedSeconds(previousStopsTime + currentStopTime);
+      return;
+    }
+
+    // RULE 2 & 4: Read memory bank, start from exact previous timestamp
+    const partial = parseInt(sessionStorage.getItem(`partial_time_${stopIndex}`) || "0", 10);
+    let currentSeconds = previousStopsTime + partial;
+
+    setElapsedSeconds(currentSeconds);
+
+    const activeInterval = setInterval(() => {
+      currentSeconds += 1; // Count up cleanly
+      setElapsedSeconds(currentSeconds); // Update UI
+
+      // Save quietly to browser memory in case they click Back
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(`partial_time_${stopIndex}`, (currentSeconds - previousStopsTime).toString());
+      }
+    }, 1000);
+    // RULE 2: If they click "Back", this instantly stops the interval from running outside the screen
+    return () => clearInterval(activeInterval);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isActive, stopIndex, done, stopsDone, previousStopsTime]);
   useEffect(() => {
     setPhotoUp(!!stopsDone[stopIndex]);
 
@@ -89,21 +173,56 @@ export function StopScreen({
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
+  //   if (!file) return;
+
+  //   // Revoke any previous object URL before creating a new one
+  //   setPreviewUrl((prev) => {
+  //     if (prev) URL.revokeObjectURL(prev);
+  //     return URL.createObjectURL(file);
+  //   });
+
+  //   setPhotoUp(true);
+  //   onToast("📸 EVIDENCE LOGGED");
+
+  //   // Reset so the same file can be re-selected if needed
+  //   e.target.value = "";
+  // };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Revoke any previous object URL before creating a new one
-    setPreviewUrl((prev) => {
-      if (prev) URL.revokeObjectURL(prev);
-      return URL.createObjectURL(file);
-    });
+    // 1. Show immediate local preview so the user feels instant progress
+    const localBlobUrl = URL.createObjectURL(file);
+    setPreviewUrl(localBlobUrl);
+    onToast("⚡ TRANSMITTING EVIDENCE...");
 
-    setPhotoUp(true);
-    onToast("📸 EVIDENCE LOGGED");
+    try {
+      // 2. Fire upload to your Next.js API Route proxy
+      const res = await GameService.uploadMedia(file, player.email);
 
-    // Reset so the same file can be re-selected if needed
-    e.target.value = "";
+      if (res.success) {
+        setPhotoUp(true);
+        onToast("📸 EVIDENCE SECURED ON SERVER");
+
+        // Save the backend path into your preview url state 
+        // to replace the temporary blob string
+        const serverPath = res.data?.result || res.data || localBlobUrl;
+
+        console.log(serverPath, "from file uploade")
+        setPreviewUrl(serverPath);
+      } else {
+        onToast("⚠️ UPLOAD FAILED. PLEASE RETAKE.");
+        setPreviewUrl(null);
+      }
+    } catch (err) {
+      onToast("❌ CONNECTION ERROR DURING UPLOAD");
+      setPreviewUrl(null);
+    } finally {
+      e.target.value = ""; // Clear input anchor
+    }
   };
 
   const handleRetake = () => {
@@ -120,47 +239,227 @@ export function StopScreen({
   //   onToast("📸 EVIDENCE LOGGED");
   // };
 
+  // const submitStop = () => {
+  //   if (!photoUp && !done) {
+  //     onToast("📷 UPLOAD PHOTO FIRST");
+  //     return;
+  //   }
+  //   if (done) {
+  //     // const next = stopIndex + 1;
+  //     // if (next < TOTAL_STOPS) onNavigate(next);
+  //     // else
+  //     onBack();
+  //     return;
+  //   }
+
+  //   let bonus = false;
+  //   let badge: string | null = s.b1;
+  //   let rn = "";
+
+  //   if (s.bt === "calc") {
+  //     bonus = !!bonusAnswer.trim();
+  //   } else {
+  //     rn = repName.trim();
+  //     bonus = !!rn;
+  //   }
+
+  //   const gained = 10 + (bonus ? 5 : 0);
+  //   onSubmit(stopIndex, {
+  //     bonus,
+  //     badge: bonus ? badge : null,
+  //     rn: rn || undefined,
+  //     qs: selQ ?? undefined,
+  //   });
+  //   onCelebrate({
+  //     icon: bonus ? "🎉" : "✅",
+  //     title: bonus ? `STOP ${stopIndex + 1} COMPLETE!` : "FIND-IT LOGGED!",
+  //     sub: bonus
+  //       ? `+${gained} PTS · YOUR SHOP IS BUILDING MOMENTUM`
+  //       : "+10 PTS · BONUS STILL AVAILABLE",
+  //     badge: bonus ? (badge ?? "BONUS") : "FIND-IT COMPLETE",
+  //   });
+  // };
+
+
+  // const submitStop = () => {
+  //   if (!photoUp && !done) {
+  //     onToast("📷 UPLOAD PHOTO FIRST");
+  //     return;
+  //   }
+  //   if (done) {
+  //     onBack();
+  //     return;
+  //   }
+
+  //   let bonus = false;
+  //   let badge: string | null = null;
+  //   let rn = "";
+
+  //   // ── NEW LOGIC: Handling the 3 different stop types ──
+  //   if (s.bt === "creative") {
+  //     // Creative stops just require the photo (which is already verified above)
+  //     bonus = true;
+  //     badge = s.b1 || null;
+
+  //   } else if (s.bt === "calc") {
+  //     bonus = !!bonusAnswer.trim();
+
+  //     if (bonus) {
+  //       // If it's a graded math question (targetAnswer exists and isn't 0)
+  //       if (s.targetAnswer !== undefined && s.targetAnswer !== 0) {
+  //         const parsedAns = parseFloat(bonusAnswer);
+  //         if (!isNaN(parsedAns)) {
+  //           const diff = Math.abs(parsedAns - s.targetAnswer) / s.targetAnswer;
+
+  //           if (diff <= 0.10) {
+  //             badge = s.b1 || null; // Gold ±10%
+  //           } else if (diff <= 0.20) {
+  //             badge = s.b2 || null; // Silver ±20%
+  //           } else {
+  //             badge = s.b3 || null; // Bronze (Participation)
+  //           }
+  //         } else {
+  //           badge = s.b3 || null; // Fallback if they type text instead of a number
+  //         }
+  //       } else {
+  //         // Fallback for non-math text questions (like Stop 1)
+  //         badge = s.b1 || null;
+  //       }
+  //     }
+
+  //   } else {
+  //     // Conversation / Soft-Skills stops
+  //     rn = repName.trim();
+  //     const ans = repAnswer.trim();
+
+  //     const hasPartialInput = selQ !== null || !!rn || !!ans;
+  //     const hasAllInput = selQ !== null && !!rn && !!ans;
+
+  //     // If they started filling it out but missed a piece, warn them and halt submission!
+  //     if (hasPartialInput && !hasAllInput) {
+  //       onToast("⚠️ COMPLETE ALL SHOP TALK FIELDS FOR BONUS!");
+  //       return;
+  //     }
+
+  //     bonus = hasAllInput;
+  //     if (bonus) badge = s.b1 || null;
+  //   }
+  //   // else {
+  //   //   // Conversation / Soft-Skills stops
+  //   //   rn = repName.trim();
+  //   //   bonus = !!rn;
+  //   //   if (bonus) badge = s.b1 || null;
+  //   // }
+
+  //   const gained = 10 + (bonus ? 5 : 0);
+  //   onSubmit(stopIndex, {
+  //     bonus,
+  //     badge: bonus ? badge : null,
+  //     rn: rn || undefined,
+  //     qs: selQ ?? undefined,
+  //   });
+
+  //   onCelebrate({
+  //     icon: bonus ? "🎉" : "✅",
+  //     title: bonus ? `STOP ${stopIndex + 1} COMPLETE!` : "FIND-IT LOGGED!",
+  //     sub: bonus
+  //       ? `+${gained} PTS · YOUR SHOP IS BUILDING MOMENTUM`
+  //       : "+10 PTS · BONUS STILL AVAILABLE",
+  //     badge: bonus ? (badge ?? "BONUS") : "FIND-IT COMPLETE",
+  //   });
+  // };
+
+
   const submitStop = () => {
     if (!photoUp && !done) {
       onToast("📷 UPLOAD PHOTO FIRST");
       return;
     }
     if (done) {
-      // const next = stopIndex + 1;
-      // if (next < TOTAL_STOPS) onNavigate(next);
-      // else
       onBack();
       return;
     }
 
-    let bonus = false;
-    let badge: string | null = s.b1;
+    let isCorrect = false;
     let rn = "";
 
+    // ── NEW REQUIRED VALIDATION & GRADING LOGIC ──
     if (s.bt === "calc") {
-      bonus = !!bonusAnswer.trim();
+      const cleanAns = bonusAnswer.trim();
+
+      // Enforce that the question is attempted
+      if (!cleanAns) {
+        onToast("⚠️ ANSWER THE SKILL CHALLENGE TO SUBMIT");
+        return;
+      }
+
+      // Check the answer against the target
+      // if (s.targetAnswer !== undefined) {
+      //   if (typeof s.targetAnswer === "number") {
+      //     const parsedAns = parseFloat(cleanAns);
+      //     if (!isNaN(parsedAns) && parsedAns === s.targetAnswer) {
+      //       isCorrect = true;
+      //     }
+      //   } else if (typeof s?.targetAnswer === "string") {
+      //     if (cleanAns.toLowerCase() === s?.targetAnswer.toLowerCase()) {
+      //       isCorrect = true;
+      //     }
+      //   }
+      // } else {
+      //   // Fallback if no specific target answer is defined
+      //   isCorrect = true;
+      // }
+
+
+      if (s.targetAnswer !== undefined) {
+        if (cleanAns.toLowerCase() === String(s.targetAnswer).toLowerCase()) {
+          isCorrect = true;
+        }
+      } else {
+        // Fallback if no specific target answer is defined
+        isCorrect = true;
+      }
+
     } else {
       rn = repName.trim();
-      bonus = !!rn;
+      const ans = repAnswer.trim();
+
+      // Enforce that all interview questions are completed
+      if (selQ === null || !rn || !ans) {
+        onToast("⚠️ COMPLETE ALL SHOP TALK FIELDS TO SUBMIT");
+        return;
+      }
+
+      // If they completed the conversation details, they earn the points
+      isCorrect = true;
     }
 
-    const gained = 10 + (bonus ? 5 : 0);
+    // ── NEW: Clear the temporary memory because they officially submitted! ──
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem(`partial_time_${stopIndex}`);
+    }
+    // Calculate just the portion of time spent on THIS specific question
+    const timeSpentOnThisStop = elapsedSeconds - previousStopsTime;
+
+    // Submit values to the state engine
     onSubmit(stopIndex, {
-      bonus,
-      badge: bonus ? badge : null,
+      bonus: isCorrect, // Translates internally to +10 additional points
+      badge: isCorrect ? (s.badge || "Stop Master") : null,
       rn: rn || undefined,
       qs: selQ ?? undefined,
+      timeSpent: timeSpentOnThisStop,
     });
+
+    // Fire the celebration alert with hidden badges revealed dynamically
     onCelebrate({
-      icon: bonus ? "🎉" : "✅",
-      title: bonus ? `STOP ${stopIndex + 1} COMPLETE!` : "FIND-IT LOGGED!",
-      sub: bonus
-        ? `+${gained} PTS · YOUR SHOP IS BUILDING MOMENTUM`
-        : "+10 PTS · BONUS STILL AVAILABLE",
-      badge: bonus ? (badge ?? "BONUS") : "FIND-IT COMPLETE",
+      icon: isCorrect ? "🎉" : "✅",
+      title: isCorrect ? "STOP 100% COMPLETE!" : "STOP LOGGED",
+      sub: isCorrect
+        ? "+20 PTS LOGGED · PERFECT SCORE ON THIS STOP"
+        : "+10 PTS LOGGED · PHOTO PASSED, ANSWER INCORRECT",
+      badge: isCorrect ? (s.badge || "CHAMPION") : "PHOTO VERIFIED",
     });
   };
-
   const prevStop = () => {
     if (stopIndex > 0) onNavigate(stopIndex - 1);
   };
@@ -187,6 +486,7 @@ export function StopScreen({
   );
 
   useEffect(() => {
+    if (!isActive) return;
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [handleKey]);
@@ -196,6 +496,12 @@ export function StopScreen({
     (!!stopsDone[stopIndex + 1] ||
       !!stopsDone[stopIndex] ||
       stopIndex + 1 === 0);
+
+  const formatLiveTime = (secs: number) => {
+    const minutes = Math.floor(secs / 60);
+    const seconds = secs % 60;
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+  };
 
   return (
     <div className="absolute inset-0 flex flex-col h-full w-full overflow-hidden z-30">
@@ -231,10 +537,12 @@ export function StopScreen({
         title={`STOP ${stopIndex + 1} · ${s.co}`}
         onBack={onBack}
         backLabel="◄ STOPS"
+        onOpenMap={onOpenMap}
+        isMapShow={true}
       />
 
       <div className="game-scroll flex-1 min-h-0 bg-transparent">
-        <div className="relative h-[168px] flex-shrink-0 overflow-hidden">
+        <div className="relative h-[185px] flex-shrink-0 overflow-hidden">
           <div
             className="absolute inset-0 bg-cover bg-[center_30%]"
             style={{
@@ -298,6 +606,11 @@ export function StopScreen({
                 <p className="font-share-mono text-[10px] text-[var(--c)] tracking-[0.1em] uppercase mt-1">
                   {s.task}
                 </p>
+
+                {/* ── LIVE INTERACTIVE TIMER INJECTED EXACTLY HERE ── */}
+                <div className="flex items-center gap-1.5 mt-2 font-share-mono text-[11px] font-bold tracking-[0.06em] text-[var(--o)] animate-pulse">
+                  <span>⏱️</span> GAME CLOCK: <span className="font-orbitron text-[12px] text-white font-black">{formatLiveTime(elapsedSeconds)}</span>
+                </div>
               </div>
               <div
                 className="flex-shrink-0 border border-[var(--bdr)] bg-[rgba(4,5,6,0.9)] px-[11px] py-[7px]"
@@ -436,7 +749,7 @@ export function StopScreen({
             )}
           </Panel>
 
-          {s.bt === "calc" ? (
+          {s.bt === "creative" ? null : s.bt === "calc" ? (
             <Panel
               header={
                 <>
@@ -453,8 +766,10 @@ export function StopScreen({
                         "polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))",
                     }}
                   >
-                    +5 PTS · BONUS
+                    10 PTS · REQUIRED
                   </span>
+                  {/* 
+                  <StatusTag variant="orange">10 PTS · REQUIRED</StatusTag> */}
                 </>
               }
               headerColor="yellow"
@@ -478,7 +793,7 @@ export function StopScreen({
                 readOnly={done}
                 disabled={done}
               />
-              <p className="font-share-mono text-[10px] text-[var(--dim)] tracking-[0.08em] mb-1">
+              {/* <p className="font-share-mono text-[10px] text-[var(--dim)] tracking-[0.08em] mb-1">
                 BADGE TIERS:
               </p>
               <div className="flex flex-wrap gap-1.5">
@@ -497,7 +812,7 @@ export function StopScreen({
                     🥉 {s.b3}
                   </span>
                 )}
-              </div>
+              </div> */}
             </Panel>
           ) : (
             <Panel

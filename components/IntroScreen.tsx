@@ -6,9 +6,11 @@ import { IMAGE_URLS } from "@/constants";
 export function IntroScreen({
   onNext,
   onBack,
+  onOpenMap,
 }: {
   onNext: () => void;
   onBack: () => void;
+  onOpenMap: () => void;
 }) {
   return (
     <div className="absolute inset-0 flex h-full flex-col overflow-hidden">
@@ -85,7 +87,11 @@ export function IntroScreen({
             </div>
           </Panel>
 
-          <div className="h-3.5" />
+          <div className="h-3.5 " />
+
+          {/* <GameButton variant="secondary" onClick={onOpenMap}>
+            🗺️ VIEW STARTING LOCATION MAP
+          </GameButton> */}
           <GameButton variant="primary" onClick={onNext}>
             ► SET UP YOUR SHOP
           </GameButton>

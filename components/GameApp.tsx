@@ -13,8 +13,10 @@ import { GameToast } from "./GameToast";
 import {
   DEFAULT_PLAYER,
   TOTAL_STOPS,
-  computeScore,
+  computeBaseScore,
+  computeBonusScore,
   STOPS,
+  computeScore,
 } from "@/constants";
 import type {
   AppScreen,
@@ -30,6 +32,7 @@ import type {
 import { AuthScreen } from "./AuthScreen";
 import { OtpScreen } from "./OtpScreen";
 import { GameService } from "@/lib/game.service";
+import MapModal from "./modals/MapModal";
 
 function ScreenSlot({
   active,
@@ -73,14 +76,24 @@ export function GameApp() {
   const [roster, setRoster] = useState<RosterEntry[]>([]);
   const [huntTab, setHuntTab] = useState<HuntTab>("stops");
   const [curStop, setCurStop] = useState(0);
+
+
+
+
   const [celebration, setCelebration] = useState<CelebrationState | null>(null);
+
+  const [isMapOpen, setIsMapOpen] = useState(false);
+
   /** Where to go after closing a stop-completion celebration modal. */
   const [celebrationDismiss, setCelebrationDismiss] = useState<
     { type: "nextStop"; index: number } | { type: "traveler" } | null
   >(null);
   const [toast, setToast] = useState<string | null>(null);
 
-  const score = computeScore(stopsDone, shortsDone);
+  // const score = computeScore(stopsDone, shortsDone);
+  const coreScore = computeBaseScore(stopsDone);
+  const bonusScore = computeBonusScore(shortsDone);
+  const combinedScore = coreScore + bonusScore;
 
   const showToast = useCallback((msg: string) => setToast(msg), []);
 
@@ -131,8 +144,11 @@ export function GameApp() {
   };
 
   const handleStopSubmit = (index: number, data: StopCompletion) => {
+
+
+
     if (index < TOTAL_STOPS - 1) {
-      // setCelebrationDismiss({ type: "nextStop", index: index + 1 });
+
 
       setCelebrationDismiss(null)
     } else {
@@ -140,6 +156,7 @@ export function GameApp() {
     }
 
     setStopsDone((prev) => ({ ...prev, [index]: data }));
+
     if (data.rn) {
       const s = STOPS[index];
       setRoster((r) => {
@@ -153,6 +170,7 @@ export function GameApp() {
 
   const openStop = (index: number) => {
     setCurStop(index);
+
     setScreen("stop");
   };
 
@@ -163,54 +181,7 @@ export function GameApp() {
 
   // NEW: The Core Authentication Logic
   const handleAuthSubmit = async (email: string) => {
-    // setIsAuthenticating(true);
-    // setAuthEmail(email);
-    // // const payloade = {
-    // //   email: email,
-    // //   olduser: false,
-    // // }
-    // localStorage.setItem("user", email)
-    // const oldUser = localStorage.getItem("userType") === 'old' ? true : localStorage.setItem("userType", "new")
 
-
-
-
-    // try {
-    //   // TODO: Replace this with your actual Next.js API call later
-    //   // const res = await fetch('/api/auth', { method: 'POST', body: JSON.stringify({ email }) });
-    //   // const data = await res.json();
-
-    //   // Simulating a network request for 1 second
-    //   await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    //   // MOCK LOGIC: If they type "alex@school.edu", pretend they are a returning user.
-
-
-    //   const oldUserEmail = localStorage.getItem("user")
-    //   const isReturningUser = oldUser
-
-    //   if (isReturningUser) {
-
-    //     // Hydrate state from "Database" and go straight to game
-    //     setPlayer({
-    //       name: "Alex Johnson",
-    //       email: oldUserEmail || '',
-    //       school: "Lincoln Tech",
-    //       role: "Student",
-    //       avatarIndex: 0,
-    //     });
-
-    //     setScreen("otp");
-    //     showToast("WELCOME BACK, OPERATOR");
-    //   } else {
-
-    //     setScreen("register");
-    //   }
-    // } catch (error) {
-    //   showToast("⚠️ CONNECTION ERROR");
-    // } finally {
-    //   setIsAuthenticating(false);
-    // }
 
 
     setIsAuthenticating(true);
@@ -218,10 +189,10 @@ export function GameApp() {
 
     try {
       // 1. Call your clean service layer using the email directly
-      // const data = await GameService.registerEmail(email);
-      const data = {
-        success: true
-      }
+      const data = await GameService.registerEmail(email);
+      // const data = {
+      //   success: true
+      // }
 
       // 2. Check standardized success response
       if (data.success) {
@@ -234,7 +205,7 @@ export function GameApp() {
 
       } else {
         // 3. Handle errors safely (e.g., "External API is down")
-        // showToast(`⚠️ ${data.error.toUpperCase()}`);
+        showToast(`⚠️ ${data.error.toUpperCase()}`);
       }
     } catch (error) {
       showToast("⚠️ FATAL CONNECTION ERROR");
@@ -248,48 +219,37 @@ export function GameApp() {
     setIsAuthenticating(true);
 
     try {
-      // const data = await GameService.verifyOtp(authEmail, otp);
-
-      const data = {
-        success: true,
-        isProfileComplete: true,
-        user: {
-          operatorName: 'Machiniest',
-          firstName: 'John',
-          emailId: "machine@gmail.com",
-          schoolOrCompany: '',
-          role: '',
-          machinistCharacter: '',
-          shopName: ''
-        }
+      const data = await GameService.verifyOtp(authEmail, otp);
 
 
-      }
+
+
+
 
       if (data.success) {
         // OTP was correct! Now, are they fully setup?
-        // if (data.isProfileComplete) {
-        //   // Returning player with a complete profile!
+        if (data.isProfileComplete) {
+          // Returning player with a complete profile!
 
-        //   // Note: Make sure data.user matches your PlayerProfile state structure. 
-        //   // You might need to map it if the database keys are different.
-        //   setPlayer({
-        //     name: data.user.operatorName || data.user.firstName || "Operator",
-        //     email: data.user.emailId,
-        //     school: data.user.schoolOrCompany || "My School",
-        //     role: data.user.role || "Student",
-        //     shopName: data.user.shopName || data.user.schoolOrCompany || "",
-        //     avatarIndex: data.user.machinistCharacter ? parseInt(data.user.machinistCharacter) : 0,
-        //   });
+          // Note: Make sure data.user matches your PlayerProfile state structure. 
+          // You might need to map it if the database keys are different.
+          setPlayer({
+            name: data.user.firstName + data.user.lastName || "Operator",
+            email: data.user.emailId,
+            school: data.user.schoolOrCompany || "My School",
+            role: data.user.role || "Student",
+            shopName: data.user.operatorName,
+            avatarIndex: data.user.machinistCharacter ? parseInt(data.user.machinistCharacter) : 0,
+          });
 
-        //   setScreen("hunt");
-        //   showToast("WELCOME BACK, OPERATOR");
-        // } else {
-        // New player, OR player who verified email but never picked an avatar
-        setScreen("register");
-        // }
+          setScreen("hunt");
+          //   showToast("WELCOME BACK, OPERATOR");
+        } else {
+          // New player, OR player who verified email but never picked an avatar
+          setScreen("register");
+        }
       } else {
-        // showToast(`⚠️ ${data.error?.toUpperCase() || "INVALID CODE"}`);
+        showToast(`⚠️ ${data.error?.toUpperCase() || "INVALID CODE"}`);
       }
     } catch (error) {
       showToast("⚠️ CONNECTION ERROR");
@@ -309,24 +269,29 @@ export function GameApp() {
 
       const backendPayload = {
         emailId: p.email,
-        operatorName: p.name,
+        // operatorName: p.name,
         firstName: firstName,
         lastName: lastName,
         phoneNumber: "0000000000",
         profilePicture: "",
         schoolOrCompany: p.school,
-        shopName: p.shopName,
+        operatorName: p.shopName,
         role: p.role,
         machinistCharacter: p.avatarIndex.toString(),
         isProfileComplete: true,
+
       };
 
+
+      console.log(backendPayload, "from")
       // 2. Call the Next.js API
-      // const data = await GameService.registerUser(backendPayload);
-      const data = {
-        success: true,
-        error: 'something wrong'
-      }
+      const data = await GameService.registerUser(backendPayload);
+      // const data = {
+      //   success: true,
+      //   error: 'something wrong'
+      // }
+
+
       if (data.success) {
         // 3. Success! Set player, clear draft, move to game
         setPlayer(p);
@@ -345,13 +310,11 @@ export function GameApp() {
   }
 
 
-  // const handleingAvater = (p: PlayerProfile) => {
-  //   // localStorage.setItem('userType', 'old')
 
-  //   setPlayer(p);
-  //   setRegisterDraft(null);
-  //   enterHuntHub("stops");
-  // }
+
+  const backHandler = () => {
+    setScreen("hunt")
+  }
   return (
 
 
@@ -405,6 +368,7 @@ export function GameApp() {
             <IntroScreen
               onNext={() => setScreen("auth")}
               onBack={() => setScreen("splash")}
+              onOpenMap={() => setIsMapOpen(true)}
             />
           </ScreenSlot>
 
@@ -466,7 +430,10 @@ export function GameApp() {
           <ScreenSlot active={screen === "hunt"} direction="fwd">
             <HuntScreen
               player={player}
-              score={score}
+
+              baseScore={coreScore}       // PASS CORE SCORE
+              bonusScore={bonusScore}     // PASS BONUS SCORE
+              score={combinedScore}
               stopsDone={stopsDone}
               shortsDone={shortsDone}
               roster={roster}
@@ -480,20 +447,23 @@ export function GameApp() {
               }}
               onCelebrate={(state) => openCelebration(state, "shorts")}
               onToast={showToast}
+              onOpenMap={() => setIsMapOpen(true)}
             />
           </ScreenSlot>
 
           {/* F: Stop Detail */}
           <ScreenSlot active={screen === "stop"} direction="fwd">
             <StopScreen
+              isActive={screen === "stop"}
               stopIndex={curStop}
               player={player}
               stopsDone={stopsDone}
-              onBack={() => setScreen("hunt")}
+              onBack={backHandler}
               onSubmit={handleStopSubmit}
               onNavigate={openStop}
               onToast={showToast}
               onCelebrate={(state) => openCelebration(state, "stop")}
+              onOpenMap={() => setIsMapOpen(true)}
             />
           </ScreenSlot>
 
@@ -502,6 +472,12 @@ export function GameApp() {
             state={celebration}
             onClose={dismissCelebration}
             onContinue={dismissCelebration}
+          />
+
+
+          <MapModal
+            isOpen={isMapOpen}
+            onClose={() => setIsMapOpen(false)}
           />
 
           <GameToast message={toast} onDone={() => setToast(null)} />

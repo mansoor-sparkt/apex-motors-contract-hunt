@@ -4,7 +4,7 @@ import type { HuntTab } from "@/lib/game-types";
 
 const TABS: { id: HuntTab; label: string; icon: string }[] = [
   { id: "stops", label: "STOPS", icon: "📍" },
-  { id: "shorts", label: "SHORTS", icon: "🎬" },
+  { id: "shorts", label: "BONUS", icon: "🎬" },
   { id: "board", label: "BOARD", icon: "🏆" },
   { id: "comp", label: "PROFILE", icon: "📋" },
 ];

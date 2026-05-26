@@ -46,8 +46,8 @@ export function JobTravelerScreen({
 }) {
   const av = AVS[player.avatarIndex] ?? AVS[0];
   const rank = getRank(score, player.name);
-  const baseScore = computeBaseScore(stopsDone, shortsDone);
-  const bonusScore = computeBonusScore(stopsDone);
+  const baseScore = computeBaseScore(stopsDone);
+  const bonusScore = computeBonusScore(shortsDone);
   const metaLine = `${player.shopName || player.school} · ${player.role}`;
 
   const badges = [
@@ -59,6 +59,20 @@ export function JobTravelerScreen({
       .filter(Boolean),
   ];
 
+  // Extracts the time from the stopsDone state
+  const totalSeconds = Object.values(stopsDone).reduce(
+    (acc, curr: any) => acc + (curr.timeSpent || 0),
+    0
+  );
+
+  const formatTime = (secs: number) => {
+    const mins = Math.floor(secs / 60);
+    const remainSecs = secs % 60;
+    return `${mins}:${remainSecs < 10 ? "0" : ""}${remainSecs}`;
+  };
+
+  const timeDisplay = totalSeconds > 0 ? `${formatTime(totalSeconds)} MIN` : "0:00 MIN";
+
   return (
     <div className="game-hub-panel">
       <div className="game-scroll flex-1 min-h-0 game-comp-scroll">
@@ -68,13 +82,24 @@ export function JobTravelerScreen({
             <span style={{ color: "var(--o)" }}>MISSION REPORT</span>
           </div>
           <div className="game-comp-hero-icon">🏭</div>
-          <h2 className="game-comp-hero-title">
+          {/* <h2 className="game-comp-hero-title">
             500 BRACKETS
             <br />
             <span className="text-[var(--o)]">SHIPPED.</span>
           </h2>
           <p className="font-share-mono text-[11px] text-[var(--mut)] leading-[1.65] m-0">
             Apex Motors signs off.
+            <br />
+            <strong className="text-[var(--txt)]">YOUR SHOP IS REAL NOW.</strong>
+          </p> */}
+
+          <h2 className="game-comp-hero-title">
+            GEARBOX
+            <br />
+            <span className="text-[var(--o)]">DELIVERED.</span>
+          </h2>
+          <p className="font-share-mono text-[11px] text-[var(--mut)] leading-[1.65] m-0">
+            Redline Robotics signs off.
             <br />
             <strong className="text-[var(--txt)]">YOUR SHOP IS REAL NOW.</strong>
           </p>
@@ -101,6 +126,9 @@ export function JobTravelerScreen({
                   </div>
                   <div className="font-share-mono text-[10px] text-[var(--mut)]">
                     RANK #{rank} · — MIN
+                  </div>
+                  <div className="font-share-mono text-[10px] text-[var(--mut)]">
+                    TIME {timeDisplay}
                   </div>
                 </div>
               </div>
@@ -134,12 +162,21 @@ export function JobTravelerScreen({
               )}
             </div>
 
-            <div className="game-trav-sec">
+            {/* <div className="game-trav-sec">
               <div className="game-trav-sec-lbl">CONTRACT</div>
               <p className="font-share-mono text-[11px] text-[rgba(232,234,240,0.8)] leading-[1.7] m-0">
                 APEX MOTORS · 500 BRAKE CALIPER BRACKETS
                 <br />
                 MATERIAL: 6061 ALUMINUM
+              </p>
+            </div> */}
+
+            <div className="game-trav-sec">
+              <div className="game-trav-sec-lbl">CONTRACT</div>
+              <p className="font-share-mono text-[11px] text-[rgba(232,234,240,0.8)] leading-[1.7] m-0">
+                REDLINE ROBOTICS · PLANETARY GEARBOX
+                <br />
+                MATERIAL: HYBRID (PRINTED & MACHINED)
               </p>
             </div>
 

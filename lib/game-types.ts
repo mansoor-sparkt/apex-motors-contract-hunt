@@ -5,11 +5,12 @@ export interface PlayerProfile {
   role: string;
   shopName: string;
   avatarIndex: number;
+  avatarName?: string;
 }
 
 export interface PlayeRegisterProfile {
   emailId: string;
-  operatorName: string;
+  // operatorName: string;
   firstName: string;
   lastName: string;
   phoneNumber: string; // Default since it's not in UI
@@ -35,6 +36,7 @@ export interface StopCompletion {
   badge: string | null;
   rn?: string;
   qs?: number;
+  timeSpent?: number;
 }
 
 /** Shop floor short submission with local media preview. */
@@ -42,6 +44,7 @@ export interface ShortCompletion {
   mediaType: "image" | "video";
   previewUrl: string;
   badge: string;
+  qAnswered?: boolean;
 }
 
 export interface RosterEntry {

@@ -144,8 +144,8 @@ export function HuntStopRow({
         locked
           ? undefined
           : (e) => {
-              if (e.key === 'Enter' || e.key === ' ') onClick?.();
-            }
+            if (e.key === 'Enter' || e.key === ' ') onClick?.();
+          }
       }
       className={`game-stop-row${done ? ' done' : ''}${active ? ' act' : ''}${locked ? ' lock' : ''}`}
     >
@@ -226,11 +226,15 @@ export function HUDBar({
   onBack,
   showLogo = false,
   backLabel = '◄ BACK',
+  onOpenMap,
+  isMapShow = false
 }: {
   title: string;
   onBack?: () => void;
   showLogo?: boolean;
   backLabel?: string;
+  onOpenMap?: () => void;
+  isMapShow?: boolean
 }) {
   return (
     <div className={`game-hud${onBack ? ' game-hud--back' : ''}`}>
@@ -247,8 +251,33 @@ export function HUDBar({
           <div className="game-hud-sep" />
         </>
       ) : null}
-      <div className="game-hud-ttl">{title}</div>
-      {onBack && <div className="game-hud-sp" />}
+      <div className="game-hud-ttl flex-1 min-w-0">{title}</div>
+      {/* {isMapShow && <div className="px-4 py-2 relative z-[1]">
+        <button
+          type="button"
+          onClick={onOpenMap}
+          className="w-full flex items-center justify-center gap-2 py-2 font-share-mono text-[11px] text-[var(--c)] tracking-widest border border-[rgba(0,229,255,0.3)] bg-[rgba(0,229,255,0.05)] hover:bg-[rgba(0,229,255,0.1)] transition-colors px-4 cursor-pointer"
+          style={{
+            clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))"
+          }}
+        >
+          <span>🗺️</span> MAP
+        </button>
+      </div>} */}
+      {/* {onBack && <div className="game-hud-sp" />} */}
+      {isMapShow && <div className="px-4 py-2 relative z-[1]">
+        <button
+          type="button"
+          onClick={onOpenMap}
+          className="w-full flex items-center justify-center gap-2 py-2 font-share-mono text-[11px] text-[var(--c)] tracking-widest border border-[rgba(0,229,255,0.3)] bg-[rgba(0,229,255,0.05)] hover:bg-[rgba(0,229,255,0.1)] transition-colors px-4 cursor-pointer"
+          style={{
+            clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))"
+          }}
+        >
+          <span>🗺️</span> MAP
+        </button>
+      </div>}
+
     </div>
   );
 }
@@ -260,5 +289,37 @@ export function PhillipsHUDBar({
   title: string;
   onBack?: () => void;
 }) {
-  return <HUDBar title={title} onBack={onBack} backLabel="◄ STOPS" />;
+  return <HUDBar title={title} onBack={onBack} backLabel="◄ STOPS" isMapShow={false} />;
 }
+
+
+// export function UpdatePointSplitRow() {
+//   return (
+//     <>
+//       <div className="flex justify-between items-center border border-[rgba(0,229,255,0.3)] bg-[rgba(0,0,0,0.6)] p-3"
+//         style={{ clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}>
+//         <div>
+//           <div className="font-share-mono text-[9px] text-[var(--c)] tracking-widest mb-1">CORE STOPS (BASE PRIZE)</div>
+//           <div className="font-orbitron text-sm font-bold text-white">{stopsCount} / {TOTAL_STOPS} COMPLETE</div>
+//         </div>
+//         <div className="text-right">
+//           <div className="font-orbitron text-lg font-black text-[var(--c)]">{coreScore}</div>
+//           <div className="font-share-mono text-[8px] text-[var(--mut)]">PTS</div>
+//         </div>
+//       </div>
+
+//       {/* 2. Bonus Progress (Extra Prize) */}
+//       <div className="border border-[rgba(255,187,0,0.3)] bg-[rgba(0,0,0,0.6)] p-3"
+//         style={{ clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}>
+//         <div className="flex justify-between items-end mb-2">
+//           <div className="font-share-mono text-[9px] text-[#ffbb00] tracking-widest">BONUS TRACK (EXTRA PRIZE)</div>
+//           <div className="font-orbitron text-[11px] font-bold text-[#ffbb00]">{bonusScore} / {TARGET_BONUS_SCORE} PTS</div>
+//         </div>
+//         {/* Progress Bar */}
+//         <div className="h-1.5 w-full bg-[rgba(255,255,255,0.1)] overflow-hidden">
+//           <div className="h-full bg-[#ffbb00] transition-all duration-500 ease-out" style={{ width: `${bonusPercent}%` }} />
+//         </div>
+//       </div>
+//     </>
+//   )
+// }

@@ -1,24 +1,24 @@
 import { NextResponse } from "next/server";
 
+const baseUrl = process.env.BACKEND_API_URL;
+
 export async function POST(request: Request) {
   try {
     // 1. Grab the exact payload sent by GameService
     const payload = await request.json();
 
     // 2. Forward it to the external API
-    const res = await fetch(
-      "https://phillipsx-content-dev.azurewebsites.net/api/Profile/UpsertProfile",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // "Authorization": `Bearer ${process.env.EXTERNAL_API_SECRET_KEY}`
-        },
-        body: JSON.stringify(payload),
+    const res = await fetch(`${baseUrl}/Profile/UpsertProfile`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // "Authorization": `Bearer ${process.env.EXTERNAL_API_SECRET_KEY}`
       },
-    );
+      body: JSON.stringify(payload),
+    });
 
     const data = await res.json();
+    console.log(payload, data);
 
     // 3. Translate response for React
     if (data.statusCode === 200 && data.result) {

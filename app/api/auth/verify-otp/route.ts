@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+const baseUrl = process.env.BACKEND_API_URL;
+
 export async function POST(request: Request) {
   try {
     const { emailId, otp } = await request.json();
@@ -13,20 +15,17 @@ export async function POST(request: Request) {
 
     // 2. Map to the exact keys the external API expects
 
-    const res = await fetch(
-      "https://phillipsx-content-dev.azurewebsites.net/api/Login/VerifyOTP",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Authorization: `Bearer ${process.env.EXTERNAL_API_SECRET_KEY}`,
-        },
-        body: JSON.stringify({
-          emailId,
-          otp,
-        }),
+    const res = await fetch(`${baseUrl}/Login/VerifyOTP`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // Authorization: `Bearer ${process.env.EXTERNAL_API_SECRET_KEY}`,
       },
-    );
+      body: JSON.stringify({
+        emailId,
+        otp,
+      }),
+    });
 
     const data = await res.json();
 

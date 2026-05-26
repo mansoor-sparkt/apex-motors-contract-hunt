@@ -128,6 +128,17 @@ export function RegisterScreen({
               }}
             />
           </div>
+
+          <div className="game-field">
+            <label>School / Company</label>
+            <input
+              className="game-input"
+              type="text"
+              placeholder="Lincoln Tech"
+              value={school}
+              onChange={(e) => setSchool(e.target.value)}
+            />
+          </div>
           <div className="game-field">
             <label>Email — your resume key</label>
             {errors.email && (
@@ -146,16 +157,6 @@ export function RegisterScreen({
                   setErrors((prev) => ({ ...prev, email: undefined }));
               }}
               readOnly={!!initialEmail}
-            />
-          </div>
-          <div className="game-field">
-            <label>School / Company</label>
-            <input
-              className="game-input"
-              type="text"
-              placeholder="Lincoln Tech"
-              value={school}
-              onChange={(e) => setSchool(e.target.value)}
             />
           </div>
           <div className="game-field">

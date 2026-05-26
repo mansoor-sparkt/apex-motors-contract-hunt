@@ -8,11 +8,16 @@ import stepSix from "@/assests/Stop6-Zeiss.png";
 import stepSeven from "@/assests/Stop7-Deere.png";
 import stepEight from "@/assests/Stop8-Caterpillar.jpeg";
 
+import mapOne from "@/assests/map-one-zoom-out.png";
+import mapTwo from "@/assests/map-two-zoom-close-up.png";
+
 import splashImage from "@/assests/Home-screen.png";
 import { StaticImageData } from "next/image";
 
-export const MAX_SCORE = 160;
-export const TOTAL_STOPS = 8;
+export const TOTAL_STOPS = 6;
+export const MAX_SCORE = 220;
+// export const TARGET_BONUS_SCORE = 100;
+// export const TOTAL_STOPS = 9;
 
 export const IMAGE_URLS = {
   photoBg:
@@ -30,19 +35,7 @@ export const IMAGE_URLS = {
     "data:image/jpeg;base64,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",
 };
 
-// export const backgroundImage =
-//   ";
-
-// 1: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800",
-// 2: "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?auto=format&fit=crop&q=80&w=800",
-// 3: "https://images.unsplash.com/photo-1504917595217-d4dc5efd1ad7?auto=format&fit=crop&q=80&w=800",
-// 4: "https://images.unsplash.com/photo-1565106430482-8f6e74349ca1?auto=format&fit=crop&q=80&w=800",
-// 5: "https://images.unsplash.com/photo-1513828583688-c52646db42da?auto=format&fit=crop&q=80&w=800",
-// 6: "https://images.unsplash.com/photo-1581092160607-ee23622dd13b?auto=format&fit=crop&q=80&w=800",
-// 7: "https://images.unsplash.com/photo-1581092162384-8987c1d64718?auto=format&fit=crop&q=80&w=800",
-// 8: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800",
 export const STOP_IMAGE_MAP: Record<number, StaticImageData> = {
-  // StaticImageData
   1: stepOne,
   2: stepTwo,
   3: stepThree,
@@ -51,19 +44,10 @@ export const STOP_IMAGE_MAP: Record<number, StaticImageData> = {
   6: stepSix,
   7: stepSeven,
   8: stepEight,
-  // 1: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800",
-  // 2: "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?auto=format&fit=crop&q=80&w=800",
-  // 3: "https://images.unsplash.com/photo-1504917595217-d4dc5efd1ad7?auto=format&fit=crop&q=80&w=800",
-  // 4: "https://images.unsplash.com/photo-1565106430482-8f6e74349ca1?auto=format&fit=crop&q=80&w=800",
-  // 5: "https://images.unsplash.com/photo-1513828583688-c52646db42da?auto=format&fit=crop&q=80&w=800",
-  // 6: "https://images.unsplash.com/photo-1581092160607-ee23622dd13b?auto=format&fit=crop&q=80&w=800",
-  // 7: "https://images.unsplash.com/photo-1581092162384-8987c1d64718?auto=format&fit=crop&q=80&w=800",
-  // 8: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800",
+  9: stepOne,
 };
 
-export const STOP_BRIGHTNESS: number[] = [
-  0.4, 0.52, 0.48, 0.45, 0.5, 0.5, 0.52, 0.58,
-];
+export const STOP_BRIGHTNESS: number[] = [0.4, 0.52, 0.48, 0.45, 0.5, 0.5];
 
 export const ROLES = [
   { id: "Student", icon: "🎓" },
@@ -99,136 +83,424 @@ export const AVS = [
   },
 ];
 
+// export const STOPS = [
+//   {
+//     n: 1,
+//     co: "Markforged",
+//     task: "The contract starts here",
+//     story:
+//       "Apex Motors just handed you the job. 500 brake caliper brackets, 6 weeks. Your first move is figuring out what you're working with — material, tolerances, and whether your shop can deliver.",
+//     fi: "Photo of any part on display or the booth banner",
+//     bt: "calc",
+//     bp: "What material is this part most likely made of? Use the Phillips Machinist app to research.",
+//     calc: "Material Identifier",
+//     b1: "Material Whisperer",
+//     b2: "Alloy Guesser",
+//     b3: "Chump Change",
+//   },
+//   {
+//     n: 2,
+//     co: "Autodesk",
+//     task: "Read the print, plan the build",
+//     story:
+//       "The CAD file just landed in your inbox. Before a single toolpath gets programmed, you need to understand every dimension, every tolerance, every critical feature on this bracket.",
+//     fi: "Photo of Fusion 360 demo running on a screen",
+//     bt: "conv",
+//     q1: "How does Fusion 360 handle CAM for multi-axis jobs?",
+//     q2: "What's the learning curve for a first-year student?",
+//     rc: "Autodesk",
+//     b1: "CAD Whisperer",
+//     calc: "Fusion 360 Demo",
+//   },
+//   {
+//     n: 3,
+//     co: "Mastercam",
+//     task: "Program the toolpaths, hit the deadline",
+//     story:
+//       "CAD is locked. 500 parts in 6 weeks means cycle time is everything — every second on the machine is either money made or money burned.",
+//     fi: "Photo of any Mastercam toolpath screen",
+//     bt: "calc",
+//     bp: "MRR challenge: Roughing 6061 aluminum. Open Phillips Machinist and calculate your material removal rate.",
+//     calc: "MRR Calculator",
+//     b1: "Chip Slinger",
+//     b2: "Roughing It",
+//     b3: "Butter Cutter",
+//   },
+//   {
+//     n: 4,
+//     co: "Haas",
+//     task: "Pick the machine, dial in the cut",
+//     story:
+//       "Toolpaths are dialed. Now you need iron to run them on. 500-part runs don't care about excuses — you need the right machine for the job, and you need it today.",
+//     fi: "Photo of a Haas machine on display",
+//     bt: "conv",
+//     q1: "What's the best Haas model for 500-piece aluminum runs?",
+//     q2: "How does Haas support first-time machine buyers?",
+//     rc: "Haas",
+//     b1: "Iron Talker",
+//     calc: "Haas Machine Info",
+//   },
+//   {
+//     n: 5,
+//     co: "Mitutoyo",
+//     task: "First article inspection",
+//     story:
+//       "First part just came off the machine. Before you run another 499, you need to prove this one is right. One bad first article times 500 is an expensive mistake.",
+//     fi: "Photo of any Mitutoyo measuring tool",
+//     bt: "calc",
+//     bp: "Unit conversion sprint! Convert 3 values from the bracket drawing using the Phillips Machinist app.",
+//     calc: "Unit Converter",
+//     b1: "Decimal Demon",
+//     b2: "Close Enough",
+//     b3: "Lost in Translation",
+//   },
+//   {
+//     n: 6,
+//     co: "Zeiss",
+//     task: "CMM verification on critical features",
+//     story:
+//       "Two features got flagged as critical by Apex Motors. Calipers won't cut it — you need a full CMM report before this lot ships.",
+//     fi: "Photo of Zeiss CMM on display",
+//     bt: "conv",
+//     q1: "What CMM features matter most for aerospace-grade tolerances?",
+//     q2: "How long does it take to program a CMM for a new part?",
+//     rc: "Zeiss",
+//     b1: "Measurement Mouth",
+//     calc: "Zeiss CMM Info",
+//   },
+//   {
+//     n: 7,
+//     co: "Deere",
+//     task: "A second contract on the table",
+//     story:
+//       "Word's getting around that your shop delivers. Deere's procurement team just asked if you can quote a hydraulic fitting job. Your reputation is opening doors.",
+//     fi: "Photo of any Deere part on display",
+//     bt: "calc",
+//     bp: "Multi-select: Which manufacturing processes were likely involved in making this Deere part?",
+//     calc: "Process Identifier",
+//     b1: "Process Boss",
+//     b2: "Shop Tourist",
+//     b3: "Window Shopper",
+//   },
+//   {
+//     n: 8,
+//     co: "Caterpillar",
+//     task: "What's next for your shop",
+//     story:
+//       "Contract delivered. 500 brackets shipped on time. Now Cat's asking what kind of machinist you want to become. This is your moment to think bigger than the next job.",
+//     fi: "Photo of Cat component or career signage",
+//     bt: "conv",
+//     q1: "What career paths lead to programming CNC machines at Cat?",
+//     q2: "How did you personally get started in manufacturing?",
+//     rc: "Caterpillar",
+//     b1: "Future Builder",
+//     calc: "Cat Career Info",
+//   },
+// ];
+
+// export const STOPS = [
+// {
+//   n: 1,
+//   co: "Phillips Corp",
+//   task: "The contract lands",
+//   story:
+//     "Redline Robotics needs a custom planetary gearbox for a new robot arm joint. They need it compact, precise, and fast. You're the machinist, and your shop was just hired to make it.",
+//   fi: "Selfie at the Phillips booth with the challenge card",
+//   bt: "calc", // Using calc type for a text input challenge
+//   bp: "App Tour: Look around the Phillips Machinist app. Which of these is NOT currently in the app?",
+//   calc: "App Library",
+//   targetAnswer: 0, // We will treat this as a text check in the component later, or just participation
+//   b1: "App Explorer",
+//   b2: "Quick Learner",
+//   b3: "Getting Started",
+// },
+// {
+//   n: 2,
+//   co: "Autodesk",
+//   task: "Read the print",
+//   story:
+//     "Redline sent the CAD model. Before you cut any metal, you need to understand the design. Find the Autodesk laser-cut phone stand (or displayed part) and pull dimensions.",
+//   fi: "Photo of the Autodesk display part",
+//   bt: "calc",
+//   bp: "Look up the tap/drill size for a 1/4-20 fastener on the part using the app. (Enter as a decimal, e.g., 0.201)",
+//   calc: "Tap & Drill Chart",
+//   targetAnswer: 0.201, // Actual math target for ± grading!
+//   b1: "Blueprint Boss",
+//   b2: "Print Reader",
+//   b3: "Close Enough",
+// },
+//   {
+//     n: 3,
+//     co: "Creative Stop",
+//     task: "Assemble your crew",
+//     story:
+//       "No shop runs solo. Manufacturing is a team sport. Gather your crew before you hit the heavy machinery.",
+//     fi: "Group photo styled as a machining 'album cover'",
+//     bt: "creative", // NEW TYPE: just a photo, no math/soft-skills!
+//     b1: "Platinum Record",
+//   },
+// {
+//   n: 4,
+//   co: "Markforged",
+//   task: "Print or cut?",
+//   story:
+//     "Go find out what additive manufacturing even is. They have a planetary gear on display—but was it printed or machined?",
+//   fi: "Photo of the planetary gear or the X7 printer",
+//   bt: "conv",
+//   q1: "Was this gear printed or machined?",
+//   q2: "What does 'hybrid manufacturing' mean?",
+//   rc: "Markforged",
+//   b1: "Additive Minded",
+// },
+// {
+//   n: 5,
+//   co: "Mastercam",
+//   task: "Program the job",
+//   story:
+//     "Plan the toolpaths for the production gears—and see what world-class CAM can do (check out the titanium guitar).",
+//   fi: "Photo of the titanium guitar",
+//   bt: "calc",
+//   bp: "Calculate the Material Removal Rate (MRR) for roughing this gear. (Assume 15 MRR for this challenge)",
+//   calc: "MRR Calculator",
+//   targetAnswer: 15, // Actual math target!
+//   b1: "Chip Slinger",
+//   b2: "Roughing It",
+//   b3: "Butter Cutter",
+// },
+// {
+//   n: 6,
+//   co: "Haas",
+//   task: "Make the cut",
+//   story:
+//     "Time to run metal. Find the iron you'd cut your planetary gears on.",
+//   fi: "Photo of any Haas machine on display",
+//   bt: "calc",
+//   bp: "Find the Spindle RPM for your gear cut using Speeds & Feeds in the app. (Assume target is 3500 RPM)",
+//   calc: "Speeds & Feeds",
+//   targetAnswer: 3500, // Actual math target!
+//   b1: "Iron Talker",
+//   b2: "Dialed In",
+//   b3: "Making Chips",
+// },
+//   {
+//     n: 7,
+//     co: "Creative Stop",
+//     task: "Respect the iron",
+//     story: "You're surrounded by serious machines on this floor. Own it.",
+//     fi: "Pose with the biggest machine on the floor for 'Big Machine Energy'",
+//     bt: "creative", // NEW TYPE
+//     b1: "Main Character",
+//   },
+// {
+//   n: 8,
+//   co: "ZEISS",
+//   task: "Final inspection",
+//   story:
+//     "Gear teeth have to mesh perfectly. Prove the part is right before it ships to Redline Robotics.",
+//   fi: "Photo of the DuraMax CMM stylus tip touching a part",
+//   bt: "conv",
+//   q1: "What exactly is the stylus on the displayed part doing?",
+//   q2: "How hard is it to program this CMM?",
+//   rc: "ZEISS",
+//   b1: "Measurement Mouth",
+// },
+//   {
+//     n: 9,
+//     co: "Phillips Corp",
+//     task: "Deliver the order",
+//     story:
+//       "The gearbox ships, Redline Robotics signs off. You're a machinist now.",
+//     fi: "Selfie of you celebrating at the finish line!",
+//     // bt: "conv", // Treating as text input for reflection
+//     bt: "calc",
+//     // q1: "What kind of machinist do you want to be?",
+//     // q2: "What was the coolest thing you saw today?",
+//     bp: "Reflection: What kind of machinist do you want to be? (Or what was the coolest thing you saw today?)",
+//     rc: "Yourself",
+//     b1: "Future Builder",
+//   },
+// ];
+
+// update one removing bonus and last one
 export const STOPS = [
   {
     n: 1,
-    co: "Markforged",
-    task: "The contract starts here",
+    co: "Phillips Corp",
+    task: "The contract lands",
     story:
-      "Apex Motors just handed you the job. 500 brake caliper brackets, 6 weeks. Your first move is figuring out what you're working with — material, tolerances, and whether your shop can deliver.",
-    fi: "Photo of any part on display or the booth banner",
-    bt: "calc",
-    bp: "What material is this part most likely made of? Use the Phillips Machinist app to research.",
-    calc: "Material Identifier",
-    b1: "Material Whisperer",
-    b2: "Alloy Guesser",
-    b3: "Chump Change",
+      "Redline Robotics needs a custom planetary gearbox for a new robot arm joint. They need it compact, precise, and fast. You're the machinist, and your shop was just hired to make it.",
+    fi: "Selfie at the Phillips booth with the challenge card",
+    bt: "calc", // Using calc type for a text input challenge
+    bp: "App Tour: Look around the Phillips Machinist app. Which of these is NOT currently in the app?",
+    calc: "App Library",
+    targetAnswer: 0, // We will treat this as a text check in the component later, or just participation
+
+    badge: "App Explorer",
+    // b1: "App Explorer",
+    // b2: "Quick Learner",
+    // b3: "Getting Started",
   },
   {
     n: 2,
     co: "Autodesk",
-    task: "Read the print, plan the build",
+    task: "Read the print",
     story:
-      "The CAD file just landed in your inbox. Before a single toolpath gets programmed, you need to understand every dimension, every tolerance, every critical feature on this bracket.",
-    fi: "Photo of Fusion 360 demo running on a screen",
-    bt: "conv",
-    q1: "How does Fusion 360 handle CAM for multi-axis jobs?",
-    q2: "What's the learning curve for a first-year student?",
-    rc: "Autodesk",
-    b1: "CAD Whisperer",
-    calc: "Fusion 360 Demo",
+      "Redline sent the CAD model. Before you cut any metal, you need to understand the design. Find the Autodesk laser-cut phone stand (or displayed part) and pull dimensions.",
+    fi: "Photo of the Autodesk display part",
+    bt: "calc",
+    bp: "Look up the tap/drill size for a 1/4-20 fastener on the part using the app. (Enter as a decimal, e.g., 0.201)",
+    calc: "Tap & Drill Chart",
+    targetAnswer: 0.201, // Actual math target for ± grading!
+    badge: "Blueprint Boss",
+    // b1: "Blueprint Boss",
+    // b2: "Print Reader",
+    // b3: "Close Enough",
   },
   {
     n: 3,
-    co: "Mastercam",
-    task: "Program the toolpaths, hit the deadline",
+    co: "Markforged",
+    task: "Print or cut?",
     story:
-      "CAD is locked. 500 parts in 6 weeks means cycle time is everything — every second on the machine is either money made or money burned.",
-    fi: "Photo of any Mastercam toolpath screen",
-    bt: "calc",
-    bp: "MRR challenge: Roughing 6061 aluminum. Open Phillips Machinist and calculate your material removal rate.",
-    calc: "MRR Calculator",
-    b1: "Chip Slinger",
-    b2: "Roughing It",
-    b3: "Butter Cutter",
+      "Go find out what additive manufacturing even is. They have a planetary gear on display—but was it printed or machined?",
+    fi: "Photo of the planetary gear or the X7 printer",
+    bt: "conv",
+    q1: "Was this gear printed or machined?",
+    q2: "What does 'hybrid manufacturing' mean?",
+    rc: "Markforged",
+    badge: "Additive Minded",
+    // b1: "Additive Minded",
   },
   {
     n: 4,
-    co: "Haas",
-    task: "Pick the machine, dial in the cut",
+    co: "Mastercam",
+    task: "Program the job",
     story:
-      "Toolpaths are dialed. Now you need iron to run them on. 500-part runs don't care about excuses — you need the right machine for the job, and you need it today.",
-    fi: "Photo of a Haas machine on display",
-    bt: "conv",
-    q1: "What's the best Haas model for 500-piece aluminum runs?",
-    q2: "How does Haas support first-time machine buyers?",
-    rc: "Haas",
-    b1: "Iron Talker",
-    calc: "Haas Machine Info",
+      "Plan the toolpaths for the production gears—and see what world-class CAM can do (check out the titanium guitar).",
+    fi: "Photo of the titanium guitar",
+    bt: "calc",
+    bp: "Calculate the Material Removal Rate (MRR) for roughing this gear. (Assume 15 MRR for this challenge)",
+    calc: "MRR Calculator",
+    targetAnswer: 15, // Actual math target!
+    badge: "Chip Slinger",
+    // b1: "Chip Slinger",
+    // b2: "Roughing It",
+    // b3: "Butter Cutter",
   },
   {
     n: 5,
-    co: "Mitutoyo",
-    task: "First article inspection",
+    co: "Haas",
+    task: "Make the cut",
     story:
-      "First part just came off the machine. Before you run another 499, you need to prove this one is right. One bad first article times 500 is an expensive mistake.",
-    fi: "Photo of any Mitutoyo measuring tool",
+      "Time to run metal. Find the iron you'd cut your planetary gears on.",
+    fi: "Photo of any Haas machine on display",
     bt: "calc",
-    bp: "Unit conversion sprint! Convert 3 values from the bracket drawing using the Phillips Machinist app.",
-    calc: "Unit Converter",
-    b1: "Decimal Demon",
-    b2: "Close Enough",
-    b3: "Lost in Translation",
+    bp: "Find the Spindle RPM for your gear cut using Speeds & Feeds in the app. (Assume target is 3500 RPM)",
+    calc: "Speeds & Feeds",
+    targetAnswer: 3500, // Actual math target!
+    badge: "Iron Talker",
+    // b1: "Iron Talker",
+    // b2: "Dialed In",
+    // b3: "Making Chips",
   },
   {
     n: 6,
-    co: "Zeiss",
-    task: "CMM verification on critical features",
+    co: "ZEISS",
+    task: "Final inspection",
     story:
-      "Two features got flagged as critical by Apex Motors. Calipers won't cut it — you need a full CMM report before this lot ships.",
-    fi: "Photo of Zeiss CMM on display",
+      "Gear teeth have to mesh perfectly. Prove the part is right before it ships to Redline Robotics.",
+    fi: "Photo of the DuraMax CMM stylus tip touching a part",
     bt: "conv",
-    q1: "What CMM features matter most for aerospace-grade tolerances?",
-    q2: "How long does it take to program a CMM for a new part?",
-    rc: "Zeiss",
-    b1: "Measurement Mouth",
-    calc: "Zeiss CMM Info",
-  },
-  {
-    n: 7,
-    co: "Deere",
-    task: "A second contract on the table",
-    story:
-      "Word's getting around that your shop delivers. Deere's procurement team just asked if you can quote a hydraulic fitting job. Your reputation is opening doors.",
-    fi: "Photo of any Deere part on display",
-    bt: "calc",
-    bp: "Multi-select: Which manufacturing processes were likely involved in making this Deere part?",
-    calc: "Process Identifier",
-    b1: "Process Boss",
-    b2: "Shop Tourist",
-    b3: "Window Shopper",
-  },
-  {
-    n: 8,
-    co: "Caterpillar",
-    task: "What's next for your shop",
-    story:
-      "Contract delivered. 500 brackets shipped on time. Now Cat's asking what kind of machinist you want to become. This is your moment to think bigger than the next job.",
-    fi: "Photo of Cat component or career signage",
-    bt: "conv",
-    q1: "What career paths lead to programming CNC machines at Cat?",
-    q2: "How did you personally get started in manufacturing?",
-    rc: "Caterpillar",
-    b1: "Future Builder",
-    calc: "Cat Career Info",
+    q1: "What exactly is the stylus on the displayed part doing?",
+    q2: "How hard is it to program this CMM?",
+    rc: "ZEISS",
+    badge: "Measurement Pro",
+    // b1: "Measurement Mouth",
   },
 ];
 
 export const SHORTS = [
+  // {
+  //   slug: "big-machine",
+  //   em: "💪",
+  //   title: "BIG MACHINE ENERGY",
+  //   desc: "Strike a pose with the biggest machine on the floor.",
+  //   type: "photo" as const,
+  //   badge: "Main Character",
+  // },
+  // {
+  //   slug: "album-cover",
+  //   em: "🎵",
+  //   title: "ALBUM COVER",
+  //   desc: "Album cover with your crew — machining concept required.",
+  //   type: "photo" as const,
+  //   badge: "Platinum Record",
+  // },
+  // {
+  //   slug: "spirit-tool",
+  //   em: "🔧",
+  //   title: "SPIRIT TOOL",
+  //   desc: "Find the tool that speaks to your soul. Caption why.",
+  //   type: "photo" as const,
+  //   badge: "Tool Soulmate",
+  // },
+  // {
+  //   slug: "human-gdt",
+  //   em: "📐",
+  //   title: "HUMAN GD&T",
+  //   desc: "Recreate a GD&T symbol with your body.",
+  //   type: "photo" as const,
+  //   badge: "Living Blueprint",
+  // },
+  // {
+  //   slug: "action-hero",
+  //   em: "🎬",
+  //   title: "ACTION HERO",
+  //   desc: "Slow-mo walk away from a CNC. Full action energy.",
+  //   type: "video" as const,
+  //   badge: "Blockbuster",
+  // },
+  // {
+  //   slug: "the-pitch",
+  //   em: "📢",
+  //   title: "THE PITCH",
+  //   desc: "30-sec infomercial for Phillips Machinist. Sell it.",
+  //   type: "video" as const,
+  //   badge: "Closer",
+  // },
+  // {
+  //   slug: "elevator",
+  //   em: "🛗",
+  //   title: "THE ELEVATOR",
+  //   desc: "Explain what a machinist does in 15 seconds. Go.",
+  //   type: "video" as const,
+  //   badge: "Smooth Operator",
+  // },
+  // {
+  //   slug: "in-tolerance",
+  //   em: "🎉",
+  //   title: "IN TOLERANCE",
+  //   desc: "Your best 'in tolerance' celebration on camera.",
+  //   type: "video" as const,
+  //   badge: "Victory Lap",
+  // },
+
+  // 4 Photos (10 pts each)
   {
     slug: "big-machine",
     em: "💪",
     title: "BIG MACHINE ENERGY",
     desc: "Strike a pose with the biggest machine on the floor.",
     type: "photo" as const,
+    pts: 10,
     badge: "Main Character",
   },
   {
     slug: "album-cover",
     em: "🎵",
     title: "ALBUM COVER",
-    desc: "Album cover with your crew — machining concept required.",
+    desc: "Album cover with your crew.",
     type: "photo" as const,
+    pts: 10,
     badge: "Platinum Record",
   },
   {
@@ -237,6 +509,7 @@ export const SHORTS = [
     title: "SPIRIT TOOL",
     desc: "Find the tool that speaks to your soul. Caption why.",
     type: "photo" as const,
+    pts: 10,
     badge: "Tool Soulmate",
   },
   {
@@ -245,30 +518,36 @@ export const SHORTS = [
     title: "HUMAN GD&T",
     desc: "Recreate a GD&T symbol with your body.",
     type: "photo" as const,
+    pts: 10,
     badge: "Living Blueprint",
   },
+
+  // 4 Videos (20 pts each)
   {
     slug: "action-hero",
     em: "🎬",
     title: "ACTION HERO",
-    desc: "Slow-mo walk away from a CNC. Full action energy.",
+    desc: "Slow-mo walk away from a CNC.",
     type: "video" as const,
+    pts: 20,
     badge: "Blockbuster",
   },
   {
     slug: "the-pitch",
     em: "📢",
     title: "THE PITCH",
-    desc: "30-sec infomercial for Phillips Machinist. Sell it.",
+    desc: "30-sec infomercial for Phillips Machinist.",
     type: "video" as const,
+    pts: 20,
     badge: "Closer",
   },
   {
     slug: "elevator",
     em: "🛗",
     title: "THE ELEVATOR",
-    desc: "Explain what a machinist does in 15 seconds. Go.",
+    desc: "Explain what a machinist does in 15 seconds.",
     type: "video" as const,
+    pts: 20,
     badge: "Smooth Operator",
   },
   {
@@ -277,7 +556,32 @@ export const SHORTS = [
     title: "IN TOLERANCE",
     desc: "Your best 'in tolerance' celebration on camera.",
     type: "video" as const,
+    pts: 20,
     badge: "Victory Lap",
+  },
+
+  // 2 App Challenges (20 pts each)
+  {
+    slug: "dial-speed",
+    em: "📱",
+    title: "DIAL IN THE SPEED",
+    desc: "Screenshot of the Speeds & Feeds calculator.",
+    type: "app" as const,
+    pts: 20,
+    badge: "Speed Dialer",
+    prompt: "Calculate Spindle RPM for a gear cut.",
+    targetAnswer: "3500",
+  },
+  {
+    slug: "crack-chart",
+    em: "📱",
+    title: "CRACK THE CHART",
+    desc: "Screenshot of the Tap/Drill chart.",
+    type: "app" as const,
+    pts: 20,
+    badge: "Chart Cracker",
+    prompt: "Look up the tap/drill size for a 1/4-20 fastener.",
+    targetAnswer: "0.201",
   },
 ];
 
@@ -291,6 +595,11 @@ export const FLB = [
   { n: "Eli T.", s: "Central HS", base: 60, bonus: 25, b: 5, av: "💻" },
 ];
 
+export const MAP_IMAGES = {
+  zoomOut: mapOne as StaticImageData,
+  zoomIn: mapTwo as StaticImageData,
+};
+
 export const DEFAULT_PLAYER: PlayerProfile = {
   name: "Operator",
   email: "",
@@ -298,28 +607,66 @@ export const DEFAULT_PLAYER: PlayerProfile = {
   role: "Student",
   shopName: "",
   avatarIndex: 0,
+  avatarName: "SPEED DEMON",
 };
 
-export function computeBaseScore(
-  stopsDone: Record<number, { bonus: boolean }>,
-  shortsDone: Record<string, unknown>,
-): number {
-  let base = 0;
-  Object.keys(stopsDone).forEach((k) => {
-    if (stopsDone[Number(k)]) base += 10;
+// export function computeBaseScore(
+//   stopsDone: Record<number, { bonus: boolean }>,
+//   shortsDone: Record<string, unknown>,
+// ): number {
+//   let base = 0;
+//   Object.keys(stopsDone).forEach((k) => {
+//     if (stopsDone[Number(k)]) base += 10;
+//   });
+//   base += Object.keys(shortsDone).length * 5;
+//   return base;
+// }
+
+// export function computeBonusScore(
+//   stopsDone: Record<number, { bonus: boolean }>,
+// ): number {
+//   let bonus = 0;
+//   Object.keys(stopsDone).forEach((k) => {
+//     if (stopsDone[Number(k)]?.bonus) bonus += 5;
+//   });
+//   return bonus;
+// }
+
+// Updated Scorer for Core
+export function computeBaseScore(stopsDone: Record<number, any>): number {
+  let score = 0;
+  Object.keys(stopsDone).forEach((key) => {
+    const completedStop = stopsDone[Number(key)];
+    if (completedStop) {
+      score += 10; // 10 pts for uploading the photo task
+      if (completedStop.bonus) {
+        score += 10; // 10 pts for answering the booth question task
+      }
+    }
   });
-  base += Object.keys(shortsDone).length * 5;
-  return base;
+  return score; // Max 120
 }
 
-export function computeBonusScore(
-  stopsDone: Record<number, { bonus: boolean }>,
-): number {
-  let bonus = 0;
-  Object.keys(stopsDone).forEach((k) => {
-    if (stopsDone[Number(k)]?.bonus) bonus += 5;
+// Updated Scorer for Bonus
+export function computeBonusScore(shortsDone: Record<string, any>): number {
+  let score = 0;
+  Object.keys(shortsDone).forEach((slug) => {
+    const item = SHORTS.find((s) => s.slug === slug);
+    if (item && shortsDone[slug]) {
+      // score += item.pts;
+      if (item.type === "app") {
+        // APP CHALLENGES: 10 pts for the photo + 10 pts if they answered the question
+        score += 10;
+        if (shortsDone[slug].qAnswered) {
+          score += 10;
+        }
+      } else {
+        // PHOTOS (10) & VIDEOS (20)
+        score += item.pts;
+      }
+    }
   });
-  return bonus;
+  return Math.min(score, 160); // Caps progress at the 100 goal mark
 }
 
 export function getActiveStopIndex(
@@ -335,7 +682,8 @@ export function computeScore(
   stopsDone: Record<number, { bonus: boolean }>,
   shortsDone: Record<string, unknown>,
 ): number {
-  return computeBaseScore(stopsDone, shortsDone) + computeBonusScore(stopsDone);
+  return computeBaseScore(stopsDone) + computeBonusScore(stopsDone);
+  // return computeBaseScore(stopsDone, shortsDone) + computeBonusScore(stopsDone);
 }
 
 export function getRank(score: number, _playerName?: string): number {
