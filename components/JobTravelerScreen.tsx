@@ -34,6 +34,7 @@ export function JobTravelerScreen({
   onViewLeaderboard,
   onBackToHunt,
   rank,
+  onLogout
 }: {
   player: PlayerProfile;
   score: number;
@@ -44,6 +45,7 @@ export function JobTravelerScreen({
   onToast?: (msg: string) => void;
   onViewLeaderboard?: () => void;
   onBackToHunt?: () => void;
+  onLogout?: () => void;
 }) {
   const av = AVS[player.avatarIndex] ?? AVS[0];
   const baseScore = computeBaseScore(stopsDone);
@@ -236,6 +238,9 @@ export function JobTravelerScreen({
           </GameButton>
           <GameButton variant="secondary" onClick={onBackToHunt}>
             ◄ BACK TO HUNT
+          </GameButton>
+          <GameButton variant="primary" onClick={onLogout}>
+            LOGOUT
           </GameButton>
         </div>
       </div>

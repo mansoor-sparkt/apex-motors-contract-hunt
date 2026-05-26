@@ -61,6 +61,7 @@ export function HuntScreen({
   onCelebrate,
   onToast,
   onOpenMap,
+  logout
 }: {
   player: PlayerProfile;
 
@@ -78,6 +79,7 @@ export function HuntScreen({
   onCelebrate: (state: CelebrationState) => void;
   onToast: (msg: string) => void;
   onOpenMap: () => void;
+  logout: () => void
 }) {
   const av = AVS[player.avatarIndex] ?? AVS[0];
   const activeIdx = getActiveStopIndex(stopsDone);
@@ -266,6 +268,7 @@ export function HuntScreen({
           onToast={onToast}
           onViewLeaderboard={() => onTabChange("board")}
           onBackToHunt={() => onTabChange("stops")}
+          onLogout={logout}
         />
       )}
 
