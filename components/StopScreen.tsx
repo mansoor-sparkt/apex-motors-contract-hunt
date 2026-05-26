@@ -957,6 +957,8 @@ import {
   resolveMediaPreviewUrl,
   revokeObjectPreviewUrl,
 } from "@/lib/media-preview";
+import { openMachinistApp } from "@/lib/machinist-app";
+import { MediaUploadProgress } from "@/components/MediaUploadProgress";
 
 export function StopScreen({
   isActive,
@@ -1003,6 +1005,8 @@ export function StopScreen({
 
   // LIVE TICKING SESSION TIMER STATE
   const [elapsedSeconds, setElapsedSeconds] = useState(previousStopsTime);
+  const [uploading, setUploading] = useState(false);
+  const [uploadPercent, setUploadPercent] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const blobPreviewRef = useRef<string | null>(null);
 
@@ -1062,7 +1066,7 @@ export function StopScreen({
   const shopLabel = (player.shopName || "MY SHOP").toUpperCase();
 
   const openPicker = () => {
-    if (done || photoUp) return;
+    if (done || photoUp || uploading) return;
     fileInputRef.current?.click();
   };
 
@@ -1090,10 +1094,15 @@ export function StopScreen({
 
     blobPreviewRef.current = localBlobUrl;
     setPreviewUrl(localBlobUrl);
-    onToast("⚡ TRANSMITTING EVIDENCE...");
+    setUploading(true);
+    setUploadPercent(0);
 
     try {
-      const res = await GameService.uploadMedia(file, player.email);
+      const res = await GameService.uploadMedia(
+        file,
+        player.email,
+        setUploadPercent,
+      );
 
       if (res.success) {
         setPhotoUp(true);
@@ -1107,12 +1116,14 @@ export function StopScreen({
         blobPreviewRef.current = null;
         setPreviewUrl(null);
       }
-    } catch (err) {
+    } catch {
       onToast("❌ CONNECTION ERROR DURING UPLOAD");
       revokeObjectPreviewUrl(blobPreviewRef.current);
       blobPreviewRef.current = null;
       setPreviewUrl(null);
     } finally {
+      setUploading(false);
+      setUploadPercent(0);
       e.target.value = "";
     }
   };
@@ -1311,17 +1322,30 @@ export function StopScreen({
 
           <Panel header={<><span style={{ color: "var(--c)" }}>① FIND-IT TASK</span><StatusTag variant="cyan">10 PTS · REQUIRED</StatusTag></>} headerColor="cyan" stopVariant>
             <p className="font-share-mono text-[11px] text-[var(--mut)] mb-2.5">{s.fi}</p>
-            <button type="button" onClick={openPicker} disabled={done || photoUp} className={`game-photo-box w-full${photoUp || done ? " up" : ""}`}>
+            <button type="button" onClick={openPicker} disabled={done || photoUp || uploading} className={`game-photo-box w-full${photoUp || done ? " up" : ""}`}>
               {displayPreviewUrl ? (
                 <div className="flex flex-col items-center gap-2 w-full">
-                  <img src={displayPreviewUrl} alt="Evidence Logged" className="w-full max-h-[120px] object-cover" />
-                  <span className="font-share-mono text-[11px] text-[var(--g)]">✅ PHOTO UPLOADED — EVIDENCE LOGGED</span>
+                  <img src={displayPreviewUrl} alt="Evidence" className="w-full max-h-[120px] object-cover opacity-90" />
+                  {!uploading && photoUp && (
+                    <span className="font-share-mono text-[11px] text-[var(--g)]">✅ PHOTO UPLOADED — EVIDENCE LOGGED</span>
+                  )}
+                  {!uploading && !photoUp && (
+                    <span className="font-share-mono text-[11px] text-[var(--c)]">PREVIEW — UPLOADING…</span>
+                  )}
                 </div>
               ) : (
                 <>
                   <span className="text-[30px]">📷</span>
                   <span className="font-share-mono text-[11px] text-[var(--mut)] text-center">TAP TO OPEN CAMERA · GALLERY</span>
                 </>
+              )}
+              {uploading && (
+                <div className="game-upload-progress game-upload-progress--overlay">
+                  <MediaUploadProgress
+                    percent={uploadPercent}
+                    label="TRANSMITTING EVIDENCE"
+                  />
+                </div>
               )}
             </button>
             {photoUp && !done && (
@@ -1403,7 +1427,14 @@ export function StopScreen({
 
         {s.bt === "calc" && (
           <div className="px-[14px] pb-2.5">
-            <button type="button" className="game-app-cta w-full" onClick={() => onToast("📱 Opening Phillips Machinist…")}>
+            <button
+              type="button"
+              className="game-app-cta w-full"
+              onClick={() => {
+                openMachinistApp();
+                onToast("📱 Opening Phillips Machinist…");
+              }}
+            >
               <span className="game-app-cta-icon">📱</span>
               <span className="game-app-cta-text">
                 <div className="game-app-cta-title">OPEN IN PHILLIPS MACHINIST</div>

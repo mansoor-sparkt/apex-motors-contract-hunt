@@ -1503,6 +1503,68 @@
     background: linear-gradient(90deg, transparent, var(--g), transparent);
   }
 
+  .game-upload-progress {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .game-upload-progress-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    gap: 8px;
+  }
+
+  .game-upload-progress-lbl {
+    font-family: var(--font-share-mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--c);
+  }
+
+  .game-upload-progress-pct {
+    font-family: var(--font-orbitron);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--o);
+  }
+
+  .game-upload-progress-track {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--bdr);
+    overflow: hidden;
+    clip-path: polygon(
+      0 0,
+      calc(100% - 4px) 0,
+      100% 4px,
+      100% 100%,
+      4px 100%,
+      0 calc(100% - 4px)
+    );
+  }
+
+  .game-upload-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--o), var(--c));
+    transition: width 0.15s ease-out;
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.35);
+  }
+
+  .game-upload-progress--overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 12px;
+    background: rgba(4, 5, 6, 0.88);
+    margin-top: 0;
+  }
+
   .game-q-opt {
     padding: 11px 14px;
     border: 1px solid var(--bdr);
@@ -2232,6 +2294,12 @@
   .game-share-opt:hover {
     background: rgba(241, 92, 48, 0.08);
     border-color: var(--o);
+  }
+
+  .game-share-opt:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
   }
 
   .game-share-icon {

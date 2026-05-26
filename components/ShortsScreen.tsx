@@ -525,6 +525,8 @@ import type { CelebrationState, ShortCompletion } from "@/lib/game-types";
 import MediaModal from "./MediaModal";
 import { GameService } from "@/lib/game.service";
 import { IMAGE_UPLOAD_ACCEPT, isImageFile } from "@/lib/image-to-png";
+import { openMachinistApp } from "@/lib/machinist-app";
+import { MediaUploadProgress } from "@/components/MediaUploadProgress";
 
 type ShortDef = (typeof SHORTS)[number];
 
@@ -569,13 +571,15 @@ function ShortCard({
   const [modalOpen, setModalOpen] = useState(false);
   const [appAnswer, setAppAnswer] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadPercent, setUploadPercent] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const previewUrl = completion?.previewUrl ?? null;
   const mediaType = completion?.mediaType ?? (isPhoto ? "image" : "video");
 
   const openPicker = () => {
-    if (photoDone) return;
+    if (photoDone || uploading) return;
     fileInputRef.current?.click();
   };
 
@@ -630,10 +634,11 @@ function ShortCard({
       return;
     }
 
-    onToast("⚡ UPLOADING BONUS MEDIA...");
+    setUploading(true);
+    setUploadPercent(0);
 
     try {
-      const res = await GameService.uploadMedia(file, emailId);
+      const res = await GameService.uploadMedia(file, emailId, setUploadPercent);
 
       if (res.success) {
         // Extract server-backed file path
@@ -659,9 +664,11 @@ function ShortCard({
       } else {
         onToast(`❌ ${res.error || "UPLOAD FAILED"}`);
       }
-    } catch (err) {
+    } catch {
       onToast("❌ SERVER CONNECTION ERROR");
     } finally {
+      setUploading(false);
+      setUploadPercent(0);
       e.target.value = "";
     }
   };
@@ -719,18 +726,19 @@ function ShortCard({
 
         <button
           type="button"
-          onClick={!photoDone ? openPicker : undefined}
+          onClick={!photoDone && !uploading ? openPicker : undefined}
+          disabled={uploading}
           style={{
             width: "100%",
-            border: `1px dashed ${photoDone ? "rgba(57,255,20,0.45)" : "rgba(241,92,48,0.40)"}`,
+            border: `1px dashed ${photoDone ? "rgba(57,255,20,0.45)" : uploading ? "rgba(0,229,255,0.45)" : "rgba(241,92,48,0.40)"}`,
             padding: "14px 10px",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
             gap: 5,
-            cursor: photoDone ? "default" : "pointer",
-            background: photoDone ? "rgba(57,255,20,0.04)" : "rgba(241,92,48,0.03)",
+            cursor: photoDone || uploading ? "default" : "pointer",
+            background: photoDone ? "rgba(57,255,20,0.04)" : uploading ? "rgba(0,229,255,0.04)" : "rgba(241,92,48,0.03)",
             position: "relative",
             overflow: "hidden",
             clipPath: "polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px))",
@@ -738,15 +746,52 @@ function ShortCard({
           }}
         >
           <span style={{ fontSize: 24, lineHeight: 1 }}>
-            {photoDone ? "✅" : isPhoto ? "📷" : "🎬"}
+            {uploading ? "⚡" : photoDone ? "✅" : isPhoto ? "📷" : "🎬"}
           </span>
-          <span style={{ fontFamily: "var(--fm)", fontSize: 10, color: photoDone ? "var(--g)" : "var(--mut)", letterSpacing: ".08em", textTransform: "uppercase" }}>
-            {fullyDone ? "✓ SUBMITTED" : photoDone ? "✓ SCREENSHOT LOGGED" : isPhoto ? "TAP TO ADD PHOTO" : "TAP TO ADD VIDEO"}
+          <span style={{ fontFamily: "var(--fm)", fontSize: 10, color: uploading ? "var(--c)" : photoDone ? "var(--g)" : "var(--mut)", letterSpacing: ".08em", textTransform: "uppercase" }}>
+            {uploading
+              ? `UPLOADING ${!isPhoto ? "VIDEO" : "MEDIA"}…`
+              : fullyDone
+                ? "✓ SUBMITTED"
+                : photoDone
+                  ? "✓ SCREENSHOT LOGGED"
+                  : isPhoto
+                    ? "TAP TO ADD PHOTO"
+                    : "TAP TO ADD VIDEO"}
           </span>
           <span style={{ fontFamily: "var(--fm)", fontSize: 9, color: "var(--mut)", letterSpacing: ".06em", textTransform: "uppercase" }}>
-            {photoDone ? "EVIDENCE SECURED" : isPhoto ? "PHOTO REQUIRED" : "VIDEO REQUIRED"}
+            {uploading ? "KEEP THIS SCREEN OPEN" : photoDone ? "EVIDENCE SECURED" : isPhoto ? "PHOTO REQUIRED" : "VIDEO REQUIRED"}
           </span>
+          {uploading && (
+            <div
+              className="game-upload-progress"
+              style={{ width: "100%", marginTop: 8, padding: "0 4px" }}
+            >
+              <MediaUploadProgress
+                percent={uploadPercent}
+                label={!isPhoto ? "UPLOADING VIDEO" : "UPLOADING MEDIA"}
+              />
+            </div>
+          )}
         </button>
+
+        {isApp && !photoDone && (
+          <button
+            type="button"
+            className="game-app-cta w-full mt-2"
+            onClick={() => {
+              openMachinistApp();
+              onToast("📱 Opening Phillips Machinist…");
+            }}
+          >
+            <span className="game-app-cta-icon">📱</span>
+            <span className="game-app-cta-text">
+              <div className="game-app-cta-title">OPEN PHILLIPS MACHINIST</div>
+              <div className="game-app-cta-sub">Then capture your screenshot below</div>
+            </span>
+            <span className="game-app-cta-arrow">►</span>
+          </button>
+        )}
 
         {/* ── NEW: In-App Question UI (Only shows for App challenges after photo upload) ── */}
         {isApp && photoDone && !fullyDone && (

@@ -4,6 +4,10 @@ import type {
   StopCompletion,
 } from "@/lib/game-types";
 import { convertImageToPng } from "@/lib/image-to-png";
+import {
+  postFormDataWithProgress,
+  type UploadProgressHandler,
+} from "@/lib/upload-with-progress";
 
 export const GameService = {
   /**
@@ -119,28 +123,50 @@ export const GameService = {
   },
 
   /**
-   * 4. Upload an image/video to get the file path
+   * 4. Upload an image or video and return the CDN URL
    */
-  async uploadMedia(file: File, emailId: string) {
-    let uploadFile = file;
+  async uploadMedia(
+    file: File,
+    emailId: string,
+    onProgress?: UploadProgressHandler,
+  ) {
+    const isVideo = file.type.startsWith("video/");
+
+    const reportProgress = (pct: number) => onProgress?.(Math.min(100, Math.max(0, pct)));
 
     try {
-      uploadFile = await convertImageToPng(file);
-    } catch (error) {
-      // Client conversion can fail (e.g. heic2any + Next). Server converts HEIC → PNG.
-      console.warn("Client PNG conversion skipped:", error);
-    }
+      reportProgress(0);
 
-    try {
       const formData = new FormData();
-      formData.append("UploadPicture", uploadFile);
       formData.append("EmailId", emailId);
 
-      const response = await fetch("/api/game/mediaupload", {
-        method: "POST",
-        body: formData,
-      });
-      return await response.json();
+      if (isVideo) {
+        formData.append("UploadVideo", file);
+        return await postFormDataWithProgress(
+          "/api/game/mediavideo",
+          formData,
+          reportProgress,
+        );
+      }
+
+      reportProgress(3);
+      let uploadFile = file;
+      try {
+        uploadFile = await convertImageToPng(file);
+      } catch (error) {
+        console.warn("Client PNG conversion skipped:", error);
+      }
+
+      reportProgress(8);
+      formData.append("UploadPicture", uploadFile);
+
+      return await postFormDataWithProgress(
+        "/api/game/mediaupload",
+        formData,
+        (uploadPct) => {
+          reportProgress(8 + Math.round(uploadPct * 0.92));
+        },
+      );
     } catch (error) {
       return {
         success: false,

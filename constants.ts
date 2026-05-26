@@ -16,6 +16,9 @@ import { StaticImageData } from "next/image";
 
 export const TOTAL_STOPS = 6;
 export const MAX_SCORE = 220;
+
+/** Phillips Machinist app — download / open (OneLink). */
+export const MACHINIST_APP_URL = "https://machinist.onelink.me/sVlw/";
 // export const TARGET_BONUS_SCORE = 100;
 // export const TOTAL_STOPS = 9;
 
