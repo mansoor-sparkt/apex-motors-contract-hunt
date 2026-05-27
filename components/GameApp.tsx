@@ -337,11 +337,13 @@ export function GameApp() {
 
 
     setIsAuthenticating(true);
-    setAuthEmail(email); // Save email so Register or OTP screen can use it
+
+    const cleanEmail = email.trim().toLowerCase();
+    setAuthEmail(cleanEmail); // Save email so Register or OTP screen can use it
 
     try {
       // 1. Call your clean service layer using the email directly
-      const data = await GameService.registerEmail(email);
+      const data = await GameService.registerEmail(cleanEmail);
       // const data = {
       //   success: true
       // }
@@ -382,10 +384,10 @@ export function GameApp() {
         // OTP was correct! Now, are they fully setup?
         if (data.isProfileComplete) {
           // Returning player with a complete profile!
-
+const cleanEmail = data.user.emailId.trim().toLowerCase();
           const playerProfile = {
             name: data.user.firstName + data.user.lastName || "Operator",
-            email: data.user.emailId,
+            email: cleanEmail,
             school: data.user.schoolOrCompany || "My School",
             role: data.user.role || "Student",
             shopName: data.user.operatorName,
@@ -425,9 +427,9 @@ export function GameApp() {
       const nameParts = p.name.split(" ");
       const firstName = nameParts[0];
       const lastName = nameParts.slice(1).join(" ") || "Player";
-
+const cleanEmail = p.email.trim().toLowerCase();
       const backendPayload = {
-        emailId: p.email,
+        emailId: cleanEmail,
         // operatorName: p.name,
         firstName: firstName,
         lastName: lastName,
@@ -560,10 +562,10 @@ export function GameApp() {
 
     // ── FIX 1: Rely STRICTLY on cloud existence reference tracker ──
     const isUpdate = cloudProgressExistsRef.current;
-
+const cleanEmail = player.email.trim().toLowerCase();
     try {
       const res = await GameService.syncProgress(
-        player.email,
+        cleanEmail,
         snapshotData,
         isUpdate
       );
