@@ -89,11 +89,15 @@ export function GameApp() {
 
   const [isMapOpen, setIsMapOpen] = useState(false);
 
+
   /** Where to go after closing a stop-completion celebration modal. */
   const [celebrationDismiss, setCelebrationDismiss] = useState<
     { type: "nextStop"; index: number } | { type: "traveler" } | null
   >(null);
   const [toast, setToast] = useState<string | null>(null);
+
+  // 1. Add this near your other state declarations at the top of GameApp
+  const [isDemo, setIsDemo] = useState(false);
 
   /** True after cloud hydrate finds an existing GameProgress row for this email. */
   const cloudProgressExistsRef = useRef(false);
@@ -201,7 +205,7 @@ export function GameApp() {
             });
             setRoster(restoredRoster);
           }
-          
+
           if (decodedSnapshot.shorts) {
             setShortsDone(decodedSnapshot.shorts);
           }
@@ -272,19 +276,18 @@ export function GameApp() {
   }, [hydrateRemoteProgress]);
 
   const quickDemo = () => {
+    setIsDemo(true); // ── NEW: Lock the app into offline mode
     setPlayer({
       name: "Alex Johnson",
-      email: "alex@school.edu",
+      email: "demo@phillips.com",
       school: "Lincoln Tech",
       role: "Student",
       shopName: "Apex Precision Works",
       avatarIndex: 0,
+      avatarName: "SPEED DEMON",
     });
     setRegisterDraft(null);
-    setStopsDone({
-      0: { bonus: true, badge: "Material Whisperer" },
-      1: { bonus: false, badge: null },
-    });
+    setStopsDone({ 0: { bonus: true, badge: "Contract Secured" } });
     setShortsDone({});
     setRoster([]);
     setHuntTab("stops");
@@ -386,8 +389,9 @@ export function GameApp() {
       if (data.success) {
         // OTP was correct! Now, are they fully setup?
         if (data.isProfileComplete) {
+          setIsDemo(false)
           // Returning player with a complete profile!
-const cleanEmail = data.user.emailId.trim().toLowerCase();
+          const cleanEmail = data.user.emailId.trim().toLowerCase();
           const playerProfile = {
             name: data.user.firstName + data.user.lastName || "Operator",
             email: cleanEmail,
@@ -430,7 +434,7 @@ const cleanEmail = data.user.emailId.trim().toLowerCase();
       const nameParts = p.name.split(" ");
       const firstName = nameParts[0];
       const lastName = nameParts.slice(1).join(" ") || "Player";
-const cleanEmail = p.email.trim().toLowerCase();
+      const cleanEmail = p.email.trim().toLowerCase();
       const backendPayload = {
         emailId: cleanEmail,
         // operatorName: p.name,
@@ -447,7 +451,7 @@ const cleanEmail = p.email.trim().toLowerCase();
       };
 
 
-      console.log(backendPayload, "from")
+
       // 2. Call the Next.js API
       const data = await GameService.registerUser(backendPayload);
       // const data = {
@@ -458,6 +462,7 @@ const cleanEmail = p.email.trim().toLowerCase();
 
       if (data.success) {
         setPlayer(p);
+        setIsDemo(false)
         localStorage.setItem("hunt_user_session", JSON.stringify(p));
         cloudProgressExistsRef.current = false;
         setProgressStatus("loaded");
@@ -513,49 +518,56 @@ const cleanEmail = p.email.trim().toLowerCase();
   /**
    * Universal progress auto-saver with explicit error handling
    */
- /* const saveGameSnapshot = async (updatedStops: any, updatedShorts: any) => {
-    if (!player.email) return;
-
-    // Package both tracking layers into a unified snapshot object
-    const snapshotData = {
-      stops: updatedStops,
-      shorts: updatedShorts,
-    };
-
-    const isUpdate =
-      cloudProgressExistsRef.current ||
-      Object.keys(stopsDone).length > 0 ||
-      Object.keys(shortsDone).length > 0 ||
-      Object.keys(updatedStops).length > 0 ||
-      Object.keys(updatedShorts).length > 0;
-
-    try {
-      const res = await GameService.syncProgress(
-        player.email,
-        snapshotData,
-        isUpdate
-      );
-
-      if (res.success) {
-        cloudProgressExistsRef.current = true;
-        console.log("💾 Game progress auto-saved:", res.message);
-      } else {
-        // Handles business rule rejections (e.g., bad format or missing record)
-        console.warn("⚠️ Cloud sync rejected:", res.error);
-        showToast(`⚠️ SYNC WARNING: ${res.error.toUpperCase()}`);
-      }
-    } catch (error) {
-      // Handles total network drops (e.g., cell service lost inside convention hall)
-      console.error("Failed to execute background auto-save:", error);
-      showToast("⚠️ CLOUD SYNC FAILED — CHECK YOUR CONNECTION");
-    }
-  }*/
+  /* const saveGameSnapshot = async (updatedStops: any, updatedShorts: any) => {
+     if (!player.email) return;
+ 
+     // Package both tracking layers into a unified snapshot object
+     const snapshotData = {
+       stops: updatedStops,
+       shorts: updatedShorts,
+     };
+ 
+     const isUpdate =
+       cloudProgressExistsRef.current ||
+       Object.keys(stopsDone).length > 0 ||
+       Object.keys(shortsDone).length > 0 ||
+       Object.keys(updatedStops).length > 0 ||
+       Object.keys(updatedShorts).length > 0;
+ 
+     try {
+       const res = await GameService.syncProgress(
+         player.email,
+         snapshotData,
+         isUpdate
+       );
+ 
+       if (res.success) {
+         cloudProgressExistsRef.current = true;
+         console.log("💾 Game progress auto-saved:", res.message);
+       } else {
+         // Handles business rule rejections (e.g., bad format or missing record)
+         console.warn("⚠️ Cloud sync rejected:", res.error);
+         showToast(`⚠️ SYNC WARNING: ${res.error.toUpperCase()}`);
+       }
+     } catch (error) {
+       // Handles total network drops (e.g., cell service lost inside convention hall)
+       console.error("Failed to execute background auto-save:", error);
+       showToast("⚠️ CLOUD SYNC FAILED — CHECK YOUR CONNECTION");
+     }
+   }*/
 
   /**
    * Universal progress auto-saver with explicit error handling
    */
   const saveGameSnapshot = async (updatedStops: any, updatedShorts: any) => {
+
+    if (isDemo) {
+      console.log("🛑 DEMO MODE: Skipped API Cloud Sync");
+      return; // Completely bypass the API call
+    }
     if (!player.email) return;
+
+
 
     // Package both tracking layers into a unified snapshot object
     const snapshotData = {
@@ -565,7 +577,7 @@ const cleanEmail = p.email.trim().toLowerCase();
 
     // ── FIX 1: Rely STRICTLY on cloud existence reference tracker ──
     const isUpdate = cloudProgressExistsRef.current;
-const cleanEmail = player.email.trim().toLowerCase();
+    const cleanEmail = player.email.trim().toLowerCase();
     try {
       const res = await GameService.syncProgress(
         cleanEmail,
@@ -714,9 +726,9 @@ const cleanEmail = player.email.trim().toLowerCase();
               shortsDone={shortsDone}
               roster={roster}
               activeTab={huntTab}
+              isDemo={isDemo}
               onTabChange={setHuntTab}
               onOpenStop={openStop}
-
 
               // onShortComplete={(slug, data) => {
               //   setShortsDone((prev) => ({ ...prev, [slug]: data }));
@@ -749,6 +761,7 @@ const cleanEmail = player.email.trim().toLowerCase();
               onToast={showToast}
               onCelebrate={(state) => openCelebration(state, "stop")}
               onOpenMap={() => setIsMapOpen(true)}
+              isDemo={isDemo}
             />
           </ScreenSlot>
 
