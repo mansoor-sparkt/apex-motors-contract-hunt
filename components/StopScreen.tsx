@@ -1256,7 +1256,7 @@ export function StopScreen({
         accept={IMAGE_UPLOAD_ACCEPT}
         className="sr-only"
         tabIndex={-1}
-        aria-hidden="true"
+        aria-label="Upload photo evidence from camera or gallery"
         onChange={handleFileChange}
       />
       <div
@@ -1322,7 +1322,13 @@ export function StopScreen({
 
           <Panel header={<><span style={{ color: "var(--c)" }}>① FIND-IT TASK</span><StatusTag variant="cyan">10 PTS · REQUIRED</StatusTag></>} headerColor="cyan" stopVariant>
             <p className="font-share-mono text-[11px] text-[var(--mut)] mb-2.5">{s.fi}</p>
-            <button type="button" onClick={openPicker} disabled={done || photoUp || uploading} className={`game-photo-box w-full${photoUp || done ? " up" : ""}`}>
+            <button
+              type="button"
+              onClick={openPicker}
+              disabled={done || photoUp || uploading}
+              aria-label="Tap to open camera or gallery and upload photo evidence"
+              className={`game-photo-box w-full${photoUp || done ? " up" : ""}`}
+            >
               {displayPreviewUrl ? (
                 <div className="flex flex-col items-center gap-2 w-full">
                   <img src={displayPreviewUrl} alt="Evidence" className="w-full max-h-[120px] object-cover opacity-90" />
@@ -1374,21 +1380,31 @@ export function StopScreen({
 
               {/* ── THE MISC COLUMN RULE: IF OPTIONS EXIST, SHOW BUTTONS. ELSE, SHOW TEXT BOX ── */}
               {s.options ? (
-                <div className="flex flex-col gap-2 mb-2">
-                  {s.options.map((opt, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      disabled={done}
-                      onClick={() => setBonusAnswer(opt)}
-                      className={`game-q-opt ${(done && stopsDone[stopIndex]?.selectedAnswer === opt) || bonusAnswer === opt
-                        ? "sel"
-                        : ""
-                        }`}
-                    >
-                      {done && stopsDone[stopIndex]?.selectedAnswer === opt ? `✓ ${opt}` : opt}
-                    </button>
-                  ))}
+                <div
+                  className="flex flex-col gap-2 mb-2"
+                  role="radiogroup"
+                  aria-label="Knowledge check answer"
+                >
+                  {s.options.map((opt, i) => {
+                    const selected =
+                      (done && stopsDone[stopIndex]?.selectedAnswer === opt) ||
+                      bonusAnswer === opt;
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        disabled={done}
+                        onClick={() => setBonusAnswer(opt)}
+                        className={`game-q-opt ${selected ? "sel" : ""}`}
+                      >
+                        {done && stopsDone[stopIndex]?.selectedAnswer === opt
+                          ? `✓ ${opt}`
+                          : opt}
+                      </button>
+                    );
+                  })}
                 </div>
               ) : (
                 <input
@@ -1404,11 +1420,25 @@ export function StopScreen({
           ) : (
             <Panel header={<><span style={{ color: "var(--g)" }}>③ SHOP TALK</span><StatusTag variant="green">+10 PTS · REQUIRED</StatusTag></>} headerColor="green" stopVariant>
               <p className="font-share-mono text-[10px] text-[var(--mut)] mb-2">ASK A REP AT {(s.rc || "").toUpperCase()} ONE OF THESE:</p>
-              {[s.q1, s.q2].map((q, i) => (
-                <button key={i} type="button" disabled={done} onClick={() => setSelQ(i)} className={`game-q-opt${(done && stopsDone[stopIndex]?.qs === i) || selQ === i ? " sel" : ""}`}>
-                  {q}
-                </button>
-              ))}
+              <div role="radiogroup" aria-label="Shop talk question">
+                {[s.q1, s.q2].map((q, i) => {
+                  const selected =
+                    (done && stopsDone[stopIndex]?.qs === i) || selQ === i;
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      disabled={done}
+                      onClick={() => setSelQ(i)}
+                      className={`game-q-opt${selected ? " sel" : ""}`}
+                    >
+                      {q}
+                    </button>
+                  );
+                })}
+              </div>
               <input
                 className="game-input mb-2 mt-1"
                 placeholder="NAME OF REP YOU SPOKE WITH…"

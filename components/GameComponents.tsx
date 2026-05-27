@@ -296,7 +296,9 @@ export function HUDBar({
           <div className="game-hud-sep" />
         </>
       ) : null}
-      <div className="game-hud-ttl flex-1 min-w-0">{title}</div>
+      <div className="game-hud-ttl flex-1 min-w-0" title={title}>
+        {title}
+      </div>
       {/* {isMapShow && <div className="px-4 py-2 relative z-[1]">
         <button
           type="button"

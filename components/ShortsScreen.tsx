@@ -718,7 +718,11 @@ export function ShortCard({
           accept={isPhoto ? IMAGE_UPLOAD_ACCEPT : "video/*"}
           className="sr-only"
           tabIndex={-1}
-          aria-hidden
+          aria-label={
+            isPhoto
+              ? "Upload photo from camera or gallery"
+              : "Upload video from camera or gallery"
+          }
           onChange={handleFileChange}
         />
 

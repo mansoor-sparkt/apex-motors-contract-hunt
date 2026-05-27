@@ -71,6 +71,7 @@ const MediaModal = ({
               <Dialog.Close asChild>
                 <button
                   type="button"
+                  aria-label="Close evidence preview"
                   style={{ fontFamily: "var(--fm)", fontSize: 10, color: "var(--o)", border: "1px solid var(--bdr)", background: "rgba(241,92,48,0.08)", padding: "5px 10px", letterSpacing: ".08em", cursor: "pointer", clipPath: "polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))", flexShrink: 0 }}
                 >
                   ✕ CLOSE

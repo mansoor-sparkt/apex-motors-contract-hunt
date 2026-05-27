@@ -245,6 +245,7 @@ const MapModal = ({
               <Dialog.Close asChild>
                 <button
                   type="button"
+                  aria-label="Close show floor map"
                   style={{
                     fontFamily: "var(--fm)",
                     fontSize: 10,

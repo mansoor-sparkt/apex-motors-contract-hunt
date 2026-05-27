@@ -17,6 +17,9 @@ export function CelebrationModal({
   return (
     <div
       className="game-celeb on"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="celebration-title"
       onClick={onClose}
     >
       <div
@@ -24,7 +27,10 @@ export function CelebrationModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="text-[48px] mb-[10px]">{state.icon}</div>
-        <div className="font-orbitron text-lg font-black tracking-[0.06em] mb-[6px]">
+        <div
+          id="celebration-title"
+          className="font-orbitron text-lg font-black tracking-[0.06em] mb-[6px]"
+        >
           {state.title}
         </div>
         <div className="font-share-mono text-[11px] text-[var(--mut)] leading-[1.6] mb-[14px]">

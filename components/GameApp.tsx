@@ -55,9 +55,12 @@ function ScreenSlot({
   return (
     <div
       className="absolute inset-0 flex min-h-full w-full flex-col overflow-x-hidden overflow-y-auto"
+      aria-hidden={!active}
+      inert={!active ? true : undefined}
       style={{
         opacity: active ? 1 : 0,
         pointerEvents: active ? "auto" : "none",
+        visibility: active ? "visible" : "hidden",
         animation: active ? animMap[direction] : "none",
       }}
     >

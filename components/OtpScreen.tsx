@@ -19,12 +19,17 @@ export function OtpScreen({
   const [error, setError] = useState<string | null>(null);
 
   const submit = () => {
-    if (!code.trim() || code.trim().length < 4) {
-      setError("⚠️ INVALID SECURITY CODE");
+    const digits = code.trim();
+    if (!digits) {
+      setError("ENTER THE 6-DIGIT CODE");
+      return;
+    }
+    if (digits.length < 6) {
+      setError(`ENTER ALL 6 DIGITS (${digits.length}/6)`);
       return;
     }
     setError(null);
-    onVerify(code.trim());
+    onVerify(digits);
   };
 
   return (
@@ -53,7 +58,11 @@ export function OtpScreen({
             <label className="text-center">6-Digit Code</label>
 
             {error && (
-              <span className="text-red-500 text-xs font-bold tracking-wider animate-pulse text-center block mb-1">
+              <span
+                id="otp-error"
+                role="alert"
+                className="text-red-500 text-xs font-bold tracking-wider animate-pulse text-center block mb-1"
+              >
                 {error}
               </span>
             )}
@@ -61,6 +70,10 @@ export function OtpScreen({
               className={`game-input text-center text-2xl tracking-[0.5em] ${error ? "border-red-500 focus:border-red-500" : ""
                 }`}
               type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              aria-invalid={!!error}
+              aria-describedby={error ? "otp-error" : undefined}
               placeholder="000000"
               maxLength={6}
               value={code}
