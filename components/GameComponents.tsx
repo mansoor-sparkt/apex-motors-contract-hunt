@@ -115,6 +115,8 @@ export function HuntStopRow({
   active,
   locked,
   bonus,
+  ptsLabel,
+  isBonusRow = false,
   onClick,
 }: {
   index: number;
@@ -124,10 +126,11 @@ export function HuntStopRow({
   active: boolean;
   locked: boolean;
   bonus?: boolean;
+  ptsLabel?: string;
+  isBonusRow?: boolean;
   onClick?: () => void;
 }) {
-  const showBase = done || active;
-  const showBonus = done && bonus;
+
 
   const boxClass = done
     ? 'game-sn-d'
@@ -135,6 +138,17 @@ export function HuntStopRow({
       ? 'game-sn-a'
       : 'game-sn-l';
 
+  const rowStyle = isBonusRow ? {
+    borderColor: done ? 'rgba(57,255,20,0.3)' : active ? 'rgba(255,187,0,0.4)' : 'rgba(255,255,255,0.05)',
+    background: done ? 'rgba(57,255,20,0.04)' : active ? 'linear-gradient(90deg, rgba(255,187,0,0.1), transparent)' : 'transparent',
+  } : {};
+
+  const boxStyle = isBonusRow ? {
+    borderColor: done ? 'var(--g)' : active ? '#ffbb00' : 'rgba(255,255,255,0.1)',
+    color: done ? 'var(--g)' : active ? '#ffbb00' : 'var(--mut)',
+    background: done ? 'rgba(57,255,20,0.1)' : active ? 'rgba(255,187,0,0.1)' : 'transparent',
+    clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
+  } : { clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)' };
   return (
     <div
       role={locked ? undefined : 'button'}
@@ -148,22 +162,51 @@ export function HuntStopRow({
           }
       }
       className={`game-stop-row${done ? ' done' : ''}${active ? ' act' : ''}${locked ? ' lock' : ''}`}
+      style={rowStyle}
     >
       <div className={`game-sn-box ${boxClass}`} style={{ clipPath: SN_CLIP }}>
-        {done ? '✓' : locked ? '🔒' : index + 1}
+        {done ? '✓' : locked ? '🔒' : isBonusRow ? "B" : index + 1}
       </div>
       <div className="game-stop-info">
-        <div className="game-stop-co">{company}</div>
+        {/* ── NEW: Dedicated Bonus Tag ── */}
+        {isBonusRow && (
+          <div className="mb-1">
+            <span className="font-share-mono text-[8px] bg-[rgba(255,187,0,0.15)] text-[#ffbb00] border border-[rgba(255,187,0,0.4)] px-1.5 py-[2px] tracking-widest">
+              BONUS CHALLENGE
+            </span>
+          </div>
+        )}
+        <div
+          className="game-stop-co"
+          style={isBonusRow ? { color: done ? 'var(--g)' : '#ffbb00' } : undefined}
+        >
+          {company}
+        </div>
         <div className="game-stop-tk">{task}</div>
       </div>
-      <div className="game-stop-pts">
-        {/* {showBase ? ( */}
+      {/* <div className="game-stop-pts">
+       
         <div className="game-stop-base-pts">{done ? (bonus ? "20 PTS" : "10 PTS") : "20 PTS MAX"}</div>
-        {/* ) : null}
-        {showBonus ? (
-          <div className="game-stop-bonus-pts">+5 BONUS</div>
-        ) : null} */}
+        
         {!locked ? <div className="game-stop-arrow">►</div> : null}
+      </div> */}
+
+      {/* ── NEW: Inject the dynamic displayPts here ── */}
+      <div className="game-stop-pts">
+        <div
+          className="game-stop-base-pts"
+          style={isBonusRow && active ? { color: '#ffbb00' } : undefined}
+        >
+          {ptsLabel}
+        </div>
+        {!locked ? (
+          <div
+            className="game-stop-arrow"
+            style={isBonusRow && active ? { color: '#ffbb00' } : undefined}
+          >
+            ►
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -199,14 +242,16 @@ export function PointsSplitRow({
   rank: string;
   stops: string;
 }) {
+
+
   return (
     <div className="game-pts-split">
       <div className="game-pts-base">
         <div className="game-pts-val text-[var(--o)]">{base}</div>
         <div className="game-pts-lbl">BASE PTS</div>
       </div>
-      <div className="game-pts-bonus">
-        <div className="game-pts-val text-[var(--am)]">+{bonus}</div>
+      <div className={`game-pts-bonus  ${bonus === 100 ? `border-(--g)` : "border-[#ffbb0012]"}`}>
+        <div className={`game-pts-val  ${bonus === 100 ? `text-(--g)` : "text-[var(--am)]"}`}>+{bonus}</div>
         <div className="game-pts-lbl">BONUS PTS</div>
       </div>
       <div className="game-pts-base">

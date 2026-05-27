@@ -325,167 +325,213 @@ export const AVS = [
 // ];
 
 // update one removing bonus and last one
+// export const STOPS = [
+//   {
+//     n: 1,
+//     co: "Phillips Corp",
+//     task: "How many parts did your customer order?",
+//     story:
+//       "The contract lands. Redline Robotics needs a planetary gearbox for a new robot arm — you're the machinist, Phillips is your shop.",
+//     fi: "Selfie at the Phillips booth with the challenge card",
+//     bt: "calc", // Using calc type for a text input challenge
+//     bp: "App Tour: Look around the Phillips Machinist app. Which of these is NOT currently in the app?",
+//     calc: "App Library",
+//     targetAnswer: 0, // We will treat this as a text check in the component later, or just participation
+
+//     badge: "App Explorer",
+//     // b1: "App Explorer",
+//     // b2: "Quick Learner",
+//     // b3: "Getting Started",
+//   },
+//   {
+//     n: 2,
+//     co: "Markforged",
+//     task: "Print or cut?",
+//     story:
+//       "Go find out what additive manufacturing even is. They have a planetary gear on display—but was it printed or machined?",
+//     fi: "Photo of the planetary gear or the X7 printer",
+//     bt: "conv",
+//     q1: "Was this gear printed or machined?",
+//     q2: "What does 'hybrid manufacturing' mean?",
+//     rc: "Markforged",
+//     badge: "Additive Minded",
+//     // b1: "Additive Minded",
+//   },
+//   {
+//     n: 3,
+//     co: "Autodesk",
+//     task: "Read the print",
+//     story:
+//       "Redline sent the CAD model. Before you cut any metal, you need to understand the design. Find the Autodesk laser-cut phone stand (or displayed part) and pull dimensions.",
+//     fi: "Photo of the Autodesk display part",
+//     bt: "calc",
+//     bp: "Look up the tap/drill size for a 1/4-20 fastener on the part using the app. (Enter as a decimal, e.g., 0.201)",
+//     calc: "Tap & Drill Chart",
+//     targetAnswer: 0.201, // Actual math target for ± grading!
+//     badge: "Blueprint Boss",
+//     // b1: "Blueprint Boss",
+//     // b2: "Print Reader",
+//     // b3: "Close Enough",
+//   },
+
+//   {
+//     n: 4,
+//     co: "Mastercam",
+//     task: "Program the job",
+//     story:
+//       "Plan the toolpaths for the production gears—and see what world-class CAM can do (check out the titanium guitar).",
+//     fi: "Photo of the titanium guitar",
+//     bt: "calc",
+//     bp: "Calculate the Material Removal Rate (MRR) for roughing this gear. (Assume 15 MRR for this challenge)",
+//     calc: "MRR Calculator",
+//     targetAnswer: 15, // Actual math target!
+//     badge: "Chip Slinger",
+//     // b1: "Chip Slinger",
+//     // b2: "Roughing It",
+//     // b3: "Butter Cutter",
+//   },
+//   {
+//     n: 5,
+//     co: "Haas",
+//     task: "Make the cut",
+//     story:
+//       "Time to run metal. Find the iron you'd cut your planetary gears on.",
+//     fi: "Photo of any Haas machine on display",
+//     bt: "calc",
+//     bp: "Find the Spindle RPM for your gear cut using Speeds & Feeds in the app. (Assume target is 3500 RPM)",
+//     calc: "Speeds & Feeds",
+//     targetAnswer: 3500, // Actual math target!
+//     badge: "Iron Talker",
+//     // b1: "Iron Talker",
+//     // b2: "Dialed In",
+//     // b3: "Making Chips",
+//   },
+//   {
+//     n: 6,
+//     co: "ZEISS",
+//     task: "Final inspection",
+//     story:
+//       "Gear teeth have to mesh perfectly. Prove the part is right before it ships to Redline Robotics.",
+//     fi: "Photo of the DuraMax CMM stylus tip touching a part",
+//     bt: "conv",
+//     q1: "What exactly is the stylus on the displayed part doing?",
+//     q2: "How hard is it to program this CMM?",
+//     rc: "ZEISS",
+//     badge: "Measurement Pro",
+//     // b1: "Measurement Mouth",
+//   },
+// ];
+
 export const STOPS = [
   {
     n: 1,
     co: "Phillips Corp",
     task: "The contract lands",
     story:
-      "Redline Robotics needs a custom planetary gearbox for a new robot arm joint. They need it compact, precise, and fast. You're the machinist, and your shop was just hired to make it.",
-    fi: "Selfie at the Phillips booth with the challenge card",
-    bt: "calc", // Using calc type for a text input challenge
-    bp: "App Tour: Look around the Phillips Machinist app. Which of these is NOT currently in the app?",
-    calc: "App Library",
-    targetAnswer: 0, // We will treat this as a text check in the component later, or just participation
-
-    badge: "App Explorer",
-    // b1: "App Explorer",
-    // b2: "Quick Learner",
-    // b3: "Getting Started",
+      "Redline Robotics needs a planetary gearbox for a new robot arm — you're the machinist, Phillips is your shop.",
+    fi: "Photo of the contract for your parts order",
+    bt: "calc", // Free Response
+    bp: "How many parts did your customer order?",
+    targetAnswer: "20",
+    badge: "Contract Secured",
   },
   {
     n: 2,
-    co: "Autodesk",
-    task: "Read the print",
-    story:
-      "Redline sent the CAD model. Before you cut any metal, you need to understand the design. Find the Autodesk laser-cut phone stand (or displayed part) and pull dimensions.",
-    fi: "Photo of the Autodesk display part",
-    bt: "calc",
-    bp: "Look up the tap/drill size for a 1/4-20 fastener on the part using the app. (Enter as a decimal, e.g., 0.201)",
-    calc: "Tap & Drill Chart",
-    targetAnswer: 0.201, // Actual math target for ± grading!
-    badge: "Blueprint Boss",
-    // b1: "Blueprint Boss",
-    // b2: "Print Reader",
-    // b3: "Close Enough",
-  },
-  {
-    n: 3,
     co: "Markforged",
     task: "Print or cut?",
     story:
-      "Go find out what additive manufacturing even is. They have a planetary gear on display—but was it printed or machined?",
-    fi: "Photo of the planetary gear or the X7 printer",
-    bt: "conv",
-    q1: "Was this gear printed or machined?",
-    q2: "What does 'hybrid manufacturing' mean?",
-    rc: "Markforged",
+      "Go find out what additive even is — here's a planetary gear, but was it printed?",
+    fi: "Photo of the planetary gear",
+    bt: "calc", // Keeping as Shop Talk per original
+    bp: "How many gears are in the planetary gear set.",
+    options: ["4", "5", "19", "20"],
+    targetAnswer: "Computer Aided Design",
+
     badge: "Additive Minded",
-    // b1: "Additive Minded",
+  },
+  {
+    n: 3,
+    co: "Autodesk",
+    task: "Read the print",
+    story:
+      "Redline sent the CAD model. Before you cut any metal, you need to understand the design.",
+    fi: "Photo of the Autodesk display part",
+    bt: "calc", // Multiple Choice
+    bp: "What does the acronym CAD stand for?",
+    options: ["Computer Aided Drawing", "Computer Aided Design", "Camp Denali"],
+    targetAnswer: "Computer Aided Design",
+    badge: "Blueprint Boss",
   },
   {
     n: 4,
     co: "Mastercam",
     task: "Program the job",
     story:
-      "Plan the toolpaths for the production gears—and see what world-class CAM can do (check out the titanium guitar).",
+      "Plan the toolpaths for the production gears—and see what world-class CAM can do.",
     fi: "Photo of the titanium guitar",
-    bt: "calc",
-    bp: "Calculate the Material Removal Rate (MRR) for roughing this gear. (Assume 15 MRR for this challenge)",
-    calc: "MRR Calculator",
-    targetAnswer: 15, // Actual math target!
+    bt: "calc", // Free Response
+    bp: "What does the Acronym CAM stand for?",
+    options: [
+      "Computer Aided Machining",
+      "Computer Assisted Manufacturing",
+      "Computer Aided Manufacturing",
+      "Central Automated Machining",
+    ],
+    targetAnswer: "Computer Aided Manufacturing",
+
     badge: "Chip Slinger",
-    // b1: "Chip Slinger",
-    // b2: "Roughing It",
-    // b3: "Butter Cutter",
   },
   {
     n: 5,
     co: "Haas",
     task: "Make the cut",
-    story:
-      "Time to run metal. Find the iron you'd cut your planetary gears on.",
-    fi: "Photo of any Haas machine on display",
-    bt: "calc",
-    bp: "Find the Spindle RPM for your gear cut using Speeds & Feeds in the app. (Assume target is 3500 RPM)",
-    calc: "Speeds & Feeds",
-    targetAnswer: 3500, // Actual math target!
+    story: "Time to make chips — find the iron you'd cut your gears on.",
+    fi: "Photo of the model information plate on any Haas machine",
+    bt: "conv",
+    q1: "What are the model names of the Haas machines on display?",
+    q2: "How does Haas support first-time machine buyers?",
+    rc: "Haas",
     badge: "Iron Talker",
-    // b1: "Iron Talker",
-    // b2: "Dialed In",
-    // b3: "Making Chips",
   },
   {
     n: 6,
     co: "ZEISS",
     task: "Final inspection",
     story:
-      "Gear teeth have to mesh perfectly. Prove the part is right before it ships to Redline Robotics.",
-    fi: "Photo of the DuraMax CMM stylus tip touching a part",
-    bt: "conv",
-    q1: "What exactly is the stylus on the displayed part doing?",
-    q2: "How hard is it to program this CMM?",
-    rc: "ZEISS",
+      "Gear teeth have to mesh perfectly — prove the part is right before it ships.",
+    fi: "Photo of the DuraMax CMM",
+    bt: "calc", // Multiple choice
+    bp: "True or False: A caliper or micrometer can measure this part as accurately as a CMM?",
+    options: ["True", "False"], // ── Triggers Buttons!
+    targetAnswer: "False",
     badge: "Measurement Pro",
-    // b1: "Measurement Mouth",
   },
 ];
 
 export const SHORTS = [
-  // {
-  //   slug: "big-machine",
-  //   em: "💪",
-  //   title: "BIG MACHINE ENERGY",
-  //   desc: "Strike a pose with the biggest machine on the floor.",
-  //   type: "photo" as const,
-  //   badge: "Main Character",
-  // },
-  // {
-  //   slug: "album-cover",
-  //   em: "🎵",
-  //   title: "ALBUM COVER",
-  //   desc: "Album cover with your crew — machining concept required.",
-  //   type: "photo" as const,
-  //   badge: "Platinum Record",
-  // },
-  // {
-  //   slug: "spirit-tool",
-  //   em: "🔧",
-  //   title: "SPIRIT TOOL",
-  //   desc: "Find the tool that speaks to your soul. Caption why.",
-  //   type: "photo" as const,
-  //   badge: "Tool Soulmate",
-  // },
-  // {
-  //   slug: "human-gdt",
-  //   em: "📐",
-  //   title: "HUMAN GD&T",
-  //   desc: "Recreate a GD&T symbol with your body.",
-  //   type: "photo" as const,
-  //   badge: "Living Blueprint",
-  // },
-  // {
-  //   slug: "action-hero",
-  //   em: "🎬",
-  //   title: "ACTION HERO",
-  //   desc: "Slow-mo walk away from a CNC. Full action energy.",
-  //   type: "video" as const,
-  //   badge: "Blockbuster",
-  // },
-  // {
-  //   slug: "the-pitch",
-  //   em: "📢",
-  //   title: "THE PITCH",
-  //   desc: "30-sec infomercial for Phillips Machinist. Sell it.",
-  //   type: "video" as const,
-  //   badge: "Closer",
-  // },
-  // {
-  //   slug: "elevator",
-  //   em: "🛗",
-  //   title: "THE ELEVATOR",
-  //   desc: "Explain what a machinist does in 15 seconds. Go.",
-  //   type: "video" as const,
-  //   badge: "Smooth Operator",
-  // },
-  // {
-  //   slug: "in-tolerance",
-  //   em: "🎉",
-  //   title: "IN TOLERANCE",
-  //   desc: "Your best 'in tolerance' celebration on camera.",
-  //   type: "video" as const,
-  //   badge: "Victory Lap",
-  // },
+  // 2 App Challenges (20 pts each)
+  {
+    slug: "dial-speed",
+    em: "📱",
+    title: "DIAL IN THE SPEED",
+    desc: "Screenshot of the Speeds & Feeds calculator.",
+    type: "app" as const,
+    pts: 20,
+    badge: "Speed Dialer",
+    prompt: "Calculate Spindle RPM for a gear cut.",
+    targetAnswer: "3500",
+  },
+  {
+    slug: "crack-chart",
+    em: "📱",
+    title: "CRACK THE CHART",
+    desc: "Screenshot of the Tap/Drill chart.",
+    type: "app" as const,
+    pts: 20,
+    badge: "Chart Cracker",
+    prompt: "Look up the tap/drill size for a 1/4-20 fastener.",
+    targetAnswer: "0.201",
+  },
 
   // 4 Photos (10 pts each)
   {
@@ -562,30 +608,6 @@ export const SHORTS = [
     pts: 20,
     badge: "Victory Lap",
   },
-
-  // 2 App Challenges (20 pts each)
-  {
-    slug: "dial-speed",
-    em: "📱",
-    title: "DIAL IN THE SPEED",
-    desc: "Screenshot of the Speeds & Feeds calculator.",
-    type: "app" as const,
-    pts: 20,
-    badge: "Speed Dialer",
-    prompt: "Calculate Spindle RPM for a gear cut.",
-    targetAnswer: "3500",
-  },
-  {
-    slug: "crack-chart",
-    em: "📱",
-    title: "CRACK THE CHART",
-    desc: "Screenshot of the Tap/Drill chart.",
-    type: "app" as const,
-    pts: 20,
-    badge: "Chart Cracker",
-    prompt: "Look up the tap/drill size for a 1/4-20 fastener.",
-    targetAnswer: "0.201",
-  },
 ];
 
 export const FLB = [
@@ -602,6 +624,19 @@ export const MAP_IMAGES = {
   zoomOut: mapOne as StaticImageData,
   zoomIn: mapTwo as StaticImageData,
 };
+
+export const GAME_TIMELINE = [
+  { type: "stop", index: 0 }, // Phillips Corp
+  { type: "stop", index: 1 }, // Markforged
+  { type: "short", slug: "dial-speed" }, // BONUS: dial-speed
+  { type: "stop", index: 2 }, // Autodesk
+  { type: "short", slug: "album-cover" }, // BONUS: album-cover
+  { type: "stop", index: 3 }, // Mastercam
+  { type: "short", slug: "crack-chart" }, // BONUS: crack-chart
+  { type: "stop", index: 4 }, // Haas
+  { type: "short", slug: "action-hero" }, // BONUS: action-hero
+  { type: "stop", index: 5 }, // ZEISS
+];
 
 export const DEFAULT_PLAYER: PlayerProfile = {
   name: "Operator",

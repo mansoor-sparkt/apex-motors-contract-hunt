@@ -7,7 +7,7 @@ import {
   PointsSplitRow,
   StatusTag,
 } from "./GameComponents";
-import { ShortsScreen } from "./ShortsScreen";
+import { ShortCard, ShortsScreen } from "./ShortsScreen";
 import { LeaderboardScreen } from "./LeaderboardScreen";
 import { JobTravelerScreen } from "./JobTravelerScreen";
 import { BottomNav } from "./BottomNav";
@@ -19,6 +19,8 @@ import {
   MAX_SCORE,
   getActiveStopIndex,
   IMAGE_URLS,
+  GAME_TIMELINE,
+  SHORTS,
 
 } from "@/constants";
 import type {
@@ -29,6 +31,7 @@ import type {
   StopCompletion,
   ShortCompletion,
 } from "@/lib/game-types";
+import { useState } from "react";
 
 // const SUB_TAB_TITLES: Record<Exclude<HuntTab, "stops">, string> = {
 //   shorts: "SHOP FLOOR SHORTS",
@@ -86,6 +89,8 @@ export function HuntScreen({
   const stopsCount = Object.keys(stopsDone).length;
   const leaderboard = useLeaderboard(player, score, stopsDone, shortsDone);
   const { rank } = leaderboard;
+
+
   // const baseScore = computeBaseScore(stopsDone);
 
   // const baseScore = computeBaseScore(stopsDone, shortsDone);
@@ -99,6 +104,12 @@ export function HuntScreen({
   // Calculate percentage for the new Bonus progress bar (capped at 100%)
   const TARGET_BONUS_SCORE = 160;
   const bonusPercent = Math.min(160, (bonusScore / TARGET_BONUS_SCORE) * 100);
+
+  // ── NEW: Modal State Tracker ──
+  const [activeShortSlug, setActiveShortSlug] = useState<string | null>(null);
+
+  // ── NEW: Close Modal Handler ──
+  const handleCloseModal = () => setActiveShortSlug(null);
 
   return (
     <div className="absolute inset-0 flex flex-col h-full w-full overflow-hidden" style={{
@@ -220,7 +231,7 @@ export function HuntScreen({
 
       {activeTab === "stops" && (
         <div className="game-scroll flex-1 min-h-0 pb-20">
-          {STOPS.map((s, i) => {
+          {/* {STOPS.map((s, i) => {
             const done = !!stopsDone[i];
             const active = !done && (i === 0 || !!stopsDone[i - 1]);
             const locked = !done && !active;
@@ -237,7 +248,88 @@ export function HuntScreen({
                 onClick={() => !locked && onOpenStop(i)}
               />
             );
-          })}
+          })} */}
+
+          {(() => {
+            let lastCoreStopIndex = -1; // Tracks unlocks for skippable bonus rows
+            let coreStopCounter = 0;
+            return GAME_TIMELINE.map((item, i) => {
+              const isStop = item.type === "stop";
+              let done = false;
+              let active = false;
+              let locked = true;
+              let title = "";
+              let subtitle = "";
+              let ptsLabel = "";
+
+              if (isStop) {
+                coreStopCounter++;
+                lastCoreStopIndex = item.index as number;
+                const s = STOPS[item.index as number];
+                title = s.co;
+                subtitle = s.task;
+                done = !!stopsDone[item.index as number];
+                active = !done && item.index === activeIdx;
+                locked = !done && !active;
+
+                ptsLabel = done
+                  ? (stopsDone[item.index as number]?.bonus ? "20 PTS" : "10 PTS")
+                  : "20 PTS MAX";
+              } else {
+                const s = SHORTS.find((sh) => sh.slug === item.slug)!;
+                // title = `BONUS: ${s.title}`;
+                title = `${s.title}`;
+                subtitle = s.desc;
+
+                const shortRecord = shortsDone[item.slug as string];
+                done = !!shortRecord;
+
+                // done = !!shortsDone[item.slug as string];
+
+                // Bonus challenges unlock if the preceding core stop is done.
+                // This makes them inherently "skippable" without blocking the next core stop.
+                const prevStopDone = lastCoreStopIndex === -1 || !!stopsDone[lastCoreStopIndex];
+                locked = !prevStopDone;
+                active = !done && !locked;
+
+                if (done) {
+                  if (s.type === "app") {
+                    // App challenges split points 10 (photo) / 20 (photo + question)
+                    ptsLabel = shortRecord.qAnswered ? "20 PTS" : "10 PTS";
+                  } else {
+                    // Standard photo or video
+                    ptsLabel = `${s.pts} PTS`;
+
+                  }
+                } else {
+                  // Not done yet, show max possible points
+                  ptsLabel = `${s.pts} PTS MAX`;
+                }
+              }
+
+              return (
+                <HuntStopRow
+                  key={i}
+                  index={i}
+                  // index={isStop ? coreStopCounter - 1 : 0}
+                  company={title}
+                  task={subtitle}
+                  done={done}
+                  active={active}
+                  locked={locked}
+                  // bonus={isStop ? stopsDone[item.index as number]?.bonus : done}
+                  isBonusRow={!isStop}
+                  ptsLabel={ptsLabel}
+                  onClick={() => {
+                    if (!locked) {
+                      if (isStop) onOpenStop(item.index as number);
+                      else setActiveShortSlug(item.slug as string); // Pop the modal!
+                    }
+                  }}
+                />
+              );
+            });
+          })()}
         </div>
       )}
 
@@ -270,6 +362,42 @@ export function HuntScreen({
           onBackToHunt={() => onTabChange("stops")}
           onLogout={logout}
         />
+      )}
+
+      {/* ── NEW: BONUS CHALLENGE OVERLAY MODAL ── */}
+      {activeShortSlug && (
+        <div className="absolute inset-0 z-50 flex flex-col justify-center bg-black/80 backdrop-blur-sm p-4 pb-8 transition-opacity">
+          <div className="bg-[rgba(4,5,6,0.95)] border border-[var(--o)] w-full max-h-[85vh] overflow-y-auto relative shadow-[0_0_30px_rgba(241,92,48,0.3)]">
+
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-[rgba(4,5,6,0.95)] border-b border-[rgba(255,255,255,0.1)] p-3 flex justify-between items-center z-10">
+              <div className="font-orbitron text-[14px] text-[var(--o)] font-bold tracking-widest">
+                BONUS CHALLENGE
+              </div>
+              <button
+                onClick={handleCloseModal}
+                className="text-white text-2xl leading-none w-8 h-8 flex items-center justify-center bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)]"
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Modal Body injecting the exact identical ShortCard Component */}
+            <div className="p-4">
+              <ShortCard
+                short={SHORTS.find((s) => s.slug === activeShortSlug)!}
+                completion={shortsDone[activeShortSlug]}
+                emailId={player.email}
+                onComplete={onShortComplete}
+                onCelebrate={onCelebrate}
+                onToast={onToast}
+                onSkip={handleCloseModal}
+              // isDemo={isDemo}
+              />
+            </div>
+
+          </div>
+        </div>
       )}
 
       <BottomNav active={activeTab} onChange={onTabChange} />
