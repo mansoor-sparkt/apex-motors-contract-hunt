@@ -527,6 +527,7 @@ import { GameService } from "@/lib/game.service";
 import { IMAGE_UPLOAD_ACCEPT, isImageFile } from "@/lib/image-to-png";
 import { openMachinistApp } from "@/lib/machinist-app";
 import { MediaUploadProgress } from "@/components/MediaUploadProgress";
+import { BonusProgressBar } from "./ui/BonusProgressBar";
 
 type ShortDef = (typeof SHORTS)[number];
 
@@ -554,6 +555,7 @@ export function ShortCard({
   onCelebrate,
   onToast,
   onSkip,
+  isDemo
 }: {
   short: ShortDef;
   completion?: ShortCompletion;
@@ -562,6 +564,7 @@ export function ShortCard({
   onCelebrate: (state: CelebrationState) => void;
   onToast: (msg: string) => void;
   onSkip?: () => void;
+  isDemo: boolean
 }) {
   const isApp = short.type === "app";
   const isPhoto = short.type === "photo" || isApp;
@@ -638,6 +641,29 @@ export function ShortCard({
 
     setUploading(true);
     setUploadPercent(0);
+
+    // ── NEW: OFFLINE DEMO MODE BYPASS ──
+    if (isDemo) {
+      setTimeout(() => {
+        const mType = isImage ? "image" : "video";
+        const fakeData: ShortCompletion = {
+          mediaType: mType,
+          previewUrl: URL.createObjectURL(file), // Use offline local blob
+          badge: short.badge,
+          qAnswered: false,
+        };
+
+        onComplete(short.slug, fakeData);
+        onCelebrate({
+          icon: "📸",
+          title: isApp ? "SCREENSHOT LOGGED!" : "CHALLENGE COMPLETE!",
+          sub: isApp ? "+10 PTS EARNED. NOW ANSWER THE QUESTION." : `+${short.pts} BONUS PTS LOGGED.`,
+          badge: isApp ? "HALF WAY THERE" : (short.badge || "BONUS MASTER"),
+        });
+        setUploading(false);
+      }, 800);
+      return;
+    }
 
     try {
       const res = await GameService.uploadMedia(file, emailId, setUploadPercent);
@@ -800,29 +826,53 @@ export function ShortCard({
         )}
 
         {/* ── NEW: In-App Question UI (Only shows for App challenges after photo upload) ── */}
+        {/* ── NEW: In-App Question UI (Only shows for App challenges after photo upload) ── */}
         {isApp && photoDone && !fullyDone && (
           <div className="mt-3 p-3 bg-[rgba(255,187,0,0.05)] border border-[rgba(255,187,0,0.3)]" style={{ clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))" }}>
             <div className="font-share-mono text-[10px] text-[#ffbb00] mb-2 tracking-[0.06em]">
               ⚠️ REQUIRED FOR FINAL 10 PTS
             </div>
+
             <div className="font-[family:var(--font-rajdhani)] text-[13px] text-[rgba(232,234,240,0.85)] mb-2 leading-[1.5]">
               {short.prompt}
             </div>
+
             {errorMsg && (
               <div className="font-share-mono text-[9px] text-[var(--o)] mb-2">
                 {errorMsg}
               </div>
             )}
-            <input
-              type="text"
-              className="game-input mb-2"
-              placeholder="ENTER YOUR ANSWER..."
-              value={appAnswer}
-              onChange={(e) => {
-                setAppAnswer(e.target.value);
-                setErrorMsg("");
-              }}
-            />
+
+            {/* ── NEW: Check if options exist to show Multiple Choice buttons, otherwise show Input ── */}
+            {short.options ? (
+              <div className="flex flex-col gap-2 mb-3">
+                {short.options.map((opt, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => {
+                      setAppAnswer(opt);
+                      setErrorMsg("");
+                    }}
+                    className={`game-q-opt ${appAnswer === opt ? "sel" : ""}`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <input
+                type="text"
+                className="game-input mb-2"
+                placeholder="ENTER YOUR ANSWER..."
+                value={appAnswer}
+                onChange={(e) => {
+                  setAppAnswer(e.target.value);
+                  setErrorMsg("");
+                }}
+              />
+            )}
+
             <button
               type="button"
               className="w-full py-2 bg-[rgba(255,187,0,0.1)] hover:bg-[rgba(255,187,0,0.15)] text-[#ffbb00] border border-[rgba(255,187,0,0.3)] font-share-mono text-[10px] tracking-[0.1em] transition-colors"
@@ -900,6 +950,7 @@ export function ShortsScreen({
   onCelebrate,
   bonusPercent,
   onToast,
+  isDemo,
 }: {
   shortsDone: Record<string, ShortCompletion>;
   bonusScore: number;
@@ -908,6 +959,7 @@ export function ShortsScreen({
   onCelebrate: (state: CelebrationState) => void;
   bonusPercent: number;
   onToast: (msg: string) => void;
+  isDemo: boolean
 }) {
   return (
     <div className="game-hub-panel">
@@ -920,98 +972,10 @@ export function ShortsScreen({
         </p>
       </div>
 
-      {/* <div className="px-4 py-2 space-y-3 relative z-[1]">
-        <div className="border border-[rgba(255,187,0,0.3)] bg-[rgba(0,0,0,0.65)] p-3"
-          style={{ clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}>
-          <div className="flex justify-between items-end mb-2">
-            <div className="font-share-mono text-[9px] text-[#ffbb00] tracking-[0.1em]">EXTRA PRIZE: BONUS TRACK</div>
-            <div className="font-orbitron text-[12px] font-bold text-[#ffbb00]">{bonusScore} / 160 PTS</div>
-          </div>
-          <div className="h-2 w-full bg-[rgba(255,255,255,0.1)] overflow-hidden rounded-sm">
-            <div className="h-full bg-[#ffbb00] transition-all duration-500 ease-out" style={{ width: `${bonusPercent}%` }} />
-          </div>
-        </div>
-      </div> */}
 
-      {(() => {
-        // ── MILESTONE CONFIGURATION ──
-        const GIFT_MILESTONE = 100;
-        const TOTAL_BONUS_POOL = 160;
 
-        // 1. Calculate percentage based on the true 160-point pool maximum
-        const fillPercent = Math.min(100, (bonusScore / TOTAL_BONUS_POOL) * 100);
 
-        // 2. Locate exactly where the 100-point marker sits (100 / 160 = 62.5%)
-        const milestonePercent = (GIFT_MILESTONE / TOTAL_BONUS_POOL) * 100;
-
-        const isGoalReached = bonusScore >= GIFT_MILESTONE;
-        const activeColor = isGoalReached ? "var(--g)" : "#ffbb00";
-        const activeBorder = isGoalReached ? "rgba(57,255,20,0.3)" : "rgba(241,187,0,0.3)";
-
-        return (
-          <div className="px-4 py-2 space-y-3 relative z-[1]">
-            <div
-              className="bg-[rgba(0,0,0,0.65)] p-3 transition-colors duration-300"
-              style={{
-                border: `1px solid ${activeBorder}`,
-                clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))"
-              }}
-            >
-              {/* Tracker Headers */}
-              <div className="flex justify-between items-end mb-2">
-                <div
-                  className="font-share-mono text-[9px] tracking-[0.1em] transition-colors duration-300"
-                  style={{ color: activeColor }}
-                >
-                  {isGoalReached ? "🎉 EXTRA PRIZE UNLOCKED!" : "REACH 100 PTS TO UNLOCK EXTRA PRIZE"}
-                </div>
-                <div className="font-orbitron text-[12px] font-bold text-white">
-                  {bonusScore} / {TOTAL_BONUS_POOL} PTS
-                </div>
-              </div>
-
-              {/* Master Progress Container with space for the marker overflow */}
-              <div className="relative w-full pt-2 pb-4">
-
-                {/* Main 160-Point Progress Track */}
-                <div className="h-2 w-full bg-[rgba(255,255,255,0.1)] overflow-hidden rounded-sm">
-                  <div
-                    className="h-full transition-all duration-500 ease-out"
-                    style={{
-                      width: `${fillPercent}%`,
-                      backgroundColor: isGoalReached ? "var(--g)" : "#ffbb00",
-                      boxShadow: isGoalReached ? "0 0 4px var(--g)" : "none"
-                    }}
-                  />
-                </div>
-
-                {/* ── 100-POINT MILESTONE TARGET TAG ── */}
-                <div
-                  className="absolute top-0 -translate-x-1/2 flex flex-col items-center pointer-events-none z-10"
-                  style={{ left: `${milestonePercent}%`, marginTop: '-2px' }}
-                >
-                  {/* Vertical Marker Line crossing the bar */}
-                  <div
-                    className="w-[2px] h-5 transition-colors duration-300 shadow-sm"
-                    style={{ backgroundColor: activeColor }}
-                  />
-                  {/* Tag Label underneath the line */}
-                  <span
-                    className="font-share-mono text-[10px] font-bold mt-1 whitespace-nowrap tracking-widest transition-colors duration-300"
-                    style={{
-                      color: activeColor,
-                      textShadow: isGoalReached ? "0 0 8px rgba(57,255,20,0.4)" : "none"
-                    }}
-                  >
-                    🎁 100 PTS
-                  </span>
-                </div>
-
-              </div>
-            </div>
-          </div>
-        );
-      })()}
+      <BonusProgressBar bonusScore={bonusScore} />
 
 
       {/* <div className={`h-full ${bonusPercent < 100 ? "bg-[#ffbb00]" : 'bg-[#39ff14]'} transition-all duration-500 ease-out`} style={{ width: `${bonusPercent}%` }} /> */}
@@ -1026,6 +990,7 @@ export function ShortsScreen({
               onComplete={onComplete}
               onCelebrate={onCelebrate}
               onToast={onToast}
+              isDemo={isDemo}
             />
           ))}
         </div>

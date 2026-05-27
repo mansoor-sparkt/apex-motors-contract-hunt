@@ -514,23 +514,31 @@ export const SHORTS = [
     slug: "dial-speed",
     em: "📱",
     title: "DIAL IN THE SPEED",
-    desc: "Screenshot of the Speeds & Feeds calculator.",
+    desc: "Use a simple tool to find your spindle speed and feedrate for cutting mild cold rolled steel with a 1/2 inch diameter end mill. Take a screen shot of the Simple Speeds and Feeds Calculator opened.",
     type: "app" as const,
     pts: 20,
     badge: "Speed Dialer",
-    prompt: "Calculate Spindle RPM for a gear cut.",
-    targetAnswer: "3500",
+    prompt:
+      "What is the spindle speed for a 1/2 inch dia. 2 flute carbide endmill at a Surface Speed of 250 feet per minute and a chip load of .002 Inches?",
+    options: ["210 RPM", "1,910 RPM", "2,010 RPM", "510 RPM"], // ── NEW: Multiple Choice Options
+    targetAnswer: "1,910 RPM",
   },
   {
     slug: "crack-chart",
     em: "📱",
     title: "CRACK THE CHART",
-    desc: "Screenshot of the Tap/Drill chart.",
+    desc: "Take a screen shot of the Tap Drill Chart.",
     type: "app" as const,
     pts: 20,
     badge: "Chart Cracker",
-    prompt: "Look up the tap/drill size for a 1/4-20 fastener.",
-    targetAnswer: "0.201",
+    prompt: "What is the Pre-Drill for a 1/4-20 Tap?",
+    options: [
+      "#7 .201 Drill",
+      "F .257 Drill",
+      "1/4 .250 Drill",
+      "#16 .177 Drill",
+    ],
+    targetAnswer: "#7 .201 Drill", // Matched strictly to the option string so the button grades correctly!
   },
 
   // 4 Photos (10 pts each)
@@ -546,8 +554,8 @@ export const SHORTS = [
   {
     slug: "album-cover",
     em: "🎵",
-    title: "ALBUM COVER",
-    desc: "Album cover with your crew.",
+    title: "DROP THE ALBUM",
+    desc: "Assemble your crew. No shop runs solo. Group photo styled as a machining “album cover”.",
     type: "photo" as const,
     pts: 10,
     badge: "Platinum Record",
@@ -575,8 +583,8 @@ export const SHORTS = [
   {
     slug: "action-hero",
     em: "🎬",
-    title: "ACTION HERO",
-    desc: "Slow-mo walk away from a CNC.",
+    title: "SLOW-MO HERO",
+    desc: "Respect the iron. You're surrounded by serious machines — own it. Take a Slo-mo walk-away from a CNC machine.",
     type: "video" as const,
     pts: 20,
     badge: "Blockbuster",

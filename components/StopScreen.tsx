@@ -970,7 +970,8 @@ export function StopScreen({
   onNavigate,
   onToast,
   onCelebrate,
-  onOpenMap
+  onOpenMap,
+  isDemo
 }: {
   isActive: boolean;
   stopIndex: number;
@@ -981,7 +982,8 @@ export function StopScreen({
   onNavigate: (index: number) => void;
   onToast: (msg: string) => void;
   onCelebrate: (state: CelebrationState) => void;
-  onOpenMap: () => void
+  onOpenMap: () => void,
+  isDemo: boolean
 }) {
   const s = STOPS[stopIndex];
   const done = !!stopsDone[stopIndex];
@@ -1096,6 +1098,15 @@ export function StopScreen({
     setPreviewUrl(localBlobUrl);
     setUploading(true);
     setUploadPercent(0);
+
+    if (isDemo) {
+      setTimeout(() => {
+        setPhotoUp(true);
+        onToast("📸 DEMO MODE: OFFLINE EVIDENCE SECURED");
+        setUploading(false);
+      }, 800); // Fake a slight loading delay for realism
+      return;
+    }
 
     try {
       const res = await GameService.uploadMedia(

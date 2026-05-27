@@ -32,6 +32,7 @@ import type {
   ShortCompletion,
 } from "@/lib/game-types";
 import { useState } from "react";
+import { BonusProgressBar } from "./ui/BonusProgressBar";
 
 // const SUB_TAB_TITLES: Record<Exclude<HuntTab, "stops">, string> = {
 //   shorts: "SHOP FLOOR SHORTS",
@@ -58,6 +59,7 @@ export function HuntScreen({
   shortsDone,
   roster,
   activeTab,
+  isDemo,
   onTabChange,
   onOpenStop,
   onShortComplete,
@@ -76,6 +78,7 @@ export function HuntScreen({
   shortsDone: Record<string, ShortCompletion>;
   roster: RosterEntry[];
   activeTab: HuntTab;
+  isDemo: boolean;
   onTabChange: (tab: HuntTab) => void;
   onOpenStop: (index: number) => void;
   onShortComplete: (slug: string, data: ShortCompletion) => void;
@@ -164,13 +167,15 @@ export function HuntScreen({
             </button>
           </div> */}
 
-
+          <BonusProgressBar bonusScore={bonusScore} />
 
           <ProgressPips
             total={TOTAL_STOPS}
             completed={stopsCount}
             active={activeIdx < TOTAL_STOPS ? activeIdx : undefined}
           />
+
+
         </>
       ) : (
         <HUDBar
@@ -342,6 +347,7 @@ export function HuntScreen({
           onCelebrate={onCelebrate}
           bonusPercent={bonusPercent}
           onToast={onToast}
+          isDemo={isDemo}
         />
       )}
 
@@ -392,7 +398,7 @@ export function HuntScreen({
                 onCelebrate={onCelebrate}
                 onToast={onToast}
                 onSkip={handleCloseModal}
-              // isDemo={isDemo}
+                isDemo={isDemo}
               />
             </div>
 
