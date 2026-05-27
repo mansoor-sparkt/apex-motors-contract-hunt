@@ -132,7 +132,7 @@ export function GameApp() {
   /**
    * Cloud Synchronizer: Resolves remote progress and populates client memory banks
    */
-  const hydrateRemoteProgress = useCallback(
+  /*const hydrateRemoteProgress = useCallback(
     async (emailId: string): Promise<boolean> => {
       setProgressStatus("loading");
 
@@ -165,6 +165,61 @@ export function GameApp() {
         showToast("⚠️ CLOUD DATA CORRUPTED — STARTING FRESH");
         setStopsDone({});
         setShortsDone({});
+        return false;
+      }
+    },
+    [showToast],
+  );*/
+  /**
+   * Cloud Synchronizer: Resolves remote progress and populates client memory banks
+   */
+  const hydrateRemoteProgress = useCallback(
+    async (emailId: string): Promise<boolean> => {
+      setProgressStatus("loading");
+
+      try {
+        const res = await GameService.fetchProgress(emailId);
+
+        if (res.success && res.gameProgress) {
+          const decodedSnapshot = JSON.parse(res.gameProgress);
+
+          if (decodedSnapshot.stops) {
+            setStopsDone(decodedSnapshot.stops);
+
+            // ── FIX 3: Reconstruct roster arrays from saved cloud tracking files ──
+            const restoredRoster: RosterEntry[] = [];
+            Object.entries(decodedSnapshot.stops).forEach(([key, value]: [string, any]) => {
+              if (value?.rn) {
+                const s = STOPS[Number(key)];
+                if (s) {
+                  restoredRoster.push({ n: value.rn, c: s.rc || s.co });
+                }
+              }
+            });
+            setRoster(restoredRoster);
+          }
+          
+          if (decodedSnapshot.shorts) {
+            setShortsDone(decodedSnapshot.shorts);
+          }
+
+          cloudProgressExistsRef.current = true;
+          setProgressStatus("loaded");
+          console.log("⚡ Cloud metrics synchronized successfully.");
+          return true;
+        }
+
+        cloudProgressExistsRef.current = false;
+        setProgressStatus("loaded");
+        console.log("ℹ️ No previous progress metrics found in cloud. Starting fresh.");
+        return false;
+      } catch (error) {
+        console.error("Critical Exception encountered during engine hydration:", error);
+        setProgressStatus("error");
+        showToast("⚠️ CLOUD DATA CORRUPTED — STARTING FRESH");
+        setStopsDone({});
+        setShortsDone({});
+        setRoster([]);
         return false;
       }
     },
@@ -453,7 +508,7 @@ export function GameApp() {
   /**
    * Universal progress auto-saver with explicit error handling
    */
-  const saveGameSnapshot = async (updatedStops: any, updatedShorts: any) => {
+ /* const saveGameSnapshot = async (updatedStops: any, updatedShorts: any) => {
     if (!player.email) return;
 
     // Package both tracking layers into a unified snapshot object
@@ -489,7 +544,45 @@ export function GameApp() {
       console.error("Failed to execute background auto-save:", error);
       showToast("⚠️ CLOUD SYNC FAILED — CHECK YOUR CONNECTION");
     }
-  }
+  }*/
+
+  /**
+   * Universal progress auto-saver with explicit error handling
+   */
+  const saveGameSnapshot = async (updatedStops: any, updatedShorts: any) => {
+    if (!player.email) return;
+
+    // Package both tracking layers into a unified snapshot object
+    const snapshotData = {
+      stops: updatedStops,
+      shorts: updatedShorts,
+    };
+
+    // ── FIX 1: Rely STRICTLY on cloud existence reference tracker ──
+    const isUpdate = cloudProgressExistsRef.current;
+
+    try {
+      const res = await GameService.syncProgress(
+        player.email,
+        snapshotData,
+        isUpdate
+      );
+
+      if (res.success) {
+        // ── FIX 2: Explicitly flag that row now exists after successful initial POST ──
+        cloudProgressExistsRef.current = true;
+        console.log("💾 Game progress auto-saved:", res.message);
+      } else {
+        // Handles business rule rejections
+        console.warn("⚠️ Cloud sync rejected:", res.error);
+        showToast(`⚠️ SYNC WARNING: ${res.error.toUpperCase()}`);
+      }
+    } catch (error) {
+      // Handles total network drops
+      console.error("Failed to execute background auto-save:", error);
+      showToast("⚠️ CLOUD SYNC FAILED — CHECK YOUR CONNECTION");
+    }
+  };
 
 
 
