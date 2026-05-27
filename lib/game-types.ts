@@ -47,6 +47,7 @@ export interface ShortCompletion {
   previewUrl: string;
   badge: string;
   qAnswered?: boolean;
+  points: number;
 }
 
 export interface RosterEntry {

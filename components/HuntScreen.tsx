@@ -33,6 +33,7 @@ import type {
 } from "@/lib/game-types";
 import { useState } from "react";
 import { BonusProgressBar } from "./ui/BonusProgressBar";
+import { CongratulationModal, IncompleteBonusModal } from "./modals/TaskModal";
 
 // const SUB_TAB_TITLES: Record<Exclude<HuntTab, "stops">, string> = {
 //   shorts: "SHOP FLOOR SHORTS",
@@ -60,6 +61,13 @@ export function HuntScreen({
   roster,
   activeTab,
   isDemo,
+
+  showBonusNudge,
+  setShowBonusNudge,
+  showEndGameNudge,
+  setShowEndGameNudge,
+  showCongratulation,
+  setShowCongratulation,
   onTabChange,
   onOpenStop,
   onShortComplete,
@@ -79,6 +87,13 @@ export function HuntScreen({
   roster: RosterEntry[];
   activeTab: HuntTab;
   isDemo: boolean;
+
+  showBonusNudge: string | null;
+  setShowBonusNudge: (slug: string | null) => void;
+  showEndGameNudge: boolean;                          // ── NEW
+  setShowEndGameNudge: (val: boolean) => void;
+  showCongratulation: boolean;
+  setShowCongratulation: (val: boolean) => void;
   onTabChange: (tab: HuntTab) => void;
   onOpenStop: (index: number) => void;
   onShortComplete: (slug: string, data: ShortCompletion) => void;
@@ -315,8 +330,8 @@ export function HuntScreen({
               return (
                 <HuntStopRow
                   key={i}
-                  index={i}
-                  // index={isStop ? coreStopCounter - 1 : 0}
+                  // index={i}
+                  index={isStop ? coreStopCounter - 1 : 0}
                   company={title}
                   task={subtitle}
                   done={done}
@@ -405,6 +420,39 @@ export function HuntScreen({
           </div>
         </div>
       )}
+
+
+      {/* ── 2. END-GAME BONUS NUDGE (You missed some side-quests!) ── */}
+      <IncompleteBonusModal
+        isOpen={showEndGameNudge}
+        onClose={() => {
+          // If they click "SKIP FOR NOW"
+          setShowEndGameNudge(false);
+          setShowCongratulation(true); // ── Shows the Congrats Modal!
+        }}
+        onDoBonus={() => {
+          // If they click "DO BONUS NOW"
+          setShowEndGameNudge(false);
+          setShowCongratulation(true); // ── Shows the Congrats Modal!
+
+          // Move them to the Bonus Tab in the background so when they close the Congrats modal, they are ready to do bonuses!
+          onTabChange("shorts");
+        }}
+      />
+
+      {/* ── 3. FINAL CONGRATULATIONS MODAL ── */}
+      <CongratulationModal
+        isOpen={showCongratulation}
+        onClose={() => {
+          setShowCongratulation(false);
+
+          // If they are on the Stops tab, move them to Claim Prize. 
+          // (If they clicked 'Do Bonus Now', they will safely stay on the Shorts tab!)
+          if (activeTab === "stops") {
+            onTabChange("comp");
+          }
+        }}
+      />
 
       <BottomNav active={activeTab} onChange={onTabChange} />
     </div>

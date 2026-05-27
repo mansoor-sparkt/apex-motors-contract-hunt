@@ -651,6 +651,7 @@ export function ShortCard({
           previewUrl: URL.createObjectURL(file), // Use offline local blob
           badge: short.badge,
           qAnswered: false,
+          points: isApp ? 10 : short.pts
         };
 
         onComplete(short.slug, fakeData);
@@ -678,6 +679,7 @@ export function ShortCard({
           previewUrl: serverPath, // Persistent server string saved to global state
           badge: short.badge,
           qAnswered: false,
+          points: isApp ? 10 : short.pts
         };
 
         // INSTANT PROGRESS: Update global state engine immediately
@@ -713,7 +715,7 @@ export function ShortCard({
     if (isCorrect) {
       setErrorMsg("");
       // Update completion data to flip qAnswered to true
-      onComplete(short.slug, { ...completion!, qAnswered: true });
+      onComplete(short.slug, { ...completion!, qAnswered: true, points: short.pts });
 
       onCelebrate({
         icon: "🎉",
