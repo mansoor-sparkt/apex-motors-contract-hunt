@@ -596,7 +596,12 @@ export function GameApp() {
     }
     if (!player.email) return;
 
-
+    // ── 1. CALCULATE CUMULATIVE GAME POINT ──
+    // We calculate this using the freshly updated data, so it is always perfectly accurate 
+    // and physically impossible to duplicate or count twice!
+    const newCoreScore = computeBaseScore(updatedStops);
+    const newBonusScore = computeBonusScore(updatedShorts);
+    const gamePoint = newCoreScore + newBonusScore;
 
     // Package both tracking layers into a unified snapshot object
     const snapshotData = {
@@ -611,7 +616,8 @@ export function GameApp() {
       const res = await GameService.syncProgress(
         cleanEmail,
         snapshotData,
-        isUpdate
+        isUpdate,
+        gamePoint
       );
 
       if (res.success) {

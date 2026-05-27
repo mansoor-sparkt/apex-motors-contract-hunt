@@ -134,7 +134,8 @@ export const GameService = {
   ) {
     const isVideo = file.type.startsWith("video/");
 
-    const reportProgress = (pct: number) => onProgress?.(Math.min(100, Math.max(0, pct)));
+    const reportProgress = (pct: number) =>
+      onProgress?.(Math.min(100, Math.max(0, pct)));
 
     try {
       reportProgress(0);
@@ -172,8 +173,7 @@ export const GameService = {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Media upload failed",
+        error: error instanceof Error ? error.message : "Media upload failed",
       };
     }
   },
@@ -185,18 +185,19 @@ export const GameService = {
     emailId: string,
     progressData: any,
     isUpdate: boolean = false,
+    gamePoint: number,
   ) {
     try {
       const payload = {
         emailId: emailId,
         gameProgress: JSON.stringify(progressData),
+        gamePoint,
       };
 
       let body;
       try {
         body = await encryptProgressPayload(payload);
       } catch (encryptError) {
-        console.error("Progress encryption error:", encryptError);
         return {
           success: false,
           error:
@@ -262,9 +263,7 @@ export const GameService = {
    */
   async fetchLeaderboard(emailId?: string) {
     try {
-      const query = emailId
-        ? `?emailId=${encodeURIComponent(emailId)}`
-        : "";
+      const query = emailId ? `?emailId=${encodeURIComponent(emailId)}` : "";
       const response = await apiFetch(`/api/game/leaderboard${query}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },

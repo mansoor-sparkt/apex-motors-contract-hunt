@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     });
 
     const data = await res.json();
-    console.log(payload, data);
+    // console.log(payload, data);
 
     // 3. Translate response for React
     if (data.statusCode === 200 && data.result) {
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
           user: data.result,
           message: data.message?.[0] || "Profile saved successfully.",
         }),
-        payload.emailId
+        payload.emailId,
       );
     } else {
       return NextResponse.json(
