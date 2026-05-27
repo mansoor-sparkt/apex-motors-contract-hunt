@@ -1210,7 +1210,8 @@ export function StopScreen({
       previewUrl: previewUrl || "",       // Saved backend file string
       mediaType: "image",                 // Media identifier flag
       selectedAnswer: finalAnswer,        // Holds the input text string value
-      isCorrect: isCorrect                // Grading comparison state boolean
+      isCorrect: isCorrect,              // Grading comparison state boolean
+      points: isCorrect ? 20 : 10
     });
 
     onCelebrate({

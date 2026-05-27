@@ -17,6 +17,8 @@ import {
   computeBonusScore,
   STOPS,
   computeScore,
+  GAME_TIMELINE,
+  SHORTS
 } from "@/constants";
 import type {
   AppScreen,
@@ -89,6 +91,10 @@ export function GameApp() {
 
   const [isMapOpen, setIsMapOpen] = useState(false);
 
+  const [showBonusNudge, setShowBonusNudge] = useState<string | null>(null);
+  const [showEndGameNudge, setShowEndGameNudge] = useState(false);
+  const [showCongratulation, setShowCongratulation] = useState(false);
+
 
   /** Where to go after closing a stop-completion celebration modal. */
   const [celebrationDismiss, setCelebrationDismiss] = useState<
@@ -123,19 +129,38 @@ export function GameApp() {
     const action = celebrationDismiss;
     setCelebrationDismiss(null);
 
+    // 1. Did they just finish the LAST core stop?
+    if (action?.type === "traveler") {
+      // Check if ALL bonuses are completed
+      const allBonusesDone = Object.keys(shortsDone).length >= SHORTS.length;
+
+      if (allBonusesDone) {
+        setShowCongratulation(true); // Straight to congrats!
+      } else {
+        setShowEndGameNudge(true); // Show the warning nudge first
+      }
+
+      setScreen("hunt"); // ── IMPORTANT: Keep them on the map screen so modals can pop! Do NOT put setHuntTab("comp") here!
+      return;
+    }
+
     if (action?.type === "nextStop") {
       setCurStop(action.index);
       setScreen("stop");
       return;
     }
-    if (action?.type === "traveler") {
-      setScreen("hunt");
-      setHuntTab("comp");
-      return;
-    }
-    setScreen("hunt");
-  }, [celebrationDismiss]);
 
+    // 2. Otherwise, check for a mid-game bonus...
+    const timelineIndex = GAME_TIMELINE.findIndex((t) => t.type === "stop" && t.index === curStop);
+    if (timelineIndex !== -1) {
+      const nextItem = GAME_TIMELINE[timelineIndex + 1];
+      if (nextItem && nextItem.type === "short" && !shortsDone[nextItem.slug as string]) {
+        setShowBonusNudge(nextItem.slug as string);
+      }
+    }
+
+    setScreen("hunt");
+  }, [celebrationDismiss, curStop, shortsDone]);
   /**
    * Cloud Synchronizer: Resolves remote progress and populates client memory banks
    */
@@ -324,6 +349,10 @@ export function GameApp() {
         return exists ? r : [...r, { n: data.rn!, c: s.rc || s.co }];
       });
     }
+
+    // if (Object.keys(stopsDone).length === TOTAL_STOPS) {
+    //   setShowCongratulation(true);
+    // }
   };
 
   const openStop = (index: number) => {
@@ -727,6 +756,12 @@ export function GameApp() {
               roster={roster}
               activeTab={huntTab}
               isDemo={isDemo}
+              showBonusNudge={showBonusNudge}
+              setShowBonusNudge={setShowBonusNudge}
+              showEndGameNudge={showEndGameNudge}
+              setShowEndGameNudge={setShowEndGameNudge}
+              showCongratulation={showCongratulation}
+              setShowCongratulation={setShowCongratulation}
               onTabChange={setHuntTab}
               onOpenStop={openStop}
 
