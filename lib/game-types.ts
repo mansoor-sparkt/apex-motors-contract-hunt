@@ -38,6 +38,7 @@ export interface StopCompletion {
   qs?: number;
   timeSpent?: number;
   previewUrl?: string;
+  selectedAnswer: string;
 }
 
 /** Shop floor short submission with local media preview. */

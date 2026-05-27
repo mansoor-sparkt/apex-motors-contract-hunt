@@ -1360,36 +1360,46 @@ export function StopScreen({
               header={
                 <>
                   <span style={{ color: "#ffbb00" }}>
-                    ② <span>SKILL CHALLENGE</span>
+                    ② <span>KNOWLEDGE CHECK</span>
                   </span>
-                  <span
-                    className="game-tag"
-                    style={{
-                      color: "#ffbb00",
-                      borderColor: "rgba(255,187,0,0.3)",
-                      background: "rgba(255,187,0,0.07)",
-                      clipPath:
-                        "polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))",
-                    }}
-                  >
-                    10 PTS · REQUIRED
-                  </span>
-                  {/* 
-                  <StatusTag variant="orange">10 PTS · REQUIRED</StatusTag> */}
+                  <StatusTag variant="orange">10 PTS · REQUIRED</StatusTag>
                 </>
               }
               headerColor="yellow"
               stopVariant
             >
-              <p className="font-[family:var(--font-rajdhani)] text-[13px] text-[rgba(232,234,240,0.82)] mb-2">{s.bp}</p>
-              <input
-                className="game-input mb-2"
-                placeholder="ENTER YOUR ANSWER…"
-                value={done ? "SUBMITTED ✓" : bonusAnswer}
-                onChange={(e) => setBonusAnswer(e.target.value)}
-                readOnly={done}
-                disabled={done}
-              />
+              <p className="font-[family:var(--font-rajdhani)] text-[13px] leading-[1.6] text-[rgba(232,234,240,0.82)] mb-3">
+                {s.bp}
+              </p>
+
+              {/* ── THE MISC COLUMN RULE: IF OPTIONS EXIST, SHOW BUTTONS. ELSE, SHOW TEXT BOX ── */}
+              {s.options ? (
+                <div className="flex flex-col gap-2 mb-2">
+                  {s.options.map((opt, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      disabled={done}
+                      onClick={() => setBonusAnswer(opt)}
+                      className={`game-q-opt ${(done && stopsDone[stopIndex]?.selectedAnswer === opt) || bonusAnswer === opt
+                        ? "sel"
+                        : ""
+                        }`}
+                    >
+                      {done && stopsDone[stopIndex]?.selectedAnswer === opt ? `✓ ${opt}` : opt}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <input
+                  className="game-input mb-2"
+                  placeholder="ENTER YOUR ANSWER…"
+                  value={done && stopsDone[stopIndex]?.bonus ? "SUBMITTED ✓" : bonusAnswer}
+                  onChange={(e) => setBonusAnswer(e.target.value)}
+                  readOnly={done}
+                  disabled={done}
+                />
+              )}
             </Panel>
           ) : (
             <Panel header={<><span style={{ color: "var(--g)" }}>③ SHOP TALK</span><StatusTag variant="green">+10 PTS · REQUIRED</StatusTag></>} headerColor="green" stopVariant>
