@@ -113,6 +113,17 @@ export function GameApp() {
   const bonusScore = computeBonusScore(shortsDone);
   const combinedScore = coreScore + bonusScore;
 
+  // ── NEW: Watcher to trigger the 100-point celebration toast ──
+  const prevBonusRef = useRef(bonusScore);
+
+  useEffect(() => {
+    // If the score was below 100, and just now hit or passed 100...
+    if (prevBonusRef.current < 100 && bonusScore >= 100) {
+      setToast("🎁 100 BONUS PTS: EXTRA PRIZE UNLOCKED!");
+    }
+    // Update the tracker so it doesn't fire again if they get 120 points
+    prevBonusRef.current = bonusScore;
+  }, [bonusScore, setToast]);
 
 
   const showToast = useCallback((msg: string) => setToast(msg), []);
@@ -131,10 +142,14 @@ export function GameApp() {
 
     // 1. Did they just finish the LAST core stop?
     if (action?.type === "traveler") {
+
+      // ── NEW LOGIC: Check if they already hit the 100-point goal OR finished everything ──
+      const currentBonusScore = computeBonusScore(shortsDone);
+      const wonExtraPrize = currentBonusScore >= 100;
       // Check if ALL bonuses are completed
       const allBonusesDone = Object.keys(shortsDone).length >= SHORTS.length;
 
-      if (allBonusesDone) {
+      if (wonExtraPrize || allBonusesDone) {
         setShowCongratulation(true); // Straight to congrats!
       } else {
         setShowEndGameNudge(true); // Show the warning nudge first
@@ -167,26 +182,26 @@ export function GameApp() {
   /*const hydrateRemoteProgress = useCallback(
     async (emailId: string): Promise<boolean> => {
       setProgressStatus("loading");
-
+  
       try {
         const res = await GameService.fetchProgress(emailId);
-
+  
         if (res.success && res.gameProgress) {
           const decodedSnapshot = JSON.parse(res.gameProgress);
-
+  
           if (decodedSnapshot.stops) {
             setStopsDone(decodedSnapshot.stops);
           }
           if (decodedSnapshot.shorts) {
             setShortsDone(decodedSnapshot.shorts);
           }
-
+  
           cloudProgressExistsRef.current = true;
           setProgressStatus("loaded");
           console.log("⚡ Cloud metrics synchronized successfully.");
           return true;
         }
-
+  
         cloudProgressExistsRef.current = false;
         setProgressStatus("loaded");
         console.log("ℹ️ No previous progress metrics found in cloud. Starting fresh.");
@@ -549,27 +564,27 @@ export function GameApp() {
    */
   /* const saveGameSnapshot = async (updatedStops: any, updatedShorts: any) => {
      if (!player.email) return;
- 
+   
      // Package both tracking layers into a unified snapshot object
      const snapshotData = {
        stops: updatedStops,
        shorts: updatedShorts,
      };
- 
+   
      const isUpdate =
        cloudProgressExistsRef.current ||
        Object.keys(stopsDone).length > 0 ||
        Object.keys(shortsDone).length > 0 ||
        Object.keys(updatedStops).length > 0 ||
        Object.keys(updatedShorts).length > 0;
- 
+   
      try {
        const res = await GameService.syncProgress(
          player.email,
          snapshotData,
          isUpdate
        );
- 
+   
        if (res.success) {
          cloudProgressExistsRef.current = true;
          console.log("💾 Game progress auto-saved:", res.message);

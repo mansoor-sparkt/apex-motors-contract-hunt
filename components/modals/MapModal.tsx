@@ -9,6 +9,12 @@ const MIN_ZOOM = 1;
 const MAX_ZOOM = 4;
 const ZOOM_STEP = 0.25;
 
+// ── NEW: Easily tweakable coordinates for the map pin (Percentages) ──
+const PIN_POSITIONS = {
+  zoomOut: { left: "37%", top: "15%" }, // Building C, below the purple Human Services block
+  zoomIn: { left: "40%", top: "53.5%" }, // Directly on the beige Haas 837 box
+};
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
@@ -230,7 +236,7 @@ const MapModal = ({
                 >
                   // STARTING LOCATION
                 </div>
-                <div
+                {/* <div
                   style={{
                     fontFamily: "var(--fd)",
                     fontSize: 12,
@@ -240,6 +246,20 @@ const MapModal = ({
                   }}
                 >
                   BOOTH #837 (HAAS)
+                </div> */}
+
+                {/* ── NEW: Bright glowing box for the booth name ── */}
+                <div
+                  className="bg-[var(--o)] text-black px-2 py-1 shadow-[0_0_12px_rgba(241,92,48,0.5)]"
+                  style={{
+                    fontFamily: "var(--fd)",
+                    fontSize: 14,
+                    fontWeight: 900,
+                    letterSpacing: ".04em",
+                    clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%)",
+                  }}
+                >
+                  📍 BOOTH #837 (PHILLIPS)
                 </div>
               </div>
               <Dialog.Close asChild>
@@ -292,8 +312,8 @@ const MapModal = ({
               onTouchEnd={handleTouchEnd}
               onDoubleClick={resetTransform}
               style={{
-                background: "#000",
-                height: 280,
+                background: "#fff",
+                height: 320,
                 position: "relative",
                 padding: "8px",
                 overflow: "hidden",
@@ -322,7 +342,32 @@ const MapModal = ({
                   }}
                   fill
                   draggable={false}
+                  priority
                 />
+
+                {/* ── NEW: MAP PIN OVERLAY ── */}
+                {/* The pin sits relative to the map image container, so it zooms and moves perfectly */}
+                <div
+                  className="absolute flex flex-col items-center pointer-events-none z-20"
+                  style={{
+                    left: PIN_POSITIONS[view].left,
+                    top: PIN_POSITIONS[view].top,
+                    transform: "translate(-50%, -100%)", // Anchor bottom-center of the pin to the coordinate
+                  }}
+                >
+                  {/* Pin Label */}
+                  <div
+                    className="bg-[var(--o)] text-black font-share-mono font-bold text-[8px] px-1.5 py-0.5 tracking-widest shadow-[0_0_10px_rgba(241,92,48,0.6)]"
+                    style={{ clipPath: "polygon(0 0, calc(100% - 3px) 0, 100% 3px, 100% 100%, 0 100%)" }}
+                  >
+                    START: 837
+                  </div>
+                  {/* Pin Stem */}
+                  <div className="w-[2px] h-4 bg-[var(--o)] shadow-[0_0_5px_rgba(241,92,48,0.8)]" />
+                  {/* Pulsing Dot */}
+                  <div className="w-2.5 h-2.5 rounded-full bg-[var(--o)] animate-ping absolute bottom-[-4px]" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-[var(--o)] absolute bottom-[-4px]" />
+                </div>
               </div>
 
               <div
@@ -360,7 +405,7 @@ const MapModal = ({
                 )}
               </div>
 
-              <p className="absolute bottom-2 left-2 font-share-mono text-[8px] text-[var(--mut)] tracking-[0.06em] pointer-events-none z-10">
+              <p className="absolute bottom-2 left-2 font-share-mono text-[8px] text-[rgba(0,0,0,0.6)] tracking-[0.06em] pointer-events-none z-10">
                 SCROLL · PINCH · DRAG · DOUBLE-TAP RESET
               </p>
             </div>
