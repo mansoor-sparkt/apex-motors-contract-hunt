@@ -458,3 +458,8 @@ export function HuntScreen({
     </div>
   );
 }
+
+updates: map, modals, texts
+1. in map now they can see start position
+2. modals problem solve now bonus incomple modal will show when points less that 100
+3. texts of question update as per document

@@ -445,7 +445,7 @@ export const STOPS = [
     bt: "calc", // Keeping as Shop Talk per original
     bp: "How many gears are in the planetary gear set.",
     options: ["4", "5", "19", "20"],
-    targetAnswer: "Computer Aided Design",
+    targetAnswer: "5",
 
     badge: "Additive Minded",
   },
@@ -455,10 +455,15 @@ export const STOPS = [
     task: "Read the print",
     story:
       "Redline sent the CAD model. Before you cut any metal, you need to understand the design.",
-    fi: "Photo of the Autodesk display part",
+    fi: "Photo of the Autodesk laser-cut phone stand",
     bt: "calc", // Multiple Choice
     bp: "What does the acronym CAD stand for?",
-    options: ["Computer Aided Drawing", "Computer Aided Design", "Camp Denali"],
+    options: [
+      "Computing A Drawing",
+      "Covering All Design",
+      "Computer Aided Design",
+      "Camping At Denali",
+    ],
     targetAnswer: "Computer Aided Design",
     badge: "Blueprint Boss",
   },
@@ -469,7 +474,7 @@ export const STOPS = [
     story:
       "Plan the toolpaths for the production gears—and see what world-class CAM can do.",
     fi: "Photo of the titanium guitar",
-    bt: "calc", // Free Response
+    bt: "calc", // Multiple Choice
     bp: "What does the Acronym CAM stand for?",
     options: [
       "Computer Aided Machining",
@@ -487,9 +492,9 @@ export const STOPS = [
     task: "Make the cut",
     story: "Time to make chips — find the iron you'd cut your gears on.",
     fi: "Photo of the model information plate on any Haas machine",
-    bt: "conv",
-    q1: "What are the model names of the Haas machines on display?",
-    q2: "How does Haas support first-time machine buyers?",
+    bt: "calc",
+    bp: "What are the model names of the Haas machines on display?",
+    // q2: "How does Haas support first-time machine buyers?",
     rc: "Haas",
     badge: "Iron Talker",
   },
