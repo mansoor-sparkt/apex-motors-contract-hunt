@@ -1333,7 +1333,9 @@ export function StopScreen({
           </Panel>
 
           <Panel header={<><span style={{ color: "var(--c)" }}>① FIND-IT TASK</span><StatusTag variant="cyan">10 PTS · REQUIRED</StatusTag></>} headerColor="cyan" stopVariant>
-            <p className="font-share-mono text-[11px] text-[var(--mut)] mb-2.5">{s.fi}</p>
+            <p className="font-[family:var(--font-rajdhani)] text-base font-medium leading-[1.55] text-[rgba(232,234,240,0.92)] mb-2.5">
+              {s.fi}
+            </p>
             <button
               type="button"
               onClick={openPicker}
@@ -1386,7 +1388,7 @@ export function StopScreen({
               headerColor="yellow"
               stopVariant
             >
-              <p className="font-[family:var(--font-rajdhani)] text-[13px] leading-[1.6] text-[rgba(232,234,240,0.82)] mb-3">
+              <p className="font-[family:var(--font-rajdhani)] text-lg font-bold leading-[1.55] text-[rgba(232,234,240,0.95)] mb-3">
                 {s.bp}
               </p>
 

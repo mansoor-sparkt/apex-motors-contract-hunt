@@ -1,7 +1,7 @@
 
 
 
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Orbitron, Share_Tech_Mono, Rajdhani } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
@@ -23,6 +23,12 @@ const rajdhani = Rajdhani({
   weight: ['400', '500', '600', '700'],
   variable: '--font-rajdhani',
 })
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+}
 
 export const metadata: Metadata = {
   title: 'SkillsUSA Hunt — Apex Motors',
@@ -52,7 +58,7 @@ export default function RootLayout({
         they become available as CSS custom properties across the whole tree
         without any inline style= prop needed.
       */}
-      <body className="antialiased bg-background text-foreground flex min-h-dvh w-full flex-col items-stretch overflow-x-hidden overflow-y-auto">
+      <body className="antialiased bg-background text-foreground flex h-dvh w-full flex-col items-stretch overflow-hidden sm:min-h-dvh sm:h-auto sm:overflow-x-hidden sm:overflow-y-auto">
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

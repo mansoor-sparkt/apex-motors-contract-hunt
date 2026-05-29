@@ -65,7 +65,7 @@ export function ViewportChrome() {
     <div className="absolute inset-0 z-[5] pointer-events-none">
       {/* Corner brackets */}
       <div
-        className="absolute inset-[10px] border border-[rgba(241,92,48,0.12)]"
+        className="absolute inset-0 border border-[rgba(241,92,48,0.12)] sm:inset-[10px]"
         style={{
           clipPath: `polygon(
             0 16px, 16px 0, calc(100% - 16px) 0, 100% 16px,

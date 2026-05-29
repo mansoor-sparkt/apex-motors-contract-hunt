@@ -659,19 +659,13 @@ export function GameApp() {
     progressStatus === "loaded" || progressStatus === "error";
 
   return (
-    <div className="mx-auto w-full max-w-[390px] min-h-dvh overflow-x-hidden overflow-y-auto">
-      <div
-        className="relative flex w-full min-h-dvh flex-shrink-0 flex-col"
-      >
+    <div className="relative h-dvh w-full overflow-hidden sm:mx-auto sm:max-w-[390px] sm:min-h-dvh sm:overflow-x-hidden sm:overflow-y-auto">
+      <div className="relative flex h-full w-full min-h-0 flex-shrink-0 flex-col sm:min-h-dvh">
         <PhotoBg />
         <ViewportChrome />
 
         <div
-          className="absolute inset-0 z-10 flex w-full min-h-dvh flex-col overflow-x-hidden overflow-y-auto"
-          style={{
-            boxShadow:
-              "0 0 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.06)",
-          }}
+          className="absolute inset-0 z-10 flex h-full w-full min-h-0 flex-col overflow-x-hidden overflow-y-auto max-sm:shadow-none sm:shadow-[0_0_80px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.06)]"
         >
 
           {/* background overlays  */}

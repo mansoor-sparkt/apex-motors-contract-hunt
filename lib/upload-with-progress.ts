@@ -26,13 +26,41 @@ export function postFormDataWithProgress(
     });
 
     xhr.addEventListener("load", () => {
+      const status = xhr.status;
+      let data: MediaUploadResponse;
       try {
-        const data = JSON.parse(xhr.responseText) as MediaUploadResponse;
-        onProgress?.(100);
-        resolve(data);
+        data = JSON.parse(xhr.responseText) as MediaUploadResponse & {
+          detail?: string;
+        };
       } catch {
-        resolve({ success: false, error: "Invalid server response" });
+        resolve({
+          success: false,
+          error:
+            status === 413
+              ? "Photo is too large — try Photo Library"
+              : status >= 500
+                ? "Server error during upload"
+                : `Upload failed (${status})`,
+        });
+        return;
       }
+
+      if (status >= 400) {
+        resolve({
+          success: false,
+          error:
+            data.error ||
+            (status === 413
+              ? "Photo is too large — try Photo Library"
+              : status >= 500
+                ? "Server error during upload"
+                : `Upload failed (${status})`),
+        });
+        return;
+      }
+
+      onProgress?.(100);
+      resolve(data);
     });
 
     xhr.addEventListener("error", () => {
