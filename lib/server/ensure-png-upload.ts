@@ -25,7 +25,8 @@ function pngFileName(originalName: string): string {
   return `${base}.png`;
 }
 
-const MAX_EDGE = 1920;
+/** Match client cap; server only sees uploads that fit Vercel's ~4.5MB body limit. */
+const MAX_EDGE = 1280;
 
 async function resizeToPngBuffer(input: Buffer): Promise<Buffer> {
   const sharp = (await import("sharp")).default;
@@ -35,7 +36,7 @@ async function resizeToPngBuffer(input: Buffer): Promise<Buffer> {
       fit: "inside",
       withoutEnlargement: true,
     })
-    .png({ compressionLevel: 6 })
+    .png({ compressionLevel: 9, effort: 7 })
     .toBuffer();
 }
 

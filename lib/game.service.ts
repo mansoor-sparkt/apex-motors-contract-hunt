@@ -3,7 +3,10 @@ import type {
   PlayerProfile,
   StopCompletion,
 } from "@/lib/game-types";
-import { convertImageToPng } from "@/lib/image-to-png";
+import {
+  convertImageToPng,
+  MAX_UPLOAD_BYTES,
+} from "@/lib/image-to-png";
 import {
   postFormDataWithProgress,
   type UploadProgressHandler,
@@ -162,6 +165,14 @@ export const GameService = {
           success: false,
           error:
             "Could not prepare this photo for upload. Try Photo Library or retake.",
+        };
+      }
+
+      if (uploadFile.size > MAX_UPLOAD_BYTES) {
+        return {
+          success: false,
+          error:
+            "Photo is too large after compression. Try Photo Library or retake closer.",
         };
       }
 

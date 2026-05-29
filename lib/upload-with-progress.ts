@@ -26,6 +26,31 @@ export function postFormDataWithProgress(
     });
 
     xhr.addEventListener("load", () => {
+      if (xhr.status === 413) {
+        resolve({
+          success: false,
+          error:
+            "Photo file is too large for upload. Use Photo Library or move closer and retake.",
+        });
+        return;
+      }
+
+      if (xhr.status < 200 || xhr.status >= 300) {
+        try {
+          const data = JSON.parse(xhr.responseText) as MediaUploadResponse;
+          resolve({
+            success: false,
+            error: data.error || `Upload failed (${xhr.status})`,
+          });
+        } catch {
+          resolve({
+            success: false,
+            error: `Upload failed (${xhr.status})`,
+          });
+        }
+        return;
+      }
+
       try {
         const data = JSON.parse(xhr.responseText) as MediaUploadResponse;
         onProgress?.(100);

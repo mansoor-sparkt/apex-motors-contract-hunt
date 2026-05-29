@@ -2,12 +2,20 @@
 
 import {
   isHeicMagicBytes,
-  isPngMagicBytes,
   readFileHeader,
 } from "@/lib/image-magic";
 
-/** Longest edge for uploads — keeps PNG under Vercel's ~4.5MB body limit. */
-export const MAX_UPLOAD_DIMENSION = 1920;
+/**
+ * Stay under Vercel's ~4.5MB serverless request body limit (multipart adds overhead).
+ */
+export const MAX_UPLOAD_BYTES = 2_500_000;
+
+/** Longest edge after resize — camera originals are often 12MP+. */
+export const MAX_UPLOAD_DIMENSION = 1280;
+
+const MIN_UPLOAD_DIMENSION = 640;
+const JPEG_QUALITY_START = 0.85;
+const JPEG_QUALITY_MIN = 0.55;
 
 /** File-picker accept string — includes HEIC/HEIF (often missing from image/* alone). */
 export const IMAGE_UPLOAD_ACCEPT =
@@ -51,15 +59,15 @@ export function isImageFile(file: File): boolean {
   return IMAGE_EXT.test(file.name);
 }
 
-function pngFileName(originalName: string): string {
+function uploadFileName(originalName: string): string {
   const base = originalName.replace(/\.[^.]+$/, "").trim() || "upload";
-  return `${base}.png`;
+  return `${base}.jpg`;
 }
 
 function scaledDimensions(
   width: number,
   height: number,
-  maxDim: number = MAX_UPLOAD_DIMENSION,
+  maxDim: number,
 ): { width: number; height: number } {
   const longest = Math.max(width, height);
   if (longest <= maxDim) return { width, height };
@@ -85,47 +93,74 @@ async function loadHeic2Any() {
   return mod.default;
 }
 
-/** heic2any is most reliable outputting JPEG; we then canvas → PNG. */
-async function heicToPngBlob(file: File): Promise<Blob> {
+/** Decode HEIC in-browser to a JPEG blob (full resolution — caller must resize). */
+async function heicToJpegBlob(file: File): Promise<Blob> {
   const heic2any = await loadHeic2Any();
   const input = heicInputBlob(file);
 
-  let jpegBlob: Blob;
-  try {
-    const result = await heic2any({
-      blob: input,
-      toType: "image/jpeg",
-      quality: 0.92,
-    });
-    jpegBlob = Array.isArray(result) ? result[0] : result;
-  } catch {
-    const result = await heic2any({
-      blob: input,
-      toType: "image/png",
-    });
-    const png = Array.isArray(result) ? result[0] : result;
-    if (png instanceof Blob && png.size > 0) {
-      return rasterizeToPngBlob(png);
-    }
-    throw new Error("HEIC conversion failed");
-  }
-
+  const result = await heic2any({
+    blob: input,
+    toType: "image/jpeg",
+    quality: JPEG_QUALITY_START,
+  });
+  const jpegBlob = Array.isArray(result) ? result[0] : result;
   if (!(jpegBlob instanceof Blob) || jpegBlob.size === 0) {
     throw new Error("HEIC conversion failed");
   }
-
-  const jpegFile = new File([jpegBlob], "converted.jpg", {
-    type: "image/jpeg",
-  });
-  return rasterizeToPngBlob(jpegFile);
+  return jpegBlob;
 }
 
-async function drawToPngBlob(
-  source: CanvasImageSource,
-  width: number,
-  height: number,
+type ImageSource = {
+  draw: (
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+  ) => void;
+  width: number;
+  height: number;
+  cleanup?: () => void;
+};
+
+async function loadImageSource(file: Blob): Promise<ImageSource> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    return {
+      width: bitmap.width,
+      height: bitmap.height,
+      draw: (ctx, w, h) => {
+        ctx.drawImage(bitmap, 0, 0, w, h);
+      },
+      cleanup: () => bitmap.close(),
+    };
+  } catch {
+    const url = URL.createObjectURL(file);
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error("Image decode failed"));
+      el.src = url;
+    });
+    return {
+      width: img.naturalWidth,
+      height: img.naturalHeight,
+      draw: (ctx, w, h) => {
+        ctx.drawImage(img, 0, 0, w, h);
+      },
+      cleanup: () => URL.revokeObjectURL(url),
+    };
+  }
+}
+
+function canvasToJpegBlob(
+  source: ImageSource,
+  maxDim: number,
+  quality: number,
 ): Promise<Blob> {
-  const { width: w, height: h } = scaledDimensions(width, height);
+  const { width: w, height: h } = scaledDimensions(
+    source.width,
+    source.height,
+    maxDim,
+  );
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
@@ -133,77 +168,90 @@ async function drawToPngBlob(
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas not supported");
 
-  ctx.drawImage(source, 0, 0, w, h);
+  source.draw(ctx, w, h);
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
       (result) =>
-        result ? resolve(result) : reject(new Error("PNG conversion failed")),
-      "image/png",
+        result ? resolve(result) : reject(new Error("JPEG conversion failed")),
+      "image/jpeg",
+      quality,
     );
   });
 }
 
-async function rasterizeToPngBlob(file: Blob): Promise<Blob> {
+async function compressImageSource(
+  source: ImageSource,
+): Promise<Blob> {
+  let maxDim = MAX_UPLOAD_DIMENSION;
+  let quality = JPEG_QUALITY_START;
+
   try {
-    const bitmap = await createImageBitmap(file);
-    try {
-      return await drawToPngBlob(bitmap, bitmap.width, bitmap.height);
-    } finally {
-      bitmap.close();
+    for (let attempt = 0; attempt < 12; attempt++) {
+      const blob = await canvasToJpegBlob(source, maxDim, quality);
+      if (blob.size <= MAX_UPLOAD_BYTES) {
+        return blob;
+      }
+
+      if (quality > JPEG_QUALITY_MIN + 0.05) {
+        quality = Math.max(JPEG_QUALITY_MIN, quality - 0.12);
+      } else if (maxDim > MIN_UPLOAD_DIMENSION) {
+        maxDim = Math.max(MIN_UPLOAD_DIMENSION, Math.round(maxDim * 0.82));
+        quality = JPEG_QUALITY_START;
+      } else {
+        return blob;
+      }
     }
-  } catch {
-    const url = URL.createObjectURL(file);
-    try {
-      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-        const el = new Image();
-        el.onload = () => resolve(el);
-        el.onerror = () => reject(new Error("Image decode failed"));
-        el.src = url;
-      });
-      return await drawToPngBlob(img, img.naturalWidth, img.naturalHeight);
-    } finally {
-      URL.revokeObjectURL(url);
-    }
+
+    return await canvasToJpegBlob(source, MIN_UPLOAD_DIMENSION, JPEG_QUALITY_MIN);
+  } finally {
+    source.cleanup?.();
   }
 }
 
 /**
- * Converts any supported image (JPEG, WebP, HEIC, etc.) to PNG for backend upload.
+ * Resizes and compresses images for upload (JPEG). Server converts to PNG for the API.
  * Non-image files (e.g. video) are returned unchanged.
  */
 export async function convertImageToPng(file: File): Promise<File> {
   if (typeof window === "undefined") return file;
   if (!isImageFile(file)) return file;
 
-  const header = await readFileHeader(file);
-  const alreadyPng =
-    isPngMagicBytes(header) &&
-    file.type === "image/png" &&
-    file.name.toLowerCase().endsWith(".png");
-
-  if (alreadyPng) {
-    const bitmap = await createImageBitmap(file);
+  if (file.size <= MAX_UPLOAD_BYTES && file.type === "image/jpeg") {
     try {
-      const needsResize =
-        Math.max(bitmap.width, bitmap.height) > MAX_UPLOAD_DIMENSION;
-      if (!needsResize) return file;
-      const blob = await drawToPngBlob(bitmap, bitmap.width, bitmap.height);
-      return new File([blob], pngFileName(file.name), {
-        type: "image/png",
-        lastModified: Date.now(),
-      });
-    } finally {
-      bitmap.close();
+      const header = await readFileHeader(file);
+      if (!isHeicMagicBytes(header)) {
+        const bitmap = await createImageBitmap(file);
+        const longest = Math.max(bitmap.width, bitmap.height);
+        bitmap.close();
+        if (longest <= MAX_UPLOAD_DIMENSION) {
+          return file;
+        }
+      }
+    } catch {
+      /* fall through to full compress */
     }
   }
 
-  const blob = (await isHeicLikeFile(file))
-    ? await heicToPngBlob(file)
-    : await rasterizeToPngBlob(file);
+  let decodeBlob: Blob = file;
+  if (await isHeicLikeFile(file)) {
+    decodeBlob = await heicToJpegBlob(file);
+  }
 
-  return new File([blob], pngFileName(file.name), {
-    type: "image/png",
+  const source = await loadImageSource(decodeBlob);
+  const blob = await compressImageSource(source);
+
+  if (blob.size > MAX_UPLOAD_BYTES) {
+    throw new Error(
+      `Image is still too large (${Math.round(blob.size / 1024)}KB). Try Photo Library.`,
+    );
+  }
+
+  return new File([blob], uploadFileName(file.name), {
+    type: "image/jpeg",
     lastModified: Date.now(),
   });
 }
+
+/** @deprecated Alias — output is JPEG for smaller uploads; server converts to PNG. */
+export const prepareImageForUpload = convertImageToPng;
