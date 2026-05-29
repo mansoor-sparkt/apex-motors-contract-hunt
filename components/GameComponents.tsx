@@ -1,6 +1,8 @@
 'use client';
 
+import Image from 'next/image';
 import React from 'react';
+import phillipsLogo from '@/assests/phillips_logo.svg';
 
 const SN_CLIP =
   'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))';
@@ -266,21 +268,45 @@ export function PointsSplitRow({
   );
 }
 
+export function GameClockBadge({ seconds }: { seconds: number }) {
+  const minutes = Math.floor(Math.max(0, seconds) / 60);
+  const secs = Math.max(0, seconds) % 60;
+  const label = `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
+
+  return (
+    <div
+      className="game-hud-clock"
+      aria-live="polite"
+      aria-label={`Game clock ${label}`}
+    >
+      <span className="game-hud-clock-ic" aria-hidden>
+        ⏱
+      </span>
+      <span className="game-hud-clock-val">{label}</span>
+    </div>
+  );
+}
+
 export function HUDBar({
   title,
   onBack,
   showLogo = false,
   backLabel = '◄ BACK',
   onOpenMap,
-  isMapShow = false
+  isMapShow = false,
+  clockSeconds,
 }: {
-  title: string;
+  title?: string;
   onBack?: () => void;
   showLogo?: boolean;
   backLabel?: string;
   onOpenMap?: () => void;
-  isMapShow?: boolean
+  isMapShow?: boolean;
+  /** When set, shows live game clock in the top bar (top right). */
+  clockSeconds?: number;
 }) {
+  const showTitle = Boolean(title?.trim());
+
   return (
     <div className={`game-hud${onBack ? ' game-hud--back' : ''}`}>
       {onBack ? (
@@ -290,15 +316,24 @@ export function HUDBar({
       ) : showLogo ? (
         <>
           <div className="game-hud-logo">
-            <div className="game-hud-lm">/// PHILLIPS</div>
-            <div className="game-hud-ls">MACHINIST</div>
+            <Image
+              src={phillipsLogo}
+              alt="Phillips"
+              className="game-hud-logo-img"
+              priority
+            />
           </div>
-          <div className="game-hud-sep" />
+          {showTitle && <div className="game-hud-sep" />}
         </>
       ) : null}
-      <div className="game-hud-ttl flex-1 min-w-0" title={title}>
-        {title}
-      </div>
+      {showTitle ? (
+        <div className="game-hud-ttl flex-1 min-w-0" title={title}>
+          {title}
+        </div>
+      ) : (
+        <div className="flex-1 min-w-0" aria-hidden />
+      )}
+      {clockSeconds != null && <GameClockBadge seconds={clockSeconds} />}
       {/* {isMapShow && <div className="px-4 py-2 relative z-[1]">
         <button
           type="button"

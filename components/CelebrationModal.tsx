@@ -48,8 +48,8 @@ export function CelebrationModal({
         <GameButton
           variant="primary"
           onClick={() => {
-            onContinue?.();
-            onClose();
+            if (onContinue) onContinue();
+            else onClose();
           }}
         >
           CONTINUE MISSION ►

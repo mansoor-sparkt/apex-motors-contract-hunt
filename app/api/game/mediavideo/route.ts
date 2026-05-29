@@ -5,7 +5,10 @@ import {
   sessionForbidden,
   sessionUnauthorized,
 } from "@/lib/game-session";
-import { resolveMediaPreviewUrl } from "@/lib/media-url";
+import { resolveVideoPreviewUrl } from "@/lib/media-url";
+
+/** Large MOV uploads from phones can be slow through the proxy. */
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   try {
@@ -61,7 +64,7 @@ export async function POST(request: Request) {
       const rawUrl = data.result.cdnUrl as string;
       return NextResponse.json({
         success: true,
-        cdnUrl: resolveMediaPreviewUrl(rawUrl) ?? rawUrl,
+        cdnUrl: resolveVideoPreviewUrl(rawUrl) ?? rawUrl,
         message: data.message?.[0] || "Success",
       });
     }

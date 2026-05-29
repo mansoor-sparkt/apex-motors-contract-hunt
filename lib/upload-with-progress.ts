@@ -30,7 +30,7 @@ export function postFormDataWithProgress(
         resolve({
           success: false,
           error:
-            "Photo file is too large for upload. Use Photo Library or move closer and retake.",
+            "File is too large to upload. For video, record a shorter clip (about 30 seconds). For photos, use Photo Library or retake closer.",
         });
         return;
       }

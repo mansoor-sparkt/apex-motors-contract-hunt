@@ -8,18 +8,25 @@ import { RegisterScreen } from "./RegisterScreen";
 import { AvatarScreen } from "./AvatarScreen";
 import { HuntScreen } from "./HuntScreen";
 import { StopScreen } from "./StopScreen";
+import { BonusChallengeScreen } from "./BonusChallengeScreen";
 import { CelebrationModal } from "./CelebrationModal";
 import { GameToast } from "./GameToast";
 import {
   DEFAULT_PLAYER,
+  DEFAULT_SHOP_NAME,
   TOTAL_STOPS,
   computeBaseScore,
   computeBonusScore,
   STOPS,
   computeScore,
-  GAME_TIMELINE,
-  SHORTS
+  SHORTS,
 } from "@/constants";
+import {
+  planProgressAfterShort,
+  planProgressAfterStop,
+  planSkipBonus,
+  type CelebrationDismissAction,
+} from "@/lib/game-timeline";
 import type {
   AppScreen,
   CelebrationSource,
@@ -33,9 +40,10 @@ import type {
   ShortCompletion,
 } from "@/lib/game-types";
 import { AuthScreen } from "./AuthScreen";
-import { OtpScreen } from "./OtpScreen";
 import { GameService } from "@/lib/game.service";
+import { enrichProgressSnapshot } from "@/lib/game-progress";
 import MapModal from "./modals/MapModal";
+import { GameClockProvider } from "./GameClockProvider";
 
 
 
@@ -84,6 +92,7 @@ export function GameApp() {
   const [roster, setRoster] = useState<RosterEntry[]>([]);
   const [huntTab, setHuntTab] = useState<HuntTab>("stops");
   const [curStop, setCurStop] = useState(0);
+  const [curShortSlug, setCurShortSlug] = useState<string | null>(null);
   const [progressStatus, setProgressStatus] =
     useState<ProgressLoadStatus>("idle");
 
@@ -91,15 +100,14 @@ export function GameApp() {
 
   const [isMapOpen, setIsMapOpen] = useState(false);
 
-  const [showBonusNudge, setShowBonusNudge] = useState<string | null>(null);
   const [showEndGameNudge, setShowEndGameNudge] = useState(false);
   const [showCongratulation, setShowCongratulation] = useState(false);
 
 
-  /** Where to go after closing a stop-completion celebration modal. */
-  const [celebrationDismiss, setCelebrationDismiss] = useState<
-    { type: "nextStop"; index: number } | { type: "traveler" } | null
-  >(null);
+  /** Where to go after closing a completion celebration (null = stay on current screen). */
+  const [celebrationDismiss, setCelebrationDismiss] =
+    useState<CelebrationDismissAction | null>(null);
+  const pendingNavigationRef = useRef<CelebrationDismissAction | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   // 1. Add this near your other state declarations at the top of GameApp
@@ -128,54 +136,101 @@ export function GameApp() {
 
   const showToast = useCallback((msg: string) => setToast(msg), []);
 
+  const applyTimelineNavigation = useCallback(
+    (action: CelebrationDismissAction | null) => {
+      if (!action) return;
+
+      if (action.type === "traveler") {
+        const currentBonusScore = computeBonusScore(shortsDone);
+        const wonExtraPrize = currentBonusScore >= 100;
+        const allBonusesDone =
+          Object.keys(shortsDone).length >= SHORTS.length;
+
+        if (wonExtraPrize || allBonusesDone) {
+          setShowCongratulation(true);
+        } else {
+          setShowEndGameNudge(true);
+        }
+
+        setScreen("hunt");
+        return;
+      }
+
+      if (action.type === "nextStop") {
+        setCurStop(action.index);
+        setScreen("stop");
+        return;
+      }
+
+      if (action.type === "short") {
+        setCurShortSlug(action.slug);
+        setScreen("short");
+      }
+    },
+    [shortsDone],
+  );
+
+  const queueTimelineNavigation = useCallback(
+    (action: CelebrationDismissAction | null) => {
+      pendingNavigationRef.current = action;
+      setCelebrationDismiss(action);
+    },
+    [],
+  );
+
   const openCelebration = useCallback(
     (_state: CelebrationState, _source: CelebrationSource) => {
       setCelebration(_state);
     },
-    []
+    [],
   );
 
   const dismissCelebration = useCallback(() => {
     setCelebration(null);
-    const action = celebrationDismiss;
+    const action =
+      pendingNavigationRef.current ?? celebrationDismiss;
+    pendingNavigationRef.current = null;
     setCelebrationDismiss(null);
 
-    // 1. Did they just finish the LAST core stop?
-    if (action?.type === "traveler") {
+    if (!action) return;
 
-      // ── NEW LOGIC: Check if they already hit the 100-point goal OR finished everything ──
-      const currentBonusScore = computeBonusScore(shortsDone);
-      const wonExtraPrize = currentBonusScore >= 100;
-      // Check if ALL bonuses are completed
-      const allBonusesDone = Object.keys(shortsDone).length >= SHORTS.length;
+    applyTimelineNavigation(action);
+  }, [celebrationDismiss, applyTimelineNavigation]);
 
-      if (wonExtraPrize || allBonusesDone) {
-        setShowCongratulation(true); // Straight to congrats!
+  const advanceFromStop = useCallback(
+    (stopIndex: number) => {
+      applyTimelineNavigation(
+        planProgressAfterStop(stopIndex, stopsDone, shortsDone),
+      );
+    },
+    [applyTimelineNavigation, stopsDone, shortsDone],
+  );
+
+  const advanceFromShort = useCallback(
+    (slug: string) => {
+      applyTimelineNavigation(planProgressAfterShort(slug));
+    },
+    [applyTimelineNavigation],
+  );
+
+  const skipBonus = useCallback(
+    (slug: string) => {
+      const action = planSkipBonus(slug);
+      if (action) {
+        applyTimelineNavigation(action);
       } else {
-        setShowEndGameNudge(true); // Show the warning nudge first
+        setScreen("hunt");
       }
+    },
+    [applyTimelineNavigation],
+  );
 
-      setScreen("hunt"); // ── IMPORTANT: Keep them on the map screen so modals can pop! Do NOT put setHuntTab("comp") here!
-      return;
-    }
-
-    if (action?.type === "nextStop") {
-      setCurStop(action.index);
-      setScreen("stop");
-      return;
-    }
-
-    // 2. Otherwise, check for a mid-game bonus...
-    const timelineIndex = GAME_TIMELINE.findIndex((t) => t.type === "stop" && t.index === curStop);
-    if (timelineIndex !== -1) {
-      const nextItem = GAME_TIMELINE[timelineIndex + 1];
-      if (nextItem && nextItem.type === "short" && !shortsDone[nextItem.slug as string]) {
-        setShowBonusNudge(nextItem.slug as string);
-      }
-    }
-
-    setScreen("hunt");
-  }, [celebrationDismiss, curStop, shortsDone]);
+  const navigateTimeline = useCallback(
+    (action: CelebrationDismissAction) => {
+      applyTimelineNavigation(action);
+    },
+    [applyTimelineNavigation],
+  );
   /**
    * Cloud Synchronizer: Resolves remote progress and populates client memory banks
    */
@@ -298,7 +353,7 @@ export function GameApp() {
         }
 
         if (parsedPlayer) {
-          setPlayer(parsedPlayer);
+          setPlayer({ ...parsedPlayer, shopName: DEFAULT_SHOP_NAME });
         } else {
           setPlayer({ ...DEFAULT_PLAYER, email: sessionRes.email });
         }
@@ -322,7 +377,7 @@ export function GameApp() {
       email: "demo@phillips.com",
       school: "Lincoln Tech",
       role: "Student",
-      shopName: "Apex Precision Works",
+      shopName: DEFAULT_SHOP_NAME,
       avatarIndex: 0,
       avatarName: "SPEED DEMON",
     });
@@ -337,31 +392,30 @@ export function GameApp() {
   };
 
   const handleStopSubmit = (index: number, data: StopCompletion) => {
-
-
-
-    if (index < TOTAL_STOPS - 1) {
-
-
-      setCelebrationDismiss(null)
-    } else {
-      setCelebrationDismiss({ type: "traveler" });
-    }
+    const stopMeta = STOPS[index];
+    const enriched: StopCompletion = {
+      ...data,
+      challengeName: stopMeta?.co ?? data.challengeName,
+    };
+    const stopsWithCurrent = { ...stopsDone, [index]: enriched };
+    queueTimelineNavigation(
+      planProgressAfterStop(index, stopsWithCurrent, shortsDone),
+    );
 
     // setStopsDone((prev) => ({ ...prev, [index]: data }));
     setStopsDone((prev) => {
-      const next = { ...prev, [index]: data };
+      const next = { ...prev, [index]: enriched };
       saveGameSnapshot(next, shortsDone); // <-- Trigger auto-save here
       return next;
     });
 
-    if (data.rn) {
+    if (enriched.rn) {
       const s = STOPS[index];
       setRoster((r) => {
         const exists = r.some(
-          (e) => e.n === data.rn && e.c === (s.rc || s.co)
+          (e) => e.n === enriched.rn && e.c === (s.rc || s.co)
         );
-        return exists ? r : [...r, { n: data.rn!, c: s.rc || s.co }];
+        return exists ? r : [...r, { n: enriched.rn!, c: s.rc || s.co }];
       });
     }
 
@@ -372,8 +426,31 @@ export function GameApp() {
 
   const openStop = (index: number) => {
     setCurStop(index);
-
     setScreen("stop");
+  };
+
+  const openShort = (slug: string) => {
+    setCurShortSlug(slug);
+    setScreen("short");
+  };
+
+  const handleShortComplete = (slug: string, data: ShortCompletion) => {
+    const shortDef = SHORTS.find((s) => s.slug === slug);
+    const enriched: ShortCompletion = {
+      ...data,
+      challengeName: shortDef?.title ?? data.challengeName ?? slug,
+    };
+    const fullyDone = shortDef?.type === "app" ? !!enriched.qAnswered : !!enriched;
+
+    setShortsDone((prev) => {
+      const next = { ...prev, [slug]: enriched };
+      saveGameSnapshot(stopsDone, next);
+      return next;
+    });
+
+    queueTimelineNavigation(
+      fullyDone ? planProgressAfterShort(slug) : null,
+    );
   };
 
   const enterHuntHub = (tab: HuntTab = "stops") => {
@@ -381,90 +458,47 @@ export function GameApp() {
     setScreen("hunt");
   };
 
-  // NEW: The Core Authentication Logic
   const handleAuthSubmit = async (email: string) => {
-
-
-
     setIsAuthenticating(true);
 
     const cleanEmail = email.trim().toLowerCase();
-    setAuthEmail(cleanEmail); // Save email so Register or OTP screen can use it
+    setAuthEmail(cleanEmail);
 
     try {
-      // 1. Call your clean service layer using the email directly
-      const data = await GameService.registerEmail(cleanEmail);
-      // const data = {
-      //   success: true
-      // }
-
-      // 2. Check standardized success response
-      if (data.success) {
-
-
-        // It's a returning user! Go to OTP Verification
-        setScreen("otp");
-        showToast("SECURITY CODE SENT TO EMAIL");
-
-
-      } else {
-        // 3. Handle errors safely (e.g., "External API is down")
-        showToast(`⚠️ ${data.error.toUpperCase()}`);
-      }
-    } catch (error) {
-      showToast("⚠️ FATAL CONNECTION ERROR");
-    } finally {
-      setIsAuthenticating(false);
-    }
-  };
-
-  // Step 2: Submit OTP & Check Profile Status
-  const handleOtpSubmit = async (otp: string) => {
-    setIsAuthenticating(true);
-
-    try {
-      const data = await GameService.verifyOtp(authEmail, otp);
-
-
-
-
-
+      const data = await GameService.loginWithEmail(cleanEmail);
 
       if (data.success) {
-        // OTP was correct! Now, are they fully setup?
-        if (data.isProfileComplete) {
-          setIsDemo(false)
-          // Returning player with a complete profile!
-          const cleanEmail = data.user.emailId.trim().toLowerCase();
+        setIsDemo(false);
+        showToast("LOGIN SUCCESSFUL");
+
+        if (data.isProfileComplete && data.user) {
+          const profileEmail = (data.user.emailId ?? cleanEmail).trim().toLowerCase();
+          const first = data.user.firstName?.trim() ?? "";
+          const last = data.user.lastName?.trim() ?? "";
+          const displayName = [first, last].filter(Boolean).join(" ") || "Operator";
           const playerProfile = {
-            name: data.user.firstName + data.user.lastName || "Operator",
-            email: cleanEmail,
+            name: displayName,
+            email: profileEmail,
             school: data.user.schoolOrCompany || "My School",
             role: data.user.role || "Student",
-            shopName: data.user.operatorName,
-            avatarIndex: data.user.machinistCharacter ? parseInt(data.user.machinistCharacter) : 0,
-          }
+            shopName: DEFAULT_SHOP_NAME,
+            avatarIndex: data.user.machinistCharacter
+              ? parseInt(data.user.machinistCharacter, 10)
+              : 0,
+          };
 
-          // Note: Make sure data.user matches your PlayerProfile state structure. 
-          // You might need to map it if the database keys are different.
-          setPlayer(
-            playerProfile
-          );
-
-
-
+          setPlayer(playerProfile);
           localStorage.setItem("hunt_user_session", JSON.stringify(playerProfile));
           await hydrateRemoteProgress(playerProfile.email);
           setScreen("hunt");
         } else {
-          // New player, OR player who verified email but never picked an avatar
           setScreen("register");
         }
       } else {
-        showToast(`⚠️ ${data.error?.toUpperCase() || "INVALID CODE"}`);
+        showToast(`⚠️ ${(data.error || "LOGIN FAILED").toUpperCase()}`);
       }
-    } catch (error) {
-      showToast("⚠️ CONNECTION ERROR");
+    } catch {
+      showToast("⚠️ FATAL CONNECTION ERROR");
     } finally {
       setIsAuthenticating(false);
     }
@@ -481,13 +515,12 @@ export function GameApp() {
       const cleanEmail = p.email.trim().toLowerCase();
       const backendPayload = {
         emailId: cleanEmail,
-        // operatorName: p.name,
         firstName: firstName,
         lastName: lastName,
         phoneNumber: "0000000000",
         profilePicture: "",
         schoolOrCompany: p.school,
-        operatorName: p.shopName,
+        operatorName: p.name,
         role: p.role,
         machinistCharacter: p.avatarIndex.toString(),
         isProfileComplete: true,
@@ -505,9 +538,10 @@ export function GameApp() {
 
 
       if (data.success) {
-        setPlayer(p);
+        const profile = { ...p, shopName: DEFAULT_SHOP_NAME };
+        setPlayer(profile);
         setIsDemo(false)
-        localStorage.setItem("hunt_user_session", JSON.stringify(p));
+        localStorage.setItem("hunt_user_session", JSON.stringify(profile));
         cloudProgressExistsRef.current = false;
         setProgressStatus("loaded");
 
@@ -619,10 +653,7 @@ export function GameApp() {
     const gamePoint = newCoreScore + newBonusScore;
 
     // Package both tracking layers into a unified snapshot object
-    const snapshotData = {
-      stops: updatedStops,
-      shorts: updatedShorts,
-    };
+    const snapshotData = enrichProgressSnapshot(updatedStops, updatedShorts);
 
     // ── FIX 1: Rely STRICTLY on cloud existence reference tracker ──
     const isUpdate = cloudProgressExistsRef.current;
@@ -658,6 +689,10 @@ export function GameApp() {
   const isProgressReady =
     progressStatus === "loaded" || progressStatus === "error";
 
+  const clockRunning =
+    isProgressReady &&
+    (screen === "hunt" || screen === "stop" || screen === "short");
+
   return (
     <div className="relative h-dvh w-full overflow-hidden sm:mx-auto sm:max-w-[390px] sm:min-h-dvh sm:overflow-x-hidden sm:overflow-y-auto">
       <div className="relative flex h-full w-full min-h-0 flex-shrink-0 flex-col sm:min-h-dvh">
@@ -667,7 +702,7 @@ export function GameApp() {
         <div
           className="absolute inset-0 z-10 flex h-full w-full min-h-0 flex-col overflow-x-hidden overflow-y-auto max-sm:shadow-none sm:shadow-[0_0_80px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.06)]"
         >
-
+          <GameClockProvider stopsDone={stopsDone} running={clockRunning}>
           {/* background overlays  */}
           <div
             className="absolute inset-0 z-[3] pointer-events-none opacity-60"
@@ -710,16 +745,6 @@ export function GameApp() {
               isLoading={isAuthenticating}
               onNext={handleAuthSubmit}
               onBack={() => setScreen("splash")}
-            />
-          </ScreenSlot>
-
-          {/* B2: OTP Verification (For returning users) */}
-          <ScreenSlot active={screen === "otp"} direction="fwd">
-            <OtpScreen
-              email={authEmail}
-              isLoading={isAuthenticating}
-              onVerify={handleOtpSubmit}
-              onBack={() => setScreen("auth")}
             />
           </ScreenSlot>
 
@@ -771,26 +796,14 @@ export function GameApp() {
               roster={roster}
               activeTab={huntTab}
               isDemo={isDemo}
-              showBonusNudge={showBonusNudge}
-              setShowBonusNudge={setShowBonusNudge}
               showEndGameNudge={showEndGameNudge}
               setShowEndGameNudge={setShowEndGameNudge}
               showCongratulation={showCongratulation}
               setShowCongratulation={setShowCongratulation}
               onTabChange={setHuntTab}
               onOpenStop={openStop}
-
-              // onShortComplete={(slug, data) => {
-              //   setShortsDone((prev) => ({ ...prev, [slug]: data }));
-              // }}
-
-              onShortComplete={(slug, data) => {
-                setShortsDone((prev) => {
-                  const next = { ...prev, [slug]: data };
-                  saveGameSnapshot(stopsDone, next); // <-- Trigger auto-save here
-                  return next;
-                });
-              }}
+              onOpenShort={openShort}
+              onShortComplete={handleShortComplete}
               onCelebrate={(state) => openCelebration(state, "shorts")}
               onToast={showToast}
               onOpenMap={() => setIsMapOpen(true)}
@@ -805,12 +818,36 @@ export function GameApp() {
               stopIndex={curStop}
               player={player}
               stopsDone={stopsDone}
+              shortsDone={shortsDone}
               onBack={backHandler}
+              onAdvance={advanceFromStop}
+              onNavigateTimeline={navigateTimeline}
               onSubmit={handleStopSubmit}
               onNavigate={openStop}
               onToast={showToast}
               onCelebrate={(state) => openCelebration(state, "stop")}
               onOpenMap={() => setIsMapOpen(true)}
+              isDemo={isDemo}
+            />
+          </ScreenSlot>
+
+          {/* F2: Bonus challenge (inline, same flow as stops) */}
+          <ScreenSlot active={screen === "short" && isProgressReady && !!curShortSlug} direction="fwd">
+            <BonusChallengeScreen
+              slug={curShortSlug!}
+              isActive={screen === "short"}
+              player={player}
+              stopsDone={stopsDone}
+              shortsDone={shortsDone}
+              onBack={backHandler}
+              onAdvance={advanceFromShort}
+              onSkip={skipBonus}
+              onNavigateTimeline={navigateTimeline}
+              onComplete={handleShortComplete}
+              onCelebrate={(state) => openCelebration(state, "shorts")}
+              onToast={showToast}
+              onOpenMap={() => setIsMapOpen(true)}
+              onGoToBonusListing={() => enterHuntHub("shorts")}
               isDemo={isDemo}
             />
           </ScreenSlot>
@@ -843,6 +880,7 @@ export function GameApp() {
               </div>
             </div>
           )}
+          </GameClockProvider>
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { normalizeEmail, withSessionCookie } from "@/lib/game-session";
 
 const baseUrl = process.env.BACKEND_API_URL;
 
@@ -6,26 +7,28 @@ export async function POST(request: Request) {
   try {
     const { email } = await request.json();
 
-    if (!email) {
+    if (!email || typeof email !== "string") {
       return NextResponse.json(
         { success: false, error: "Email is required" },
         { status: 400 },
       );
     }
 
-    const externalApiPayload = {
-      emailId: email,
-    };
+    if (!baseUrl) {
+      return NextResponse.json(
+        { success: false, error: "Server config error" },
+        { status: 500 },
+      );
+    }
 
-    // === LATER: THE REAL EXTERNAL API CALL ===
-    const res = await fetch(`${baseUrl}/Login/SendOTP`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // Authorization: `Bearer ${process.env.EXTERNAL_API_SECRET_KEY}`,
+    const emailId = normalizeEmail(email);
+    const res = await fetch(
+      `${baseUrl}/Login/LoginWithEmail?emailId=${encodeURIComponent(emailId)}`,
+      {
+        method: "GET",
+        headers: { accept: "application/json" },
       },
-      body: JSON.stringify(externalApiPayload),
-    });
+    );
 
     if (!res.ok) {
       return NextResponse.json(
@@ -35,23 +38,39 @@ export async function POST(request: Request) {
     }
 
     const data = await res.json();
+
     if (data.statusCode === 200 && data.result) {
-      return NextResponse.json({
-        success: true,
-        isNewUser: data.result.isNewUser, // Extract the exact boolean
-        message: data.message?.[0] || "Success",
-      });
-    } else {
-      // If the API returned 200 but threw a business error (e.g., rate limited)
-      return NextResponse.json(
-        {
-          success: false,
-          error: data.errors?.[0] || "Unknown error occurred",
-        },
-        { status: 400 },
+      const sessionEmail =
+        data.result.emailId ?? data.result.user?.emailId ?? emailId;
+      const isProfileComplete =
+        data.result.isProfileComplete ??
+        data.result.user?.isProfileComplete ??
+        false;
+
+      return withSessionCookie(
+        NextResponse.json({
+          success: true,
+          isProfileComplete,
+          user: data.result.user,
+          verifiedAt: data.result.verifiedAt,
+          message: data.message?.[0] || "Login successful",
+        }),
+        sessionEmail,
       );
     }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: data.errors?.[0] || "Login failed",
+      },
+      { status: 400 },
+    );
   } catch (error) {
-    return NextResponse.json({ error: "Failed to login" }, { status: 500 });
+    console.error("Login API Error:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to login" },
+      { status: 500 },
+    );
   }
 }

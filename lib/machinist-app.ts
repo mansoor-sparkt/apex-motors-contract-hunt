@@ -1,7 +1,8 @@
 import { MACHINIST_APP_URL } from "@/constants";
 
 /** Opens the Phillips Machinist app download / deep link in a new tab. */
-export function openMachinistApp(): void {
+export function openMachinistApp(link?: string): void {
   if (typeof window === "undefined") return;
-  window.open(MACHINIST_APP_URL, "_blank", "noopener,noreferrer");
+  const url = link?.trim() || MACHINIST_APP_URL;
+  window.open(url, "_blank", "noopener,noreferrer");
 }

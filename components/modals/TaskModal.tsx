@@ -25,7 +25,7 @@ export function IncompleteBonusModal({
             BONUS UNLOCKED
           </h2>
           <p className="font-[family:var(--font-rajdhani)] text-[14px] text-[rgba(232,234,240,0.85)] mt-3 leading-relaxed px-2">
-            You completed the core stop, but an optional <span className="text-[#ffbb00] font-bold">Bonus Challenge</span> is available right here! Rack up bonus points to unlock the exclusive <span className="text-white font-bold">Bonus Prize </span>.
+            You completed all core stops! Optional <span className="text-[#ffbb00] font-bold">bonus challenges</span> are still on your hunt map. Rack up points to unlock the exclusive <span className="text-white font-bold">bonus prize</span>.
           </p>
         </div>
 

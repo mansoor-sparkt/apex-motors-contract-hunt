@@ -1,7 +1,10 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import { resolveMediaPreviewUrl } from "@/lib/media-preview";
+import {
+  resolveMediaPreviewUrl,
+  resolveVideoPreviewUrl,
+} from "@/lib/media-preview";
 
 // ── MEDIA PREVIEW MODAL ──────────────────────────────────────────────────────
 const MediaModal = ({
@@ -15,7 +18,10 @@ const MediaModal = ({
   title: string;
   onClose: () => void;
 }) => {
-  const resolvedSrc = resolveMediaPreviewUrl(previewUrl) ?? previewUrl;
+  const resolvedSrc =
+    (mediaType === "video"
+      ? resolveVideoPreviewUrl(previewUrl)
+      : resolveMediaPreviewUrl(previewUrl)) ?? previewUrl;
 
   return (
     <Dialog.Root open onOpenChange={(open) => !open && onClose()}>

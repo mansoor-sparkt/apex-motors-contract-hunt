@@ -6,7 +6,11 @@ import {
   isHeicLikeFile,
   isImageFile,
 } from "@/lib/image-to-png";
-export { resolveMediaPreviewUrl, MEDIA_RESIZER_BASE } from "@/lib/media-url";
+export {
+  resolveMediaPreviewUrl,
+  resolveVideoPreviewUrl,
+  MEDIA_RESIZER_BASE,
+} from "@/lib/media-url";
 
 const BROWSER_NATIVE_IMAGE_TYPES = new Set([
   "image/jpeg",

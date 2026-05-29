@@ -5,6 +5,7 @@ import { GameButton } from "./GameComponents";
 import {
   AVS,
   SHORTS,
+  DEFAULT_SHOP_NAME,
   computeBaseScore,
   computeBonusScore,
 } from "@/constants";
@@ -51,7 +52,7 @@ export function JobTravelerScreen({
   const av = AVS[player.avatarIndex] ?? AVS[0];
   const baseScore = computeBaseScore(stopsDone);
   const bonusScore = computeBonusScore(shortsDone);
-  const metaLine = `${player.shopName || player.school} · ${player.role}`;
+  const metaLine = `${player.shopName?.trim() || DEFAULT_SHOP_NAME} · ${player.role}`;
 
   const badges = [
     ...Object.values(stopsDone)

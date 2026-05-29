@@ -15,7 +15,13 @@ import splashImage from "@/assests/Home-screen.png";
 import { StaticImageData } from "next/image";
 
 export const TOTAL_STOPS = 6;
-export const MAX_SCORE = 220;
+export const MAX_SCORE = 320;
+/** App bonus: 10 pts screenshot + 15 pts knowledge check. */
+export const APP_BONUS_PHOTO_PTS = 10;
+export const APP_BONUS_ANSWER_PTS = 15;
+export const APP_BONUS_TOTAL_PTS = APP_BONUS_PHOTO_PTS + APP_BONUS_ANSWER_PTS;
+/** Max bonus-track points (4×25 app + 4×10 photo + 4×15 video). */
+export const MAX_BONUS_SCORE = 200;
 
 /** Phillips Machinist app — download / open (OneLink). */
 export const MACHINIST_APP_URL = "https://machinist.onelink.me/sVlw/";
@@ -428,11 +434,11 @@ export const STOPS = [
     co: "Phillips Corp",
     task: "The contract lands",
     story:
-      "Redline Robotics needs a planetary gearbox for a new robot arm — you're the machinist, Phillips is your shop.",
-    fi: "Photo of the contract for your parts order",
+      "The contract lands. Redline Robotics needs a planetary gearbox for a new robot arm — you're the machinist, Phillips Shop Works is your shop.",
+    fi: "At the Phillips Machinist booth, take a picture of the contract for your order.",
     bt: "calc", // Free Response
     bp: "How many parts did your customer order?",
-    targetAnswer: "20",
+    targetAnswer: "250",
     badge: "Contract Secured",
   },
   {
@@ -514,36 +520,95 @@ export const STOPS = [
 ];
 
 export const SHORTS = [
-  // 2 App Challenges (20 pts each)
+  // 4 App Challenges (25 pts each: 10 screenshot + 15 question)
   {
     slug: "dial-speed",
     em: "📱",
     title: "DIAL IN THE SPEED",
-    desc: "Use a simple tool to find your spindle speed and feedrate for cutting mild cold rolled steel with a 1/2 inch diameter end mill. Take a screen shot of the Simple Speeds and Feeds Calculator opened.",
+    task: "Phillips Machinist · Speeds & Feeds",
+    desc: "Dial in spindle speed and chip load with the Simple Speeds & Feeds calculator.",
+    story:
+      "Every cut has a sweet spot — how fast the tool spins, how fast it moves. Wrong numbers, and you break a tool or burn the part.",
+    fi: "Screenshot the Simple Speeds & Feeds Calculator open in the app.",
+    bp: "Use the calculator: what's the spindle speed for a 1/2\" 2-flute carbide endmill at 250 SFM and .002\" chip load?",
     type: "app" as const,
-    pts: 20,
+    pts: APP_BONUS_TOTAL_PTS,
     badge: "Speed Dialer",
+    calc: "Simple Speeds & Feeds",
     prompt:
-      "What is the spindle speed for a 1/2 inch dia. 2 flute carbide endmill at a Surface Speed of 250 feet per minute and a chip load of .002 Inches?",
-    options: ["210 RPM", "1,910 RPM", "2,010 RPM", "510 RPM"], // ── NEW: Multiple Choice Options
+      "Use the calculator: what's the spindle speed for a 1/2\" 2-flute carbide endmill at 250 SFM and .002\" chip load?",
+    options: ["210 RPM", "1,910 RPM", "2,010 RPM", "510 RPM"],
     targetAnswer: "1,910 RPM",
+    appLink: "https://machinist.onelink.me/sVlw/cmvwaf3x",
   },
   {
     slug: "crack-chart",
     em: "📱",
     title: "CRACK THE CHART",
-    desc: "Take a screen shot of the Tap Drill Chart.",
+    task: "Phillips Machinist · Tap Drill Chart",
+    desc: "Find the right pre-drill for tapping with the Tap Drill Chart.",
+    story:
+      "To cut threads (for a screw) into a hole, you drill a starter hole first — and the size has to be just right. The chart tells you which drill to grab.",
+    fi: "Screenshot the Tap Drill Chart in the app.",
+    bp: "Use the chart: what's the pre-drill for a 1/4-20 tap?",
     type: "app" as const,
-    pts: 20,
+    pts: APP_BONUS_TOTAL_PTS,
     badge: "Chart Cracker",
-    prompt: "What is the Pre-Drill for a 1/4-20 Tap?",
+    calc: "Tap Drill Chart",
+    prompt: "Use the chart: what's the pre-drill for a 1/4-20 tap?",
     options: [
-      "#7 .201 Drill",
-      "F .257 Drill",
-      "1/4 .250 Drill",
-      "#16 .177 Drill",
+      "#7 (.201\") Drill",
+      "F (.257\") Drill",
+      "1/4 (.250\") Drill",
+      "#16 (.177\") Drill",
     ],
-    targetAnswer: "#7 .201 Drill", // Matched strictly to the option string so the button grades correctly!
+    targetAnswer: "#7 (.201\") Drill",
+    appLink: "https://machinist.onelink.me/sVlw/6ztbw4ry",
+  },
+  {
+    slug: "gdt-form-controls",
+    em: "📱",
+    title: "GD&T — FORM CONTROLS",
+    task: "Phillips Machinist · GD&T Reference",
+    desc: "Learn form controls in GD&T — flat, round, and true to shape.",
+    story:
+      "Engineers use a symbol language called GD&T (Geometric Dimensioning & Tolerancing) to say how perfect a part needs to be. \"Form\" controls check whether a single surface is actually true to its ideal shape — is a flat face really flat? Is a round hole really round?",
+    fi: "Screenshot the GD&T reference open in the app.",
+    bp: "Which are Form controls?",
+    type: "app" as const,
+    pts: APP_BONUS_TOTAL_PTS,
+    badge: "Form Master",
+    calc: "GD&T Reference",
+    prompt: "Which are Form controls?",
+    options: [
+      "Straightness",
+      "Flatness",
+      "Circularity",
+      "Cylindricity",
+      "All of the above",
+    ],
+    targetAnswer: "All of the above",
+    appLink: "https://machinist.onelink.me/sVlw/hzn4wtkk",
+  },
+  {
+    slug: "true-position",
+    em: "📱",
+    title: "TRUE POSITION",
+    task: "Phillips Machinist · True Position",
+    desc: "Use the True Position calculator to check hole location tolerance.",
+    story:
+      "A hole on a drawing has a target spot. \"True Position\" is the rule for how far off-target the hole can drift before the part fails inspection.",
+    fi: "Screenshot the True Position calculator open in the app.",
+    bp: "If max deviation in X and Y is .001\" and the tolerance is .005\", what's the True Position diameter?",
+    type: "app" as const,
+    pts: APP_BONUS_TOTAL_PTS,
+    badge: "Position Pro",
+    calc: "True Position",
+    prompt:
+      "If max deviation in X and Y is .001\" and the tolerance is .005\", what's the True Position diameter?",
+    options: [".005", ".002", ".003", ".050"],
+    targetAnswer: ".002",
+    appLink: "https://machinist.onelink.me/sVlw/5oi3dvkd",
   },
 
   // 4 Photos (10 pts each)
@@ -560,7 +625,9 @@ export const SHORTS = [
     slug: "album-cover",
     em: "🎵",
     title: "DROP THE ALBUM",
-    desc: "Assemble your crew. No shop runs solo. Group photo styled as a machining “album cover”.",
+    desc: "Heavy metal isn't just a genre. Every album needs a cover. Solo or group photo styled as a machining \"album cover.\"",
+    story: "Heavy metal isn't just a genre. Every album needs a cover.",
+    fi: "Solo or group photo styled as a machining \"album cover.\"",
     type: "photo" as const,
     pts: 10,
     badge: "Platinum Record",
@@ -584,14 +651,17 @@ export const SHORTS = [
     badge: "Living Blueprint",
   },
 
-  // 4 Videos (20 pts each)
+  // 4 Videos (15 pts each)
   {
     slug: "action-hero",
     em: "🎬",
     title: "SLOW-MO HERO",
-    desc: "Respect the iron. You're surrounded by serious machines — own it. Take a Slo-mo walk-away from a CNC machine.",
+    desc: "Sharp teeth, hot chips, spinning steel. Walk away from it slow — and don't look back. Slo-mo walk-away from a CNC machine.",
+    story:
+      "Sharp teeth, hot chips, spinning steel. Walk away from it slow — and don't look back.",
+    fi: "Slo-mo walk-away from a CNC machine.",
     type: "video" as const,
-    pts: 20,
+    pts: 15,
     badge: "Blockbuster",
   },
   {
@@ -600,7 +670,7 @@ export const SHORTS = [
     title: "THE PITCH",
     desc: "30-sec infomercial for Phillips Machinist.",
     type: "video" as const,
-    pts: 20,
+    pts: 15,
     badge: "Closer",
   },
   {
@@ -609,7 +679,7 @@ export const SHORTS = [
     title: "THE ELEVATOR",
     desc: "Explain what a machinist does in 15 seconds.",
     type: "video" as const,
-    pts: 20,
+    pts: 15,
     badge: "Smooth Operator",
   },
   {
@@ -618,7 +688,7 @@ export const SHORTS = [
     title: "IN TOLERANCE",
     desc: "Your best 'in tolerance' celebration on camera.",
     type: "video" as const,
-    pts: 20,
+    pts: 15,
     badge: "Victory Lap",
   },
 ];
@@ -647,16 +717,19 @@ export const GAME_TIMELINE = [
   { type: "stop", index: 3 }, // Mastercam
   { type: "short", slug: "crack-chart" }, // BONUS: crack-chart
   { type: "stop", index: 4 }, // Haas
+  // gdt-form-controls & true-position: Bonus tab only (not on main stops timeline)
   { type: "short", slug: "action-hero" }, // BONUS: action-hero
   { type: "stop", index: 5 }, // ZEISS
 ];
+
+export const DEFAULT_SHOP_NAME = "Phillips Shop Works";
 
 export const DEFAULT_PLAYER: PlayerProfile = {
   name: "Operator",
   email: "",
   school: "—",
   role: "Student",
-  shopName: "",
+  shopName: DEFAULT_SHOP_NAME,
   avatarIndex: 0,
   avatarName: "SPEED DEMON",
 };
@@ -706,18 +779,18 @@ export function computeBonusScore(shortsDone: Record<string, any>): number {
     if (item && shortsDone[slug]) {
       // score += item.pts;
       if (item.type === "app") {
-        // APP CHALLENGES: 10 pts for the photo + 10 pts if they answered the question
-        score += 10;
+        // APP CHALLENGES: 10 pts screenshot + 15 pts knowledge check
+        score += APP_BONUS_PHOTO_PTS;
         if (shortsDone[slug].qAnswered) {
-          score += 10;
+          score += APP_BONUS_ANSWER_PTS;
         }
       } else {
-        // PHOTOS (10) & VIDEOS (20)
+        // PHOTOS (10) & VIDEOS (15)
         score += item.pts;
       }
     }
   });
-  return Math.min(score, 160); // Caps progress at the 100 goal mark
+  return Math.min(score, MAX_BONUS_SCORE);
 }
 
 export function getActiveStopIndex(

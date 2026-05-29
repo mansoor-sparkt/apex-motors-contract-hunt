@@ -7,6 +7,7 @@ import {
   convertImageToPng,
   MAX_UPLOAD_BYTES,
 } from "@/lib/image-to-png";
+import { isVideoFile, prepareVideoForUpload } from "@/lib/media-upload";
 import {
   postFormDataWithProgress,
   type UploadProgressHandler,
@@ -16,82 +17,14 @@ import { encryptProgressPayload } from "@/lib/progress-payload-crypto";
 
 export const GameService = {
   /**
-   * 1. Check if an email exists
+   * Login with email (no OTP) — sets session cookie via /api/auth/login.
    */
-  // async registerEmail(email: string) {
-  //   const response = await fetch("/api/auth/login", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({ email }),
-  //   });
-  //   return response.json();
-  // },
-
-  async registerEmail(email: string) {
+  async loginWithEmail(email: string) {
     try {
       const response = await apiFetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
-      });
-      return await response.json();
-    } catch (error) {
-      // Catch total network failures (e.g. WiFi turned off)
-      return { success: false, error: "Network connection failed" };
-    }
-  },
-
-  //otp error
-  //   {
-  //   "statusCode": 404,
-  //   "message": null,
-  //   "result": null,
-  //   "errors": [
-  //     "Invalid OTP."
-  //   ]
-  // }
-
-  //otp response
-  //   {
-  //   "statusCode": 200,
-  //   "message": [
-  //     "Login successful."
-  //   ],
-  //   "result": {
-  //     "emailId": "mansoor@sparkt.in",
-  //     "verifiedAt": "2026-05-21T08:51:39.4509405Z",
-  //     "isProfileComplete": false,
-  //     "user": {
-  //       "loginUserId": "d0d5c416-2993-4c95-bae4-81ea0ff6f070",
-  //       "emailId": "mansoor@sparkt.in",
-  //       "operatorName": null,
-  //       "firstName": null,
-  //       "lastName": null,
-  //       "phoneNumber": null,
-  //       "profilePicture": null,
-  //       "schoolOrCompany": null,
-  //       "role": null,
-  //       "machinistCharacter": null,
-  //       "isProfileComplete": false,
-  //       "isActive": true
-  //     }
-  //   },
-  //   "errors": null
-  // }
-
-  /**
-   * Verify OTP for returning users
-   */
-  async verifyOtp(email: string, code: string) {
-    try {
-      const payloade = {
-        emailId: email,
-        otp: code,
-      };
-      const response = await apiFetch("/api/auth/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payloade),
       });
       return await response.json();
     } catch (error) {
@@ -135,7 +68,7 @@ export const GameService = {
     emailId: string,
     onProgress?: UploadProgressHandler,
   ) {
-    const isVideo = file.type.startsWith("video/");
+    const isVideo = isVideoFile(file);
 
     const reportProgress = (pct: number) =>
       onProgress?.(Math.min(100, Math.max(0, pct)));
@@ -147,11 +80,27 @@ export const GameService = {
       formData.append("EmailId", emailId);
 
       if (isVideo) {
-        formData.append("UploadVideo", file);
+        reportProgress(2);
+        let uploadFile: File;
+        try {
+          uploadFile = await prepareVideoForUpload(file);
+        } catch (error) {
+          return {
+            success: false,
+            error:
+              error instanceof Error
+                ? error.message
+                : "Could not prepare video for upload.",
+          };
+        }
+        reportProgress(8);
+        formData.append("UploadVideo", uploadFile);
         return await postFormDataWithProgress(
           "/api/game/mediavideo",
           formData,
-          reportProgress,
+          (uploadPct) => {
+            reportProgress(8 + Math.round(uploadPct * 0.92));
+          },
         );
       }
 

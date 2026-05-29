@@ -333,11 +333,13 @@
 
 /* ─── Animations ─────────────────────────────────────────────────────────── */
 @keyframes blip {
+
   0%,
   100% {
     opacity: 1;
     transform: translateY(-50%) scale(1);
   }
+
   50% {
     opacity: 0.4;
     transform: translateY(-50%) scale(0.7);
@@ -345,10 +347,12 @@
 }
 
 @keyframes pp {
+
   0%,
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.4;
   }
@@ -358,6 +362,7 @@
   from {
     top: -2px;
   }
+
   to {
     top: 100%;
   }
@@ -368,6 +373,7 @@
     transform: translateX(100%);
     opacity: 0.6;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -379,6 +385,7 @@
     transform: translateX(-100%);
     opacity: 0.6;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -389,6 +396,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -399,6 +407,7 @@
     opacity: 0;
     transform: scale(0.55);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -410,9 +419,11 @@
     transform: scale(0.2);
     opacity: 0;
   }
+
   60% {
     transform: scale(1.15);
   }
+
   to {
     transform: scale(1);
     opacity: 1;
@@ -423,6 +434,7 @@
   from {
     transform: translate(-50%, -60%) rotate(0deg);
   }
+
   to {
     transform: translate(-50%, -60%) rotate(360deg);
   }
@@ -432,16 +444,19 @@
   from {
     transform: translateX(-100%);
   }
+
   to {
     transform: translateX(100%);
   }
 }
 
 @keyframes blink {
+
   0%,
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.15;
   }
@@ -452,6 +467,7 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
@@ -461,16 +477,20 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   html {
     height: 100%;
   }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-rajdhani);
     color: var(--txt);
     height: 100%;
   }
+
   @media (max-width: 639px) {
+
     html,
     body {
       height: 100dvh;
@@ -482,19 +502,16 @@
 @layer components {
   .game-hud {
     min-height: calc(48px + env(safe-area-inset-top, 0px));
-    padding: env(safe-area-inset-top, 0px) max(14px, env(safe-area-inset-right, 0px)) 0
-      max(14px, env(safe-area-inset-left, 0px));
+    padding: env(safe-area-inset-top, 0px) max(14px, env(safe-area-inset-right, 0px)) 0 max(14px, env(safe-area-inset-left, 0px));
     display: flex;
     align-items: center;
     gap: 10px;
     flex-shrink: 0;
     position: relative;
     z-index: 20;
-    background: linear-gradient(
-      to bottom,
-      rgba(4, 5, 6, 0.85),
-      rgba(4, 5, 6, 0.8)
-    );
+    background: linear-gradient(to bottom,
+        rgba(4, 5, 6, 0.85),
+        rgba(4, 5, 6, 0.8));
     border-bottom: 1px solid var(--bdr);
   }
 
@@ -519,23 +536,17 @@
   .game-hud-logo {
     display: flex;
     align-items: center;
-    gap: 5px;
     flex-shrink: 0;
+    min-width: 0;
   }
 
-  .game-hud-lm {
-    font-family: var(--font-orbitron);
-    font-size: 11px;
-    font-weight: 900;
-    color: var(--o);
-    letter-spacing: 0.06em;
-  }
-
-  .game-hud-ls {
-    font-family: var(--font-share-mono);
-    font-size: 9px;
-    color: var(--mut);
-    letter-spacing: 0.14em;
+  .game-hud-logo-img {
+    display: block;
+    width: auto;
+    height: 32px;
+    max-width: min(200px, 58vw);
+    object-fit: contain;
+    object-position: left center;
   }
 
   .game-hud-sep {
@@ -580,14 +591,12 @@
     border: 1px solid var(--bdr);
     background: rgba(241, 92, 48, 0.06);
     letter-spacing: 0.06em;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 6px) 0,
-      100% 6px,
-      100% 100%,
-      6px 100%,
-      0 calc(100% - 6px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 6px) 0,
+        100% 6px,
+        100% 100%,
+        6px 100%,
+        0 calc(100% - 6px));
     transition: background 0.15s;
   }
 
@@ -602,6 +611,37 @@
   .game-hud-sp {
     width: 52px;
     flex-shrink: 0;
+  }
+
+  .game-hud-clock {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border: 1px solid rgba(241, 92, 48, 0.35);
+    background: rgba(241, 92, 48, 0.08);
+    clip-path: polygon(0 0,
+        calc(100% - 5px) 0,
+        100% 5px,
+        100% 100%,
+        5px 100%,
+        0 calc(100% - 5px));
+  }
+
+  .game-hud-clock-ic {
+    font-size: 11px;
+    line-height: 1;
+    opacity: 0.9;
+  }
+
+  .game-hud-clock-val {
+    font-family: var(--font-orbitron);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
   }
 
   .game-scroll {
@@ -647,12 +687,10 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.07),
-      transparent
-    );
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.07),
+        transparent);
     transform: translateX(-100%);
     transition: transform 0.4s;
     pointer-events: none;
@@ -665,14 +703,12 @@
   .game-btn-p {
     background: var(--o);
     color: #fff;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 14px) 0,
-      100% 14px,
-      100% 100%,
-      14px 100%,
-      0 calc(100% - 14px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 14px) 0,
+        100% 14px,
+        100% 100%,
+        14px 100%,
+        0 calc(100% - 14px));
     box-shadow:
       0 0 24px rgba(241, 92, 48, 0.45),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -687,14 +723,12 @@
     background: rgba(8, 10, 14, 0.7);
     color: var(--o);
     border: 1px solid var(--bdr);
-    clip-path: polygon(
-      0 0,
-      calc(100% - 10px) 0,
-      100% 10px,
-      100% 100%,
-      10px 100%,
-      0 calc(100% - 10px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 10px) 0,
+        100% 10px,
+        100% 100%,
+        10px 100%,
+        0 calc(100% - 10px));
   }
 
   .game-btn-s:hover {
@@ -770,14 +804,12 @@
     font-size: 13px;
     outline: none;
     transition: border-color 0.2s;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 7px) 0,
-      100% 7px,
-      100% 100%,
-      7px 100%,
-      0 calc(100% - 7px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 7px) 0,
+        100% 7px,
+        100% 100%,
+        7px 100%,
+        0 calc(100% - 7px));
   }
 
   .game-input:focus {
@@ -809,14 +841,12 @@
     align-items: center;
     gap: 4px;
     transition: all 0.15s;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 6px) 0,
-      100% 6px,
-      100% 100%,
-      6px 100%,
-      0 calc(100% - 6px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 6px) 0,
+        100% 6px,
+        100% 100%,
+        6px 100%,
+        0 calc(100% - 6px));
   }
 
   .game-role-b.sel {
@@ -843,14 +873,12 @@
     cursor: pointer;
     transition: all 0.2s;
     position: relative;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 10px) 0,
-      100% 10px,
-      100% 100%,
-      10px 100%,
-      0 calc(100% - 10px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 10px) 0,
+        100% 10px,
+        100% 100%,
+        10px 100%,
+        0 calc(100% - 10px));
   }
 
   .game-av-c::before {
@@ -987,14 +1015,12 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     border: 1px solid;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 5px) 0,
-      100% 5px,
-      100% 100%,
-      5px 100%,
-      0 calc(100% - 5px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 5px) 0,
+        100% 5px,
+        100% 100%,
+        5px 100%,
+        0 calc(100% - 5px));
   }
 
   .game-tag-o {
@@ -1264,14 +1290,12 @@
     padding: 10px 14px;
     background: rgba(241, 92, 48, 0.12);
     border: 1px solid var(--bdr);
-    clip-path: polygon(
-      0 0,
-      calc(100% - 8px) 0,
-      100% 8px,
-      100% 100%,
-      8px 100%,
-      0 calc(100% - 8px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 8px) 0,
+        100% 8px,
+        100% 100%,
+        8px 100%,
+        0 calc(100% - 8px));
     cursor: pointer;
     transition: background 0.15s;
   }
@@ -1336,11 +1360,9 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-      to bottom,
-      rgba(4, 5, 6, 0.95),
-      rgba(4, 5, 6, 0.7)
-    );
+    background: linear-gradient(to bottom,
+        rgba(4, 5, 6, 0.95),
+        rgba(4, 5, 6, 0.7));
   }
 
   .game-hunt-av {
@@ -1352,14 +1374,12 @@
     font-size: 18px;
     background: rgba(241, 92, 48, 0.12);
     border: 1px solid var(--bdr);
-    clip-path: polygon(
-      0 0,
-      calc(100% - 5px) 0,
-      100% 5px,
-      100% 100%,
-      5px 100%,
-      0 calc(100% - 5px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 5px) 0,
+        100% 5px,
+        100% 100%,
+        5px 100%,
+        0 calc(100% - 5px));
   }
 
   .game-bnav {
@@ -1412,14 +1432,12 @@
     pointer-events: none;
     white-space: nowrap;
     z-index: 600;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 8px) 0,
-      100% 8px,
-      100% 100%,
-      8px 100%,
-      0 calc(100% - 8px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 8px) 0,
+        100% 8px,
+        100% 100%,
+        8px 100%,
+        0 calc(100% - 8px));
   }
 
   .game-toast.on {
@@ -1452,14 +1470,12 @@
     text-align: center;
     width: 300px;
     max-width: 90vw;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 16px) 0,
-      100% 16px,
-      100% 100%,
-      16px 100%,
-      0 calc(100% - 16px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 16px) 0,
+        100% 16px,
+        100% 100%,
+        16px 100%,
+        0 calc(100% - 16px));
     animation: cbPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
     position: relative;
   }
@@ -1496,14 +1512,12 @@
     background: rgba(241, 92, 48, 0.03);
     position: relative;
     overflow: hidden;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 8px) 0,
-      100% 8px,
-      100% 100%,
-      8px 100%,
-      0 calc(100% - 8px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 8px) 0,
+        100% 8px,
+        100% 100%,
+        8px 100%,
+        0 calc(100% - 8px));
   }
 
   .game-photo-box::before {
@@ -1565,14 +1579,12 @@
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid var(--bdr);
     overflow: hidden;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 4px) 0,
-      100% 4px,
-      100% 100%,
-      4px 100%,
-      0 calc(100% - 4px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 4px) 0,
+        100% 4px,
+        100% 100%,
+        4px 100%,
+        0 calc(100% - 4px));
   }
 
   .game-upload-progress-fill {
@@ -1613,14 +1625,12 @@
     background: rgba(8, 9, 12, 0.98);
     border: 1px solid var(--bdr);
     padding: 14px;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 12px) 0,
-      100% 12px,
-      100% 100%,
-      12px 100%,
-      0 calc(100% - 12px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 12px) 0,
+        100% 12px,
+        100% 100%,
+        12px 100%,
+        0 calc(100% - 12px));
   }
 
   .game-share-fallback-head {
@@ -1688,14 +1698,12 @@
     font-size: 13px;
     line-height: 1.5;
     transition: all 0.15s;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 7px) 0,
-      100% 7px,
-      100% 100%,
-      7px 100%,
-      0 calc(100% - 7px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 7px) 0,
+        100% 7px,
+        100% 100%,
+        7px 100%,
+        0 calc(100% - 7px));
     margin-bottom: 6px;
     text-align: left;
     width: 100%;
@@ -1737,14 +1745,12 @@
     letter-spacing: 0.1em;
     color: var(--o);
     transition: all 0.15s;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 6px) 0,
-      100% 6px,
-      100% 100%,
-      6px 100%,
-      0 calc(100% - 6px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 6px) 0,
+        100% 6px,
+        100% 100%,
+        6px 100%,
+        0 calc(100% - 6px));
   }
 
   .game-snav:hover:not(:disabled) {
@@ -1766,22 +1772,18 @@
   }
 
   .story-bg {
-    background: linear-gradient(
-      135deg,
-      rgba(5, 6, 8, 0.96),
-      rgba(12, 14, 20, 0.95)
-    );
+    background: linear-gradient(135deg,
+        rgba(5, 6, 8, 0.96),
+        rgba(12, 14, 20, 0.95));
   }
 
   .gif-box {
-    clip-path: polygon(
-      0 0,
-      calc(100% - 6px) 0,
-      100% 6px,
-      100% 100%,
-      6px 100%,
-      0 calc(100% - 6px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 6px) 0,
+        100% 6px,
+        100% 100%,
+        6px 100%,
+        0 calc(100% - 6px));
   }
 
   .game-share-btns {
@@ -1802,7 +1804,9 @@
     flex-direction: column;
     flex: 1;
     min-height: 0;
+    min-width: 0;
     width: 100%;
+    max-width: 100%;
     position: relative;
     z-index: 5;
   }
@@ -1827,12 +1831,141 @@
     gap: 4px;
   }
 
-  /* Shorts grid (v13 sc2) */
+  /* Shorts grid (v13 sc2) — 2-up photos; Phillips app spans full row */
   .game-shorts-g {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
     gap: 8px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     padding: 4px 14px 24px;
+  }
+
+  .game-shorts-item {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* 2-up tiles: stretch to equal row height */
+  .game-shorts-item:not(.game-shorts-item--full) {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+  }
+
+  .game-shorts-item .game-sc2 {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .game-shorts-item:not(.game-shorts-item--full) .game-sc2--tile {
+    flex: 1;
+    height: 100%;
+    min-height: 100%;
+  }
+
+  /* Phillips Machinist app bonuses — full width; photo/video stay 2-up */
+  .game-shorts-item--full {
+    grid-column: span 2;
+  }
+
+  .game-shorts-item:not(.game-shorts-item--full) .game-sc2-title {
+    font-size: 10px;
+  }
+
+  .game-shorts-item:not(.game-shorts-item--full) .game-sc2-desc {
+    font-size: 12px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+    min-height: calc(4 * 1.4 * 12px);
+  }
+
+  /* Full-width app bonus rows in listing */
+  .game-shorts-item--full .game-sc2-desc,
+  .game-sc2--app-list .game-sc2-desc {
+    font-size: 13px;
+    line-height: 1.45;
+    color: rgba(232, 234, 240, 0.82);
+  }
+
+  .game-shorts-item:not(.game-shorts-item--full) .game-sc2-foot {
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: auto;
+    flex-shrink: 0;
+  }
+
+  .game-sc2--tile .game-sc2-actions {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-height: 0;
+  }
+
+  .game-sc2--tile .game-sc2-upload-btn {
+    width: 100%;
+    flex: 0 0 auto;
+    height: 44px;
+    min-height: 44px;
+    max-height: 44px;
+    padding: 4px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border: 1px dashed rgba(241, 92, 48, 0.4);
+    background: rgba(241, 92, 48, 0.03);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    clip-path: polygon(0 0,
+        calc(100% - 7px) 0,
+        100% 7px,
+        100% 100%,
+        7px 100%,
+        0 calc(100% - 7px));
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .game-sc2--tile .game-sc2-upload-btn:disabled {
+    cursor: default;
+    border-color: rgba(0, 229, 255, 0.45);
+    background: rgba(0, 229, 255, 0.04);
+  }
+
+  .game-sc2--tile .game-sc2-upload-btn--preview {
+    height: 52px;
+    min-height: 52px;
+    max-height: 52px;
+    padding: 0;
+    border-style: solid;
+    border-color: rgba(57, 255, 20, 0.55);
+    background: rgba(57, 255, 20, 0.06);
+    cursor: pointer;
+  }
+
+  .game-sc2--tile .game-sc2-upload-btn--preview:hover {
+    border-color: rgba(57, 255, 20, 0.75);
+    background: rgba(57, 255, 20, 0.1);
+  }
+
+  .game-sc2--tile .game-sc2-upload-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
   }
 
   .game-sc2 {
@@ -1843,14 +1976,12 @@
     flex-direction: column;
     gap: 6px;
     backdrop-filter: blur(6px);
-    clip-path: polygon(
-      0 0,
-      calc(100% - 8px) 0,
-      100% 8px,
-      100% 100%,
-      8px 100%,
-      0 calc(100% - 8px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 8px) 0,
+        100% 8px,
+        100% 100%,
+        8px 100%,
+        0 calc(100% - 8px));
     position: relative;
   }
 
@@ -1914,14 +2045,12 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     transition: background 0.15s;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 6px) 0,
-      100% 6px,
-      100% 100%,
-      6px 100%,
-      0 calc(100% - 6px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 6px) 0,
+        100% 6px,
+        100% 100%,
+        6px 100%,
+        0 calc(100% - 6px));
   }
 
   button.game-sc2-upload:hover {
@@ -1947,14 +2076,12 @@
     overflow: hidden;
     min-height: 72px;
     width: 100%;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 6px) 0,
-      100% 6px,
-      100% 100%,
-      6px 100%,
-      0 calc(100% - 6px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 6px) 0,
+        100% 6px,
+        100% 100%,
+        6px 100%,
+        0 calc(100% - 6px));
   }
 
   .game-sc2-media:hover {
@@ -1986,14 +2113,12 @@
     max-height: 88px;
     object-fit: cover;
     display: block;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 6px) 0,
-      100% 6px,
-      100% 100%,
-      6px 100%,
-      0 calc(100% - 6px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 6px) 0,
+        100% 6px,
+        100% 100%,
+        6px 100%,
+        0 calc(100% - 6px));
   }
 
   .game-sc2-media.expanded .game-sc2-preview {
@@ -2005,14 +2130,12 @@
     max-height: 88px;
     display: block;
     background: #000;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 6px) 0,
-      100% 6px,
-      100% 100%,
-      6px 100%,
-      0 calc(100% - 6px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 6px) 0,
+        100% 6px,
+        100% 100%,
+        6px 100%,
+        0 calc(100% - 6px));
   }
 
   .game-sc2-media.expanded .game-sc2-preview-video {
@@ -2062,14 +2185,12 @@
     flex-shrink: 0;
     position: relative;
     z-index: 5;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 8px) 0,
-      100% 8px,
-      100% 100%,
-      8px 100%,
-      0 calc(100% - 8px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 8px) 0,
+        100% 8px,
+        100% 100%,
+        8px 100%,
+        0 calc(100% - 8px));
     backdrop-filter: blur(6px);
   }
 
@@ -2112,14 +2233,12 @@
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid var(--bdr);
     flex-shrink: 0;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 4px) 0,
-      100% 4px,
-      100% 100%,
-      4px 100%,
-      0 calc(100% - 4px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 4px) 0,
+        100% 4px,
+        100% 100%,
+        4px 100%,
+        0 calc(100% - 4px));
   }
 
   .game-lb-info {
@@ -2187,14 +2306,12 @@
     background: rgba(5, 6, 8, 0.75);
     border: 1px solid var(--bdr);
     overflow: hidden;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 12px) 0,
-      100% 12px,
-      100% 100%,
-      12px 100%,
-      0 calc(100% - 12px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 12px) 0,
+        100% 12px,
+        100% 100%,
+        12px 100%,
+        0 calc(100% - 12px));
     position: relative;
     backdrop-filter: blur(10px);
   }
@@ -2210,11 +2327,9 @@
   }
 
   .game-trav-top {
-    background: linear-gradient(
-      135deg,
-      rgba(241, 92, 48, 0.14),
-      rgba(177, 77, 255, 0.06)
-    );
+    background: linear-gradient(135deg,
+        rgba(241, 92, 48, 0.14),
+        rgba(177, 77, 255, 0.06));
     padding: 14px;
     display: flex;
     align-items: center;
@@ -2232,14 +2347,12 @@
     background: rgba(241, 92, 48, 0.1);
     border: 1px solid var(--bdr);
     flex-shrink: 0;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 5px) 0,
-      100% 5px,
-      100% 100%,
-      5px 100%,
-      0 calc(100% - 5px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 5px) 0,
+        100% 5px,
+        100% 100%,
+        5px 100%,
+        0 calc(100% - 5px));
   }
 
   .game-trav-lbl {
@@ -2305,14 +2418,12 @@
     padding: 4px 9px;
     font-family: var(--font-share-mono);
     font-size: 10px;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 5px) 0,
-      100% 5px,
-      100% 100%,
-      5px 100%,
-      0 calc(100% - 5px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 5px) 0,
+        100% 5px,
+        100% 100%,
+        5px 100%,
+        0 calc(100% - 5px));
   }
 
   .game-team-r {
@@ -2343,14 +2454,12 @@
     padding: 10px 14px;
     width: 100%;
     cursor: pointer;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 8px) 0,
-      100% 8px,
-      100% 100%,
-      8px 100%,
-      0 calc(100% - 8px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 8px) 0,
+        100% 8px,
+        100% 100%,
+        8px 100%,
+        0 calc(100% - 8px));
     transition: background 0.15s;
   }
 
@@ -2394,14 +2503,12 @@
     border: 1px solid var(--bdr);
     cursor: pointer;
     transition: all 0.15s;
-    clip-path: polygon(
-      0 0,
-      calc(100% - 7px) 0,
-      100% 7px,
-      100% 100%,
-      7px 100%,
-      0 calc(100% - 7px)
-    );
+    clip-path: polygon(0 0,
+        calc(100% - 7px) 0,
+        100% 7px,
+        100% 100%,
+        7px 100%,
+        0 calc(100% - 7px));
     backdrop-filter: blur(6px);
   }
 
@@ -2432,11 +2539,9 @@
     padding: 14px;
     text-align: center;
     flex-shrink: 0;
-    background: linear-gradient(
-      to bottom,
-      rgba(241, 92, 48, 0.08),
-      transparent
-    );
+    background: linear-gradient(to bottom,
+        rgba(241, 92, 48, 0.08),
+        transparent);
   }
 
   .game-comp-hero .game-bc {
@@ -2446,7 +2551,7 @@
     margin-bottom: 8px;
   }
 
-  .game-comp-hero .game-bc > span {
+  .game-comp-hero .game-bc>span {
     margin: 0 5px;
     color: var(--o);
   }

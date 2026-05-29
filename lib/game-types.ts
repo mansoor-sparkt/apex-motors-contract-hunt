@@ -39,6 +39,8 @@ export interface StopCompletion {
   timeSpent?: number;
   previewUrl?: string;
   selectedAnswer: string;
+  /** Stop label in cloud progress JSON (booth company name). */
+  challengeName?: string;
 }
 
 /** Shop floor short submission with local media preview. */
@@ -48,6 +50,8 @@ export interface ShortCompletion {
   badge: string;
   qAnswered?: boolean;
   points: number;
+  /** Bonus challenge display title — included in cloud progress JSON. */
+  challengeName?: string;
 }
 
 export interface RosterEntry {
@@ -66,11 +70,11 @@ export type AppScreen =
   | "splash"
   | "intro"
   | "auth"
-  | "otp"
   | "register"
   | "avatar"
   | "hunt"
-  | "stop";
+  | "stop"
+  | "short";
 
 export type CelebrationSource = "stop" | "shorts";
 

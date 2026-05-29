@@ -87,7 +87,7 @@ export function SplashScreen({
               { cls: "top-[22px] left-[22px]", label: "ZONE A" },
               { cls: "top-[22px] right-[22px] flex-row-reverse", label: "NLSC 2026" },
               { cls: "bottom-[22px] left-[22px]", label: "8 STOPS" },
-              { cls: "bottom-[22px] right-[22px] flex-row-reverse", label: "160 PTS MAX" },
+              { cls: "bottom-[22px] right-[22px] flex-row-reverse", label: "200 PTS MAX" },
             ].map((m) => (
               <div
                 key={m.label}
@@ -149,7 +149,7 @@ export function SplashScreen({
                 <SplashStat value="500" label="PARTS" />
                 <SplashStat value="6 WKS" label="DEADLINE" />
                 <SplashStat value="8" label="STOPS" />
-                <SplashStat value="160" label="MAX PTS" />
+                <SplashStat value="200" label="MAX PTS" />
               </div>
             </div>
           </div>

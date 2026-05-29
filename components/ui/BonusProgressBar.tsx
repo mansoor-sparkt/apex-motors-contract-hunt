@@ -1,13 +1,14 @@
+import { MAX_BONUS_SCORE } from "@/constants";
 
 export function BonusProgressBar({ bonusScore }: { bonusScore: number }) {
   // ── MILESTONE CONFIGURATION ──
   const GIFT_MILESTONE = 100;
-  const TOTAL_BONUS_POOL = 160;
+  const TOTAL_BONUS_POOL = MAX_BONUS_SCORE;
 
-  // 1. Calculate percentage based on the true 160-point pool maximum
+  // 1. Calculate percentage based on the true bonus pool maximum
   const fillPercent = Math.min(100, (bonusScore / TOTAL_BONUS_POOL) * 100);
 
-  // 2. Locate exactly where the 100-point marker sits (100 / 160 = 62.5%)
+  // 2. Locate exactly where the 100-point marker sits on the bar
   const milestonePercent = (GIFT_MILESTONE / TOTAL_BONUS_POOL) * 100;
 
   const isGoalReached = bonusScore >= GIFT_MILESTONE;
@@ -40,7 +41,7 @@ export function BonusProgressBar({ bonusScore }: { bonusScore: number }) {
         {/* Master Progress Container with space for the marker overflow */}
         <div className="relative w-full pt-2 pb-4">
 
-          {/* Main 160-Point Progress Track */}
+          {/* Bonus progress track */}
           <div className="h-2 w-full bg-[rgba(255,255,255,0.1)] overflow-hidden rounded-sm">
             <div
               className="h-full transition-all duration-500 ease-out"

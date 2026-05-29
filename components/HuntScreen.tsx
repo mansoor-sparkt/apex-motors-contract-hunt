@@ -7,7 +7,7 @@ import {
   PointsSplitRow,
   StatusTag,
 } from "./GameComponents";
-import { ShortCard, ShortsScreen } from "./ShortsScreen";
+import { ShortsScreen } from "./ShortsScreen";
 import { LeaderboardScreen } from "./LeaderboardScreen";
 import { JobTravelerScreen } from "./JobTravelerScreen";
 import { BottomNav } from "./BottomNav";
@@ -17,11 +17,14 @@ import {
   AVS,
   TOTAL_STOPS,
   MAX_SCORE,
+  MAX_BONUS_SCORE,
+  APP_BONUS_PHOTO_PTS,
+  APP_BONUS_TOTAL_PTS,
   getActiveStopIndex,
   IMAGE_URLS,
   GAME_TIMELINE,
   SHORTS,
-
+  DEFAULT_SHOP_NAME,
 } from "@/constants";
 import type {
   CelebrationState,
@@ -31,9 +34,9 @@ import type {
   StopCompletion,
   ShortCompletion,
 } from "@/lib/game-types";
-import { useState } from "react";
 import { BonusProgressBar } from "./ui/BonusProgressBar";
 import { CongratulationModal, IncompleteBonusModal } from "./modals/TaskModal";
+import { useGameClock } from "./GameClockProvider";
 
 // const SUB_TAB_TITLES: Record<Exclude<HuntTab, "stops">, string> = {
 //   shorts: "SHOP FLOOR SHORTS",
@@ -62,14 +65,13 @@ export function HuntScreen({
   activeTab,
   isDemo,
 
-  showBonusNudge,
-  setShowBonusNudge,
   showEndGameNudge,
   setShowEndGameNudge,
   showCongratulation,
   setShowCongratulation,
   onTabChange,
   onOpenStop,
+  onOpenShort,
   onShortComplete,
   onCelebrate,
   onToast,
@@ -88,14 +90,13 @@ export function HuntScreen({
   activeTab: HuntTab;
   isDemo: boolean;
 
-  showBonusNudge: string | null;
-  setShowBonusNudge: (slug: string | null) => void;
-  showEndGameNudge: boolean;                          // ── NEW
+  showEndGameNudge: boolean;
   setShowEndGameNudge: (val: boolean) => void;
   showCongratulation: boolean;
   setShowCongratulation: (val: boolean) => void;
   onTabChange: (tab: HuntTab) => void;
   onOpenStop: (index: number) => void;
+  onOpenShort: (slug: string) => void;
   onShortComplete: (slug: string, data: ShortCompletion) => void;
   onCelebrate: (state: CelebrationState) => void;
   onToast: (msg: string) => void;
@@ -113,44 +114,61 @@ export function HuntScreen({
 
   // const baseScore = computeBaseScore(stopsDone, shortsDone);
   // const bonusScore = computeBonusScore(stopsDone);
-  const huntTitle = player.shopName
-    ? player.shopName.toUpperCase()
-    : "CONTRACT: REDLINE ROBOTICS";
+  const shopDisplayName = (player.shopName?.trim() || DEFAULT_SHOP_NAME).toUpperCase();
   const isStopsTab = activeTab === "stops";
   // const isBonusTab = activeTab === 'shorts'
 
   // Calculate percentage for the new Bonus progress bar (capped at 100%)
-  const TARGET_BONUS_SCORE = 160;
-  const bonusPercent = Math.min(160, (bonusScore / TARGET_BONUS_SCORE) * 100);
-
-  // ── NEW: Modal State Tracker ──
-  const [activeShortSlug, setActiveShortSlug] = useState<string | null>(null);
-
-  // ── NEW: Close Modal Handler ──
-  const handleCloseModal = () => setActiveShortSlug(null);
+  const bonusPercent = Math.min(
+    100,
+    (bonusScore / MAX_BONUS_SCORE) * 100,
+  );
+  const gameClock = useGameClock();
+  const clockSeconds = gameClock?.elapsedSeconds;
 
   return (
-    <div className="absolute inset-0 flex flex-col h-full w-full overflow-hidden" style={{
-      backgroundImage: `url('${IMAGE_URLS.hunter}')`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
+    <div className="absolute inset-0 flex flex-col h-full w-full overflow-hidden">
+      <div
+        className="pointer-events-none absolute inset-0 z-0"
+        style={{
+          backgroundImage: `url('${IMAGE_URLS.splashHero.src}')`,
+          backgroundSize: "cover",
+          backgroundPosition: "center 40%",
+          filter: "brightness(0.45) saturate(0.85)",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0 z-[1]"
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(4,5,6,0.35) 0%, rgba(4,5,6,0.92) 88%, rgba(4,5,6,0.98) 100%)",
+        }}
+      />
 
-    }}>
-
-
-
+      <div className="relative z-[2] flex min-h-0 flex-1 flex-col">
       {isStopsTab ? (
         <>
-          <HUDBar title={huntTitle} showLogo onOpenMap={onOpenMap} isMapShow={true} />
+          <HUDBar
+            showLogo
+            onOpenMap={onOpenMap}
+            isMapShow={true}
+            clockSeconds={clockSeconds}
+          />
 
           <div className="game-hunt-hdr">
-            <div className="flex items-center gap-2 relative z-[1]">
-              <div className="game-hunt-av">{av.em}</div>
-              <div>
-                <div className="font-orbitron text-[11px] font-bold tracking-[0.06em]">
+            <div className="flex items-center gap-2 relative z-[1] min-w-0 flex-1">
+              <div className="game-hunt-av shrink-0">{av.em}</div>
+              <div className="min-w-0">
+                <div className="font-orbitron text-[11px] font-bold tracking-[0.06em] leading-tight">
                   {av.title}
                 </div>
-                <div className="font-share-mono text-[9px] text-[var(--mut)]">
+                <div
+                  className="font-orbitron text-[10px] font-bold text-[var(--o)] tracking-[0.04em] leading-snug mt-0.5 truncate"
+                  title={shopDisplayName}
+                >
+                  {shopDisplayName}
+                </div>
+                <div className="font-share-mono text-[9px] text-[var(--mut)] mt-0.5 truncate">
                   {player.school}
                 </div>
               </div>
@@ -199,6 +217,7 @@ export function HuntScreen({
           backLabel="◄ STOPS"
           onOpenMap={onOpenMap}
           isMapShow={true}
+          clockSeconds={clockSeconds}
         />
       )
 
@@ -314,8 +333,10 @@ export function HuntScreen({
 
                 if (done) {
                   if (s.type === "app") {
-                    // App challenges split points 10 (photo) / 20 (photo + question)
-                    ptsLabel = shortRecord.qAnswered ? "20 PTS" : "10 PTS";
+                    // App challenges: 10 pts screenshot / 25 pts complete
+                    ptsLabel = shortRecord.qAnswered
+                      ? `${APP_BONUS_TOTAL_PTS} PTS`
+                      : `${APP_BONUS_PHOTO_PTS} PTS`;
                   } else {
                     // Standard photo or video
                     ptsLabel = `${s.pts} PTS`;
@@ -343,7 +364,7 @@ export function HuntScreen({
                   onClick={() => {
                     if (!locked) {
                       if (isStop) onOpenStop(item.index as number);
-                      else setActiveShortSlug(item.slug as string); // Pop the modal!
+                      else onOpenShort(item.slug as string);
                     }
                   }}
                 />
@@ -362,6 +383,7 @@ export function HuntScreen({
           onCelebrate={onCelebrate}
           bonusPercent={bonusPercent}
           onToast={onToast}
+          onOpenShort={onOpenShort}
           isDemo={isDemo}
         />
       )}
@@ -385,43 +407,6 @@ export function HuntScreen({
         />
       )}
 
-      {/* ── NEW: BONUS CHALLENGE OVERLAY MODAL ── */}
-      {activeShortSlug && (
-        <div className="absolute inset-0 z-50 flex flex-col justify-center bg-black/80 backdrop-blur-sm p-4 pb-8 transition-opacity">
-          <div className="bg-[rgba(4,5,6,0.95)] border border-[var(--o)] w-full max-h-[85vh] overflow-y-auto relative shadow-[0_0_30px_rgba(241,92,48,0.3)]">
-
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-[rgba(4,5,6,0.95)] border-b border-[rgba(255,255,255,0.1)] p-3 flex justify-between items-center z-10">
-              <div className="font-orbitron text-[14px] text-[var(--o)] font-bold tracking-widest">
-                BONUS CHALLENGE
-              </div>
-              <button
-                onClick={handleCloseModal}
-                className="text-white text-2xl leading-none w-8 h-8 flex items-center justify-center bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)]"
-              >
-                &times;
-              </button>
-            </div>
-
-            {/* Modal Body injecting the exact identical ShortCard Component */}
-            <div className="p-4">
-              <ShortCard
-                short={SHORTS.find((s) => s.slug === activeShortSlug)!}
-                completion={shortsDone[activeShortSlug]}
-                emailId={player.email}
-                onComplete={onShortComplete}
-                onCelebrate={onCelebrate}
-                onToast={onToast}
-                onSkip={handleCloseModal}
-                isDemo={isDemo}
-              />
-            </div>
-
-          </div>
-        </div>
-      )}
-
-
       {/* ── 2. END-GAME BONUS NUDGE (You missed some side-quests!) ── */}
       <IncompleteBonusModal
         isOpen={showEndGameNudge}
@@ -431,12 +416,9 @@ export function HuntScreen({
           setShowCongratulation(true); // ── Shows the Congrats Modal!
         }}
         onDoBonus={() => {
-          // If they click "DO BONUS NOW"
           setShowEndGameNudge(false);
-          setShowCongratulation(true); // ── Shows the Congrats Modal!
-
-          // Move them to the Bonus Tab in the background so when they close the Congrats modal, they are ready to do bonuses!
-          onTabChange("shorts");
+          setShowCongratulation(true);
+          onTabChange("stops");
         }}
       />
 
@@ -455,6 +437,7 @@ export function HuntScreen({
       />
 
       <BottomNav active={activeTab} onChange={onTabChange} />
+      </div>
     </div>
   );
 }

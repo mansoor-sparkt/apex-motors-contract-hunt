@@ -8,9 +8,12 @@ export const MACHINIST_CTA_SUBTEXT =
 
 export function MachinistAppCta({
   className = "w-full",
+  appLink,
   onOpened,
 }: {
   className?: string;
+  /** Per-challenge OneLink; falls back to generic Machinist app URL. */
+  appLink?: string;
   onOpened?: () => void;
 }) {
   return (
@@ -18,7 +21,7 @@ export function MachinistAppCta({
       type="button"
       className={`game-app-cta ${className}`.trim()}
       onClick={() => {
-        openMachinistApp();
+        openMachinistApp(appLink);
         onOpened?.();
       }}
     >

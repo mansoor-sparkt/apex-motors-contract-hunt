@@ -948,8 +948,18 @@ import {
   STOP_IMAGE_MAP,
   STOP_BRIGHTNESS,
   TOTAL_STOPS,
+  DEFAULT_SHOP_NAME,
 } from "@/constants";
-import type { PlayerProfile, StopCompletion, CelebrationState } from "@/lib/game-types";
+import type {
+  PlayerProfile,
+  StopCompletion,
+  ShortCompletion,
+  CelebrationState,
+} from "@/lib/game-types";
+import {
+  getTimelineNeighbors,
+  type CelebrationDismissAction,
+} from "@/lib/game-timeline";
 import { GameService } from "@/lib/game.service";
 import { IMAGE_UPLOAD_ACCEPT, isImageFile } from "@/lib/image-to-png";
 import {
@@ -957,6 +967,8 @@ import {
   resolveMediaPreviewUrl,
   revokeObjectPreviewUrl,
 } from "@/lib/media-preview";
+import { clearPartialTime } from "@/lib/game-clock";
+import { useGameClock } from "./GameClockProvider";
 import { MachinistAppCta } from "@/components/MachinistAppCta";
 import { MediaUploadProgress } from "@/components/MediaUploadProgress";
 
@@ -965,7 +977,10 @@ export function StopScreen({
   stopIndex,
   player,
   stopsDone,
+  shortsDone,
   onBack,
+  onAdvance,
+  onNavigateTimeline,
   onSubmit,
   onNavigate,
   onToast,
@@ -977,7 +992,10 @@ export function StopScreen({
   stopIndex: number;
   player: PlayerProfile;
   stopsDone: Record<number, StopCompletion>;
+  shortsDone: Record<string, ShortCompletion>;
   onBack: () => void;
+  onAdvance: (index: number) => void;
+  onNavigateTimeline: (action: CelebrationDismissAction) => void;
   onSubmit: (index: number, data: any) => void; // Made flexible for test payload objects
   onNavigate: (index: number) => void;
   onToast: (msg: string) => void;
@@ -1005,8 +1023,9 @@ export function StopScreen({
   const [repName, setRepName] = useState(stopsDone[stopIndex]?.rn ?? "");
   const [repAnswer, setRepAnswer] = useState(s.bt !== "calc" ? (stopsDone[stopIndex] as any)?.selectedAnswer ?? "" : "");
 
-  // LIVE TICKING SESSION TIMER STATE
-  const [elapsedSeconds, setElapsedSeconds] = useState(previousStopsTime);
+  const gameClock = useGameClock();
+  const elapsedSeconds = gameClock?.elapsedSeconds ?? previousStopsTime;
+
   const [uploading, setUploading] = useState(false);
   const [uploadPercent, setUploadPercent] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1017,30 +1036,6 @@ export function StopScreen({
   useEffect(() => {
     return () => revokeObjectPreviewUrl(blobPreviewRef.current);
   }, []);
-
-  // Live Timer Effect Hook
-  useEffect(() => {
-    if (!isActive || done) {
-      const currentStopTime = stopsDone[stopIndex]?.timeSpent || 0;
-      setElapsedSeconds(previousStopsTime + currentStopTime);
-      return;
-    }
-
-    const partial = parseInt(sessionStorage.getItem(`partial_time_${stopIndex}`) || "0", 10);
-    let currentSeconds = previousStopsTime + partial;
-    setElapsedSeconds(currentSeconds);
-
-    const activeInterval = setInterval(() => {
-      currentSeconds += 1;
-      setElapsedSeconds(currentSeconds);
-
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem(`partial_time_${stopIndex}`, (currentSeconds - previousStopsTime).toString());
-      }
-    }, 1000);
-
-    return () => clearInterval(activeInterval);
-  }, [isActive, stopIndex, done, stopsDone, previousStopsTime]);
 
   // ── FIX: Hydrate state elements cleanly when navigating between stops ──
   useEffect(() => {
@@ -1064,7 +1059,7 @@ export function StopScreen({
 
   const photoUrl = STOP_IMAGE_MAP[stopIndex + 1] ?? STOP_IMAGE_MAP[1];
   const brightness = STOP_BRIGHTNESS[stopIndex] ?? 0.45;
-  const shopLabel = (player.shopName || "MY SHOP").toUpperCase();
+  const shopLabel = (player.shopName?.trim() || DEFAULT_SHOP_NAME).toUpperCase();
 
   const openPicker = () => {
     if (done || photoUp || uploading) return;
@@ -1151,7 +1146,7 @@ export function StopScreen({
       return;
     }
     if (done) {
-      onBack();
+      onAdvance(stopIndex);
       return;
     }
 
@@ -1192,11 +1187,11 @@ export function StopScreen({
     }
 
 
-    if (typeof window !== "undefined") {
-      sessionStorage.removeItem(`partial_time_${stopIndex}`);
-    }
+    clearPartialTime(stopIndex);
 
-    const timeSpentOnThisStop = elapsedSeconds - previousStopsTime;
+    const timeSpentOnThisStop =
+      gameClock?.getTimeSpentOnStop(stopIndex) ??
+      elapsedSeconds - previousStopsTime;
 
     // ── FIX: Inject explicit variables directly matching your API specifications ──
     onSubmit(stopIndex, {
@@ -1221,28 +1216,35 @@ export function StopScreen({
     });
   };
 
-  const prevStop = () => {
-    if (stopIndex > 0) onNavigate(stopIndex - 1);
+  const { prev, next, stepLabel } = getTimelineNeighbors(
+    { type: "stop", index: stopIndex },
+    stopsDone,
+    shortsDone,
+  );
+
+  const goPrev = () => {
+    if (prev) onNavigateTimeline(prev);
   };
 
-  const nextStop = () => {
-    const n = stopIndex + 1;
-    if (n >= TOTAL_STOPS) return;
-    const unlocked = !!stopsDone[n] || n === 0 || !!stopsDone[n - 1];
-    if (!unlocked) {
-      onToast(`🔒 COMPLETE STOP ${n} FIRST`);
+  const goNext = () => {
+    if (next) {
+      onNavigateTimeline(next);
       return;
     }
-    onNavigate(n);
+    if (done) {
+      onAdvance(stopIndex);
+      return;
+    }
+    onToast("🔒 COMPLETE THIS STOP FIRST");
   };
 
   const handleKey = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") nextStop();
-      if (e.key === "ArrowLeft") prevStop();
+      if (e.key === "ArrowRight") goNext();
+      if (e.key === "ArrowLeft") goPrev();
       if (e.key === "Escape") onBack();
     },
-    [stopIndex, stopsDone]
+    [prev, next, done, stopIndex, stopsDone, shortsDone],
   );
 
   useEffect(() => {
@@ -1250,14 +1252,6 @@ export function StopScreen({
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [handleKey, isActive]);
-
-  const canNext = stopIndex + 1 < TOTAL_STOPS && (!!stopsDone[stopIndex + 1] || !!stopsDone[stopIndex] || stopIndex + 1 === 0);
-
-  const formatLiveTime = (secs: number) => {
-    const minutes = Math.floor(secs / 60);
-    const seconds = secs % 60;
-    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
-  };
 
   return (
     <div className="absolute inset-0 flex flex-col h-full w-full overflow-hidden z-30">
@@ -1292,6 +1286,7 @@ export function StopScreen({
         backLabel="◄ STOPS"
         onOpenMap={onOpenMap}
         isMapShow={true}
+        clockSeconds={gameClock?.elapsedSeconds}
       />
 
       <div className="game-scroll flex-1 min-h-0 bg-transparent">
@@ -1314,9 +1309,6 @@ export function StopScreen({
                 <p className="font-share-mono text-[10px] text-[var(--c)] tracking-[0.1em] uppercase mt-1">
                   {s.task}
                 </p>
-                <div className="flex items-center gap-1.5 mt-2 font-share-mono text-[11px] font-bold tracking-[0.06em] text-[var(--o)] animate-pulse">
-                  <span>⏱️</span> GAME CLOCK: <span className="font-orbitron text-[12px] text-white font-black">{formatLiveTime(elapsedSeconds)}</span>
-                </div>
               </div>
               <div className="flex-shrink-0 border border-[var(--bdr)] bg-[rgba(4,5,6,0.9)] px-[11px] py-[7px]">
                 <div className="font-share-mono text-[8px] text-[var(--mut)] tracking-[0.14em] uppercase">SHOP</div>
@@ -1488,9 +1480,15 @@ export function StopScreen({
       </div>
 
       <div className="game-stop-nav">
-        <button type="button" className="game-snav" onClick={prevStop} disabled={stopIndex === 0}>◄ PREV</button>
-        <div className="game-snav-ctr">{stopIndex + 1} <span className="text-[var(--mut)] text-[11px] font-normal">/ {TOTAL_STOPS}</span></div>
-        <button type="button" className="game-snav text-right" onClick={nextStop} disabled={!canNext}>NEXT ►</button>
+        <button type="button" className="game-snav" onClick={goPrev} disabled={!prev}>
+          ◄ PREV
+        </button>
+        <div className="game-snav-ctr">
+          <span className="text-[10px] tracking-[0.06em]">{stepLabel}</span>
+        </div>
+        <button type="button" className="game-snav text-right" onClick={goNext}>
+          NEXT ►
+        </button>
       </div>
     </div>
   );
