@@ -8,13 +8,8 @@ import {
 import { resolveMediaPreviewUrl } from "@/lib/media-url";
 import { ensurePngForUpload } from "@/lib/server/ensure-png-upload";
 
-export const runtime = "nodejs";
-export const maxDuration = 60;
-
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  return String(error);
-}
+/** Camera HEIC → PNG resize can exceed the default 10s on serverless. */
+export const maxDuration = 30;
 
 export async function POST(request: Request) {
   try {
@@ -23,21 +18,7 @@ export async function POST(request: Request) {
       return sessionUnauthorized();
     }
 
-    let incoming: FormData;
-    try {
-      incoming = await request.formData();
-    } catch (parseError) {
-      console.error("Upload formData parse error:", parseError);
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Photo is too large for upload. Try Photo Library or move closer and retake.",
-        },
-        { status: 413 },
-      );
-    }
-
+    const incoming = await request.formData();
     const rawFile = incoming.get("UploadPicture");
     const emailId = incoming.get("EmailId");
 
@@ -60,56 +41,39 @@ export async function POST(request: Request) {
       );
     }
 
-    let prepared;
+    let pngFile: File;
     try {
-      prepared = await ensurePngForUpload(rawFile);
+      pngFile = await ensurePngForUpload(rawFile);
     } catch (convertError) {
       console.error("HEIC/PNG conversion error:", convertError);
       return NextResponse.json(
         {
           success: false,
-          error: "Could not convert image to PNG. Try Photo Library instead.",
+          error: "Could not convert image to PNG. Try another photo.",
         },
         { status: 400 },
       );
     }
 
-    const outbound = new FormData();
-    outbound.append(
-      "UploadPicture",
-      new Blob([new Uint8Array(prepared.buffer)], { type: prepared.mimeType }),
-      prepared.filename,
-    );
-    outbound.append("EmailId", emailId);
+    const formData = new FormData();
+    formData.append("UploadPicture", pngFile);
+    if (typeof emailId === "string") {
+      formData.append("EmailId", emailId);
+    }
 
     const res = await fetch(`${baseUrl}/Profile/UploadHuntImage`, {
       method: "POST",
-      body: outbound,
+      body: formData,
     });
 
     if (!res.ok) {
-      const detail = await res.text().catch(() => "");
-      console.error("Backend upload failed:", res.status, detail.slice(0, 500));
       return NextResponse.json(
         { success: false, error: "External API is down" },
-        { status: res.status >= 500 ? 502 : res.status },
+        { status: res.status },
       );
     }
 
-    let data: {
-      statusCode?: number;
-      result?: { cdnUrl?: string };
-      message?: string[];
-      errors?: string[];
-    };
-    try {
-      data = await res.json();
-    } catch {
-      return NextResponse.json(
-        { success: false, error: "Invalid response from upload service" },
-        { status: 502 },
-      );
-    }
+    const data = await res.json();
 
     if (data.statusCode === 200 && data.result) {
       const rawUrl = data.result.cdnUrl as string;
@@ -128,16 +92,9 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   } catch (error) {
-    console.error("Upload API Error:", errorMessage(error), error);
+    console.error("Upload API Error:", error);
     return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to upload file",
-        detail:
-          process.env.NODE_ENV === "development"
-            ? errorMessage(error)
-            : undefined,
-      },
+      { success: false, error: "Failed to upload file" },
       { status: 500 },
     );
   }

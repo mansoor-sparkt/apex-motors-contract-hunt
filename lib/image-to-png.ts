@@ -6,11 +6,8 @@ import {
   readFileHeader,
 } from "@/lib/image-magic";
 
-/** Longest edge — keeps PNG under Vercel's ~4.5MB body limit. */
-export const MAX_UPLOAD_DIMENSION = 1280;
-
-/** Target max bytes before upload (multipart overhead included). */
-export const MAX_UPLOAD_BYTES = 3_400_000;
+/** Longest edge for uploads — keeps PNG under Vercel's ~4.5MB body limit. */
+export const MAX_UPLOAD_DIMENSION = 1920;
 
 /** File-picker accept string — includes HEIC/HEIF (often missing from image/* alone). */
 export const IMAGE_UPLOAD_ACCEPT =
@@ -62,7 +59,7 @@ function pngFileName(originalName: string): string {
 function scaledDimensions(
   width: number,
   height: number,
-  maxDim: number,
+  maxDim: number = MAX_UPLOAD_DIMENSION,
 ): { width: number; height: number } {
   const longest = Math.max(width, height);
   if (longest <= maxDim) return { width, height };
@@ -73,6 +70,13 @@ function scaledDimensions(
   };
 }
 
+function heicInputBlob(file: File): Blob {
+  if (file.type && file.type !== "application/octet-stream") {
+    return file;
+  }
+  return new Blob([file], { type: "image/heic" });
+}
+
 async function loadHeic2Any() {
   if (typeof window === "undefined") {
     throw new Error("HEIC conversion requires a browser");
@@ -81,29 +85,17 @@ async function loadHeic2Any() {
   return mod.default;
 }
 
-/**
- * iOS Safari decodes HEIC in <img> / canvas without heic2any (more reliable than
- * heic2any on production builds). Fall back to heic2any on other browsers.
- */
+/** heic2any is most reliable outputting JPEG; we then canvas → PNG. */
 async function heicToPngBlob(file: File): Promise<Blob> {
-  try {
-    return await rasterizeToPngBlob(file, MAX_UPLOAD_DIMENSION);
-  } catch (safariErr) {
-    console.warn("Safari HEIC rasterize failed, trying heic2any:", safariErr);
-  }
-
   const heic2any = await loadHeic2Any();
-  const input =
-    file.type && file.type !== "application/octet-stream"
-      ? file
-      : new Blob([file], { type: "image/heic" });
+  const input = heicInputBlob(file);
 
   let jpegBlob: Blob;
   try {
     const result = await heic2any({
       blob: input,
       toType: "image/jpeg",
-      quality: 0.85,
+      quality: 0.92,
     });
     jpegBlob = Array.isArray(result) ? result[0] : result;
   } catch {
@@ -113,7 +105,7 @@ async function heicToPngBlob(file: File): Promise<Blob> {
     });
     const png = Array.isArray(result) ? result[0] : result;
     if (png instanceof Blob && png.size > 0) {
-      return rasterizeToPngBlob(png, MAX_UPLOAD_DIMENSION);
+      return rasterizeToPngBlob(png);
     }
     throw new Error("HEIC conversion failed");
   }
@@ -122,16 +114,18 @@ async function heicToPngBlob(file: File): Promise<Blob> {
     throw new Error("HEIC conversion failed");
   }
 
-  return rasterizeToPngBlob(jpegBlob, MAX_UPLOAD_DIMENSION);
+  const jpegFile = new File([jpegBlob], "converted.jpg", {
+    type: "image/jpeg",
+  });
+  return rasterizeToPngBlob(jpegFile);
 }
 
 async function drawToPngBlob(
   source: CanvasImageSource,
   width: number,
   height: number,
-  maxDim: number,
 ): Promise<Blob> {
-  const { width: w, height: h } = scaledDimensions(width, height, maxDim);
+  const { width: w, height: h } = scaledDimensions(width, height);
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
@@ -150,14 +144,11 @@ async function drawToPngBlob(
   });
 }
 
-async function rasterizeToPngBlob(
-  file: Blob,
-  maxDim: number = MAX_UPLOAD_DIMENSION,
-): Promise<Blob> {
+async function rasterizeToPngBlob(file: Blob): Promise<Blob> {
   try {
     const bitmap = await createImageBitmap(file);
     try {
-      return await drawToPngBlob(bitmap, bitmap.width, bitmap.height, maxDim);
+      return await drawToPngBlob(bitmap, bitmap.width, bitmap.height);
     } finally {
       bitmap.close();
     }
@@ -170,29 +161,11 @@ async function rasterizeToPngBlob(
         el.onerror = () => reject(new Error("Image decode failed"));
         el.src = url;
       });
-      return await drawToPngBlob(
-        img,
-        img.naturalWidth,
-        img.naturalHeight,
-        maxDim,
-      );
+      return await drawToPngBlob(img, img.naturalWidth, img.naturalHeight);
     } finally {
       URL.revokeObjectURL(url);
     }
   }
-}
-
-/** Re-compress with a smaller max edge if the PNG is still too large for Vercel. */
-async function fitUnderUploadLimit(source: File, blob: Blob): Promise<Blob> {
-  if (blob.size <= MAX_UPLOAD_BYTES) return blob;
-
-  const steps = [1024, 800, 640];
-  let last = blob;
-  for (const maxDim of steps) {
-    last = await rasterizeToPngBlob(source, maxDim);
-    if (last.size <= MAX_UPLOAD_BYTES) return last;
-  }
-  return last;
 }
 
 /**
@@ -204,47 +177,30 @@ export async function convertImageToPng(file: File): Promise<File> {
   if (!isImageFile(file)) return file;
 
   const header = await readFileHeader(file);
-  const heicLike = isHeicFile(file) || isHeicMagicBytes(header);
-
   const alreadyPng =
     isPngMagicBytes(header) &&
     file.type === "image/png" &&
     file.name.toLowerCase().endsWith(".png");
-
-  let blob: Blob;
 
   if (alreadyPng) {
     const bitmap = await createImageBitmap(file);
     try {
       const needsResize =
         Math.max(bitmap.width, bitmap.height) > MAX_UPLOAD_DIMENSION;
-      blob = needsResize
-        ? await drawToPngBlob(
-            bitmap,
-            bitmap.width,
-            bitmap.height,
-            MAX_UPLOAD_DIMENSION,
-          )
-        : file;
+      if (!needsResize) return file;
+      const blob = await drawToPngBlob(bitmap, bitmap.width, bitmap.height);
+      return new File([blob], pngFileName(file.name), {
+        type: "image/png",
+        lastModified: Date.now(),
+      });
     } finally {
       bitmap.close();
     }
-  } else {
-    blob = heicLike
-      ? await heicToPngBlob(file)
-      : await rasterizeToPngBlob(file, MAX_UPLOAD_DIMENSION);
   }
 
-  if (blob instanceof File && blob === file) {
-    if (blob.size <= MAX_UPLOAD_BYTES) return blob;
-    blob = await rasterizeToPngBlob(file, 1024);
-  } else {
-    blob = await fitUnderUploadLimit(file, blob);
-  }
-
-  if (blob.size > MAX_UPLOAD_BYTES) {
-    throw new Error("Image is too large after compression");
-  }
+  const blob = (await isHeicLikeFile(file))
+    ? await heicToPngBlob(file)
+    : await rasterizeToPngBlob(file);
 
   return new File([blob], pngFileName(file.name), {
     type: "image/png",

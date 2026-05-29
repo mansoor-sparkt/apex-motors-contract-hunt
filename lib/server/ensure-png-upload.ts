@@ -5,11 +5,6 @@ import {
 
 const HEIC_EXT = /\.hei[cf]$/i;
 
-/** Stay under Vercel's ~4.5MB request body limit (multipart overhead included). */
-const MAX_UPLOAD_BYTES = 3_400_000;
-
-const MAX_EDGE = 1280;
-
 function isHeicMagic(buffer: Buffer): boolean {
   return isHeicMagicBytes(buffer);
 }
@@ -30,6 +25,8 @@ function pngFileName(originalName: string): string {
   return `${base}.png`;
 }
 
+const MAX_EDGE = 1920;
+
 async function resizeToPngBuffer(input: Buffer): Promise<Buffer> {
   const sharp = (await import("sharp")).default;
   return sharp(input, { failOn: "none" })
@@ -38,54 +35,49 @@ async function resizeToPngBuffer(input: Buffer): Promise<Buffer> {
       fit: "inside",
       withoutEnlargement: true,
     })
-    .png({ compressionLevel: 8 })
+    .png({ compressionLevel: 6 })
     .toBuffer();
 }
 
-export type PreparedPngUpload = {
-  buffer: Buffer;
-  filename: string;
-  mimeType: "image/png";
-};
+function toUploadFile(buffer: Buffer, originalName: string): File {
+  const bytes = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+  return new File([bytes], pngFileName(originalName), { type: "image/png" });
+}
 
 /**
  * Ensures hunt image uploads are PNG before forwarding to the Phillips API.
- * Fast-paths client-prepared PNGs to avoid slow HEIC work on serverless.
+ * Converts HEIC/HEIF server-side when the client could not (or sent raw HEIC).
  */
-export async function ensurePngForUpload(file: File): Promise<PreparedPngUpload> {
+export async function ensurePngForUpload(file: File): Promise<File> {
   const buffer = Buffer.from(await file.arrayBuffer());
-  const filename = pngFileName(file.name);
 
-  const pngReady = isPngMagic(buffer) && !isHeicMagic(buffer);
-
-  if (pngReady && buffer.length <= MAX_UPLOAD_BYTES) {
-    try {
-      const sharp = (await import("sharp")).default;
-      const meta = await sharp(buffer).metadata();
-      const longest = Math.max(meta.width ?? 0, meta.height ?? 0);
-      if (longest <= MAX_EDGE) {
-        return { buffer, filename, mimeType: "image/png" };
+  if (isPngMagic(buffer) && !isHeicMagic(buffer)) {
+    const meta = await import("sharp").then((m) =>
+      m.default(buffer).metadata(),
+    );
+    const longest = Math.max(meta.width ?? 0, meta.height ?? 0);
+    if (longest <= MAX_EDGE) {
+      if (
+        file.type === "image/png" &&
+        file.name.toLowerCase().endsWith(".png")
+      ) {
+        return file;
       }
-    } catch {
-      /* fall through to resize */
+      return toUploadFile(buffer, file.name);
     }
-    const resized = await resizeToPngBuffer(buffer);
-    return { buffer: resized, filename, mimeType: "image/png" };
+    return toUploadFile(await resizeToPngBuffer(buffer), file.name);
   }
 
   if (isHeicUpload(file, buffer)) {
     const convert = (await import("heic-convert")).default;
-    const jpegBuffer = Buffer.from(
+    const pngBuffer = Buffer.from(
       await convert({
         buffer,
-        format: "JPEG",
-        quality: 0.85,
+        format: "PNG",
       }),
     );
-    const pngBuffer = await resizeToPngBuffer(jpegBuffer);
-    return { buffer: pngBuffer, filename, mimeType: "image/png" };
+    return toUploadFile(await resizeToPngBuffer(pngBuffer), file.name);
   }
 
-  const pngBuffer = await resizeToPngBuffer(buffer);
-  return { buffer: pngBuffer, filename, mimeType: "image/png" };
+  return toUploadFile(await resizeToPngBuffer(buffer), file.name);
 }
