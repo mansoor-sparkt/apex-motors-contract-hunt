@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { GameButton } from "./GameComponents";
+import { GameButton, MachinistAvatar } from "./GameComponents";
 import {
   AVS,
   SHORTS,
@@ -193,7 +193,9 @@ export function JobTravelerScreen({
         <div className="game-traveler">
           <div ref={shareCaptureRef}>
           <div className="game-trav-top">
-            <div className="game-trav-av">{av.em}</div>
+            <div className="game-trav-av">
+              <MachinistAvatar avatarIndex={player.avatarIndex} />
+            </div>
             <div className="min-w-0">
               <div className="game-trav-lbl">// MISSION REPORT</div>
               <div className="game-trav-name">{av.title}</div>

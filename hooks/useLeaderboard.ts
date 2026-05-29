@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AVS, computeBaseScore, computeBonusScore } from "@/constants";
+import { computeBaseScore, computeBonusScore } from "@/constants";
 import { GameService } from "@/lib/game.service";
 import type { LeaderboardEntry } from "@/lib/leaderboard";
 import { rankForEmail, sortEntries } from "@/lib/leaderboard";
@@ -18,7 +18,6 @@ export function useLeaderboard(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const av = AVS[player.avatarIndex] ?? AVS[0];
   const baseScore = computeBaseScore(stopsDone);
   const bonusScore = computeBonusScore(shortsDone);
   const badgeCount =
@@ -66,7 +65,7 @@ export function useLeaderboard(
       bonus: bonusScore,
       total: score,
       badges: badgeCount,
-      avatar: av.em,
+      avatarIndex: player.avatarIndex,
       timeSpent: totalSeconds,
       isYou: true,
     };
@@ -80,7 +79,7 @@ export function useLeaderboard(
 
     return sortEntries([...remote, youEntry]);
   }, [
-    av.em,
+    player.avatarIndex,
     badgeCount,
     baseScore,
     bonusScore,
@@ -110,6 +109,5 @@ export function useLeaderboard(
     bonusScore,
     badgeCount,
     totalSeconds,
-    av,
   };
 }

@@ -12,6 +12,10 @@ import mapOne from "@/assests/map-one-zoom-out.png";
 import mapTwo from "@/assests/map-two-zoom-close-up.png";
 
 import splashImage from "@/assests/Home-screen.png";
+import avatarSpeedDemon from "@/assests/avatar/SPEED-DEMON.png";
+import avatarToleranceMaster from "@/assests/avatar/TOLERANCE-MASTER.png";
+import avatarChipSlayer from "@/assests/avatar/CHIP-SLAYER.png";
+import avatarPrecisionPro from "@/assests/avatar/PRECISION-PRO.png";
 import { StaticImageData } from "next/image";
 
 export const TOTAL_STOPS = 6;
@@ -65,27 +69,34 @@ export const ROLES = [
   { id: "Other", icon: "✨" },
 ];
 
-export const AVS = [
+export type AvatarDef = {
+  img: StaticImageData;
+  title: string;
+  n: string;
+  role: string;
+};
+
+export const AVS: AvatarDef[] = [
   {
-    em: "⚡",
+    img: avatarSpeedDemon,
     title: "SPEED DEMON",
     n: "SPEED DEMON",
     role: "Fastest cycle times.\nDeadlines don't scare you.",
   },
   {
-    em: "🎯",
+    img: avatarToleranceMaster,
     title: "TOLERANCE MASTER",
     n: "TOLERANCE MASTER",
     role: '±0.001" all day.\nFirst article, every time.',
   },
   {
-    em: "💻",
+    img: avatarChipSlayer,
     title: "CHIP SLAYER",
     n: "CHIP SLAYER",
     role: "Toolpaths are art.\nCAM is your superpower.",
   },
   {
-    em: "🔬",
+    img: avatarPrecisionPro,
     title: "PRECISION PRO",
     n: "PRECISION PRO",
     role: "Quality champion.\nCMM is your weapon.",

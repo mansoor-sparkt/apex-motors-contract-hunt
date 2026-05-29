@@ -6,6 +6,7 @@ import {
   HuntStopRow,
   PointsSplitRow,
   StatusTag,
+  MachinistAvatar,
 } from "./GameComponents";
 import { ShortsScreen } from "./ShortsScreen";
 import { LeaderboardScreen } from "./LeaderboardScreen";
@@ -157,7 +158,9 @@ export function HuntScreen({
 
           <div className="game-hunt-hdr">
             <div className="flex items-center gap-2 relative z-[1] min-w-0 flex-1">
-              <div className="game-hunt-av shrink-0">{av.em}</div>
+              <div className="game-hunt-av shrink-0">
+                <MachinistAvatar avatarIndex={player.avatarIndex} />
+              </div>
               <div className="min-w-0">
                 <div className="font-orbitron text-[11px] font-bold tracking-[0.06em] leading-tight">
                   {av.title}

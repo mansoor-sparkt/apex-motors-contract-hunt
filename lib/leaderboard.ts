@@ -8,7 +8,7 @@ export interface LeaderboardEntry {
   bonus: number;
   total: number;
   badges: number;
-  avatar: string;
+  avatarIndex: number;
   timeSpent: number;
   isYou: boolean;
 }
@@ -30,10 +30,11 @@ export interface BackendProfile {
   machinistCharacter?: string | null;
 }
 
-const AVATAR_EMOJIS = ["⚡", "🎯", "💻", "🔬"];
+const AVATAR_COUNT = 4;
 
-export function avatarFromIndex(index: number): string {
-  return AVATAR_EMOJIS[index] ?? AVATAR_EMOJIS[0];
+export function avatarFromIndex(index: number): number {
+  if (!Number.isFinite(index) || index < 0 || index >= AVATAR_COUNT) return 0;
+  return index;
 }
 
 export function formatNameFromEmail(email: string): string {
@@ -94,7 +95,7 @@ export function buildLeaderboardEntry(
     bonus,
     total: base + bonus,
     badges: Object.keys(stops).length + Object.keys(shorts).length,
-    avatar: avatarFromIndex(Number.isNaN(avatarIndex) ? 0 : avatarIndex),
+    avatarIndex: avatarFromIndex(Number.isNaN(avatarIndex) ? 0 : avatarIndex),
     timeSpent: sumTimeSpent(stops),
     isYou: Boolean(
       currentEmail && emailId.toLowerCase() === currentEmail.toLowerCase(),
@@ -145,7 +146,7 @@ export function rankForEmail(
         bonus: 0,
         total: fallbackScore,
         badges: 0,
-        avatar: AVATAR_EMOJIS[0],
+        avatarIndex: 0,
         timeSpent: 0,
         isYou: true,
       },

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { HUDBar, GameButton } from "./GameComponents";
+import { HUDBar, GameButton, MachinistAvatar } from "./GameComponents";
 import { AVS, IMAGE_URLS } from "@/constants";
 import type { PlayerProfile, RegisterDraft } from "@/lib/game-types";
 
@@ -61,7 +61,7 @@ export function AvatarScreen({
                   className="game-av-face"
                   style={AVATAR_FACE_STYLES[i]}
                 >
-                  {av.em}
+                  <MachinistAvatar avatarIndex={i} />
                 </div>
                 <div className="game-av-name">{av.title}</div>
                 <div className="game-av-role whitespace-pre-line">{av.role}</div>

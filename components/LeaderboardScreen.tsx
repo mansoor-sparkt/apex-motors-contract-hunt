@@ -1,5 +1,6 @@
 "use client";
 
+import { MachinistAvatar } from "./GameComponents";
 import type { useLeaderboard } from "@/hooks/useLeaderboard";
 import type { PlayerProfile } from "@/lib/game-types";
 
@@ -26,7 +27,6 @@ export function LeaderboardScreen({
     bonusScore,
     badgeCount,
     totalSeconds,
-    av,
   } = leaderboard;
 
   const timeDisplay =
@@ -48,7 +48,9 @@ export function LeaderboardScreen({
 
       <div className="game-lb-you">
         <div className="game-lb-rank">#{rank}</div>
-        <div className="game-lb-av">{av.em}</div>
+        <div className="game-lb-av">
+          <MachinistAvatar avatarIndex={player.avatarIndex} />
+        </div>
         <div className="game-lb-info">
           <div className="game-lb-pn you">
             {(player.name || "YOU").toUpperCase()}
@@ -86,7 +88,9 @@ export function LeaderboardScreen({
               className={`game-lb-row${p.isYou ? " you" : ""}`}
             >
               <div className="game-lb-n">{i + 1}</div>
-              <div className="game-lb-av">{p.avatar}</div>
+              <div className="game-lb-av">
+                <MachinistAvatar avatarIndex={p.avatarIndex} />
+              </div>
               <div className="game-lb-info">
                 <div className={`game-lb-pn${p.isYou ? " you" : ""}`}>
                   {(p.name || "").toUpperCase()}

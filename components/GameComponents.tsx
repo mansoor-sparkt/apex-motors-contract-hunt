@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import React from 'react';
 import phillipsLogo from '@/assests/phillips_logo.svg';
+import { AVS } from '@/constants';
 
 const SN_CLIP =
   'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))';
@@ -50,6 +51,25 @@ export function StatusTag({
     dim: 'game-tag-d',
   };
   return <span className={`game-tag ${map[variant]}`}>{children}</span>;
+}
+
+export function MachinistAvatar({
+  avatarIndex = 0,
+  className = '',
+}: {
+  avatarIndex?: number;
+  className?: string;
+}) {
+  const av = AVS[avatarIndex] ?? AVS[0];
+  return (
+    <Image
+      src={av.img}
+      alt={av.title}
+      width={av.img.width}
+      height={av.img.height}
+      className={`machinist-avatar-img ${className}`.trim()}
+    />
+  );
 }
 
 export function Panel({
