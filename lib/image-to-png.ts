@@ -1,5 +1,14 @@
 "use client";
 
+import {
+  isHeicMagicBytes,
+  isPngMagicBytes,
+  readFileHeader,
+} from "@/lib/image-magic";
+
+/** Longest edge for uploads — keeps PNG under Vercel's ~4.5MB body limit. */
+export const MAX_UPLOAD_DIMENSION = 1920;
+
 /** File-picker accept string — includes HEIC/HEIF (often missing from image/* alone). */
 export const IMAGE_UPLOAD_ACCEPT =
   "image/*,.heic,.heif,.HEIC,.HEIF,image/heic,image/heif";
@@ -22,6 +31,17 @@ export function isHeicFile(file: File): boolean {
   return HEIC_EXT.test(file.name);
 }
 
+/** HEIC from iPhone camera is often labeled image/jpeg with a .jpg name. */
+export async function isHeicLikeFile(file: File): Promise<boolean> {
+  if (isHeicFile(file)) return true;
+  try {
+    const header = await readFileHeader(file);
+    return isHeicMagicBytes(header);
+  } catch {
+    return false;
+  }
+}
+
 export function isImageFile(file: File): boolean {
   const type = file.type.toLowerCase();
   if (type.startsWith("image/")) return true;
@@ -34,6 +54,20 @@ export function isImageFile(file: File): boolean {
 function pngFileName(originalName: string): string {
   const base = originalName.replace(/\.[^.]+$/, "").trim() || "upload";
   return `${base}.png`;
+}
+
+function scaledDimensions(
+  width: number,
+  height: number,
+  maxDim: number = MAX_UPLOAD_DIMENSION,
+): { width: number; height: number } {
+  const longest = Math.max(width, height);
+  if (longest <= maxDim) return { width, height };
+  const scale = maxDim / longest;
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale)),
+  };
 }
 
 function heicInputBlob(file: File): Blob {
@@ -70,7 +104,9 @@ async function heicToPngBlob(file: File): Promise<Blob> {
       toType: "image/png",
     });
     const png = Array.isArray(result) ? result[0] : result;
-    if (png instanceof Blob && png.size > 0) return png;
+    if (png instanceof Blob && png.size > 0) {
+      return rasterizeToPngBlob(png);
+    }
     throw new Error("HEIC conversion failed");
   }
 
@@ -81,7 +117,7 @@ async function heicToPngBlob(file: File): Promise<Blob> {
   const jpegFile = new File([jpegBlob], "converted.jpg", {
     type: "image/jpeg",
   });
-  return fileToPngBlob(jpegFile);
+  return rasterizeToPngBlob(jpegFile);
 }
 
 async function drawToPngBlob(
@@ -89,14 +125,15 @@ async function drawToPngBlob(
   width: number,
   height: number,
 ): Promise<Blob> {
+  const { width: w, height: h } = scaledDimensions(width, height);
   const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
+  canvas.width = w;
+  canvas.height = h;
 
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas not supported");
 
-  ctx.drawImage(source, 0, 0, width, height);
+  ctx.drawImage(source, 0, 0, w, h);
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
@@ -107,7 +144,7 @@ async function drawToPngBlob(
   });
 }
 
-async function fileToPngBlob(file: File): Promise<Blob> {
+async function rasterizeToPngBlob(file: Blob): Promise<Blob> {
   try {
     const bitmap = await createImageBitmap(file);
     try {
@@ -139,14 +176,31 @@ export async function convertImageToPng(file: File): Promise<File> {
   if (typeof window === "undefined") return file;
   if (!isImageFile(file)) return file;
 
-  if (file.type === "image/png") {
-    const ext = file.name.split(".").pop()?.toLowerCase();
-    if (ext === "png") return file;
+  const header = await readFileHeader(file);
+  const alreadyPng =
+    isPngMagicBytes(header) &&
+    file.type === "image/png" &&
+    file.name.toLowerCase().endsWith(".png");
+
+  if (alreadyPng) {
+    const bitmap = await createImageBitmap(file);
+    try {
+      const needsResize =
+        Math.max(bitmap.width, bitmap.height) > MAX_UPLOAD_DIMENSION;
+      if (!needsResize) return file;
+      const blob = await drawToPngBlob(bitmap, bitmap.width, bitmap.height);
+      return new File([blob], pngFileName(file.name), {
+        type: "image/png",
+        lastModified: Date.now(),
+      });
+    } finally {
+      bitmap.close();
+    }
   }
 
-  const blob = isHeicFile(file)
+  const blob = (await isHeicLikeFile(file))
     ? await heicToPngBlob(file)
-    : await fileToPngBlob(file);
+    : await rasterizeToPngBlob(file);
 
   return new File([blob], pngFileName(file.name), {
     type: "image/png",

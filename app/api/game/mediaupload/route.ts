@@ -8,6 +8,9 @@ import {
 import { resolveMediaPreviewUrl } from "@/lib/media-url";
 import { ensurePngForUpload } from "@/lib/server/ensure-png-upload";
 
+/** Camera HEIC → PNG resize can exceed the default 10s on serverless. */
+export const maxDuration = 30;
+
 export async function POST(request: Request) {
   try {
     const session = getSessionFromRequest(request);

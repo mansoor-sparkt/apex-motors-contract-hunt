@@ -153,11 +153,16 @@ export const GameService = {
       }
 
       reportProgress(3);
-      let uploadFile = file;
+      let uploadFile: File;
       try {
         uploadFile = await convertImageToPng(file);
       } catch (error) {
-        console.warn("Client PNG conversion skipped:", error);
+        console.warn("Client PNG conversion failed:", error);
+        return {
+          success: false,
+          error:
+            "Could not prepare this photo for upload. Try Photo Library or retake.",
+        };
       }
 
       reportProgress(8);

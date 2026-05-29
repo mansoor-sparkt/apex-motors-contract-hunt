@@ -1,6 +1,11 @@
 "use client";
 
-import { convertImageToPng, isHeicFile, isImageFile } from "@/lib/image-to-png";
+import {
+  convertImageToPng,
+  isHeicFile,
+  isHeicLikeFile,
+  isImageFile,
+} from "@/lib/image-to-png";
 export { resolveMediaPreviewUrl, MEDIA_RESIZER_BASE } from "@/lib/media-url";
 
 const BROWSER_NATIVE_IMAGE_TYPES = new Set([
@@ -20,7 +25,9 @@ export async function createImagePreviewUrl(file: File): Promise<string> {
   }
 
   const type = file.type.toLowerCase();
+  const heicLike = await isHeicLikeFile(file);
   const needsConvert =
+    heicLike ||
     isHeicFile(file) ||
     !type ||
     type === "application/octet-stream" ||

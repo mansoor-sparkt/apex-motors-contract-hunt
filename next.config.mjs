@@ -7,7 +7,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  serverExternalPackages: ["heic-convert", "heic-decode"],
+  serverExternalPackages: ["heic-convert", "heic-decode", "sharp"],
 }
 
 export default nextConfig
