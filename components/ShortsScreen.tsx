@@ -525,7 +525,7 @@ import type { CelebrationState, ShortCompletion } from "@/lib/game-types";
 import MediaModal from "./MediaModal";
 import { GameService } from "@/lib/game.service";
 import { IMAGE_UPLOAD_ACCEPT, isImageFile } from "@/lib/image-to-png";
-import { openMachinistApp } from "@/lib/machinist-app";
+import { MachinistAppCta } from "@/components/MachinistAppCta";
 import { MediaUploadProgress } from "@/components/MediaUploadProgress";
 import { BonusProgressBar } from "./ui/BonusProgressBar";
 
@@ -810,21 +810,10 @@ export function ShortCard({
         </button>
 
         {isApp && !photoDone && (
-          <button
-            type="button"
-            className="game-app-cta w-full mt-2"
-            onClick={() => {
-              openMachinistApp();
-              onToast("📱 Opening Phillips Machinist…");
-            }}
-          >
-            <span className="game-app-cta-icon">📱</span>
-            <span className="game-app-cta-text">
-              <div className="game-app-cta-title">OPEN PHILLIPS MACHINIST</div>
-              <div className="game-app-cta-sub">Then capture your screenshot below</div>
-            </span>
-            <span className="game-app-cta-arrow">►</span>
-          </button>
+          <MachinistAppCta
+            className="w-full mt-2"
+            onOpened={() => onToast("📱 Opening Phillips Machinist…")}
+          />
         )}
 
         {/* ── NEW: In-App Question UI (Only shows for App challenges after photo upload) ── */}

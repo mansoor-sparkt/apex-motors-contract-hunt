@@ -957,7 +957,7 @@ import {
   resolveMediaPreviewUrl,
   revokeObjectPreviewUrl,
 } from "@/lib/media-preview";
-import { openMachinistApp } from "@/lib/machinist-app";
+import { MachinistAppCta } from "@/components/MachinistAppCta";
 import { MediaUploadProgress } from "@/components/MediaUploadProgress";
 
 export function StopScreen({
@@ -1064,7 +1064,6 @@ export function StopScreen({
 
   const photoUrl = STOP_IMAGE_MAP[stopIndex + 1] ?? STOP_IMAGE_MAP[1];
   const brightness = STOP_BRIGHTNESS[stopIndex] ?? 0.45;
-  const calcLabel = s.bt === "calc" && "calc" in s && s.calc ? `Open ${s.calc} in app →` : "Tap to open the calculator in the app";
   const shopLabel = (player.shopName || "MY SHOP").toUpperCase();
 
   const openPicker = () => {
@@ -1481,21 +1480,9 @@ export function StopScreen({
 
         {s.bt === "calc" && (
           <div className="px-[14px] pb-2.5">
-            <button
-              type="button"
-              className="game-app-cta w-full"
-              onClick={() => {
-                openMachinistApp();
-                onToast("📱 Opening Phillips Machinist…");
-              }}
-            >
-              <span className="game-app-cta-icon">📱</span>
-              <span className="game-app-cta-text">
-                <div className="game-app-cta-title">OPEN IN PHILLIPS MACHINIST</div>
-                <div className="game-app-cta-sub">{calcLabel}</div>
-              </span>
-              <span className="game-app-cta-arrow">►</span>
-            </button>
+            <MachinistAppCta
+              onOpened={() => onToast("📱 Opening Phillips Machinist…")}
+            />
           </div>
         )}
       </div>

@@ -9,7 +9,7 @@ import {
   computeBonusScore,
 } from "@/constants";
 import type { PlayerProfile, RosterEntry, StopCompletion } from "@/lib/game-types";
-import { openMachinistApp } from "@/lib/machinist-app";
+import { MachinistAppCta } from "@/components/MachinistAppCta";
 import {
   type MissionReportShareFallback,
   prepareMissionReportShareFile,
@@ -289,19 +289,10 @@ export function JobTravelerScreen({
           </div>
           </div>
 
-          <div className="game-trav-sec text-center px-[14px] pb-[14px] -mt-1">
-            <button
-              type="button"
-              className="game-app-dl-strip w-full"
-              onClick={() => {
-                openMachinistApp();
-                onToast?.("📱 Opening Phillips Machinist…");
-              }}
-            >
-              <span className="game-app-dl-label">
-                📱 DOWNLOAD / OPEN THE APP
-              </span>
-            </button>
+          <div className="game-trav-sec px-[14px] pb-[14px] -mt-1">
+            <MachinistAppCta
+              onOpened={() => onToast?.("📱 Opening Phillips Machinist…")}
+            />
           </div>
         </div>
 
