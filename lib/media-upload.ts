@@ -3,7 +3,11 @@
 /**
  * Stay under Vercel's ~4.5MB serverless request body limit (multipart adds overhead).
  */
-export const MAX_VIDEO_UPLOAD_BYTES = 4_000_000;
+
+// 100MB limit (100 * 1024 * 1024)
+export const MAX_VIDEO_UPLOAD_BYTES = 104_857_600;
+// export const MAX_VIDEO_UPLOAD_BYTES = 52_428_800;
+// export const MAX_VIDEO_UPLOAD_BYTES = 4_000_000;
 
 /** iOS camera / gallery often omits MOV from video/* alone. */
 export const VIDEO_UPLOAD_ACCEPT =

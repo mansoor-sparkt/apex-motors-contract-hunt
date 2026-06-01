@@ -8,7 +8,7 @@ import {
 import { resolveVideoPreviewUrl } from "@/lib/media-url";
 
 /** Large MOV uploads from phones can be slow through the proxy. */
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export async function POST(request: Request) {
   try {

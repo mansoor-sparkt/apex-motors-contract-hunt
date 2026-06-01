@@ -228,7 +228,7 @@ export function ShortCard({
     }
 
     if (isVideo && file.size > MAX_VIDEO_UPLOAD_BYTES) {
-      onToast("⚠️ VIDEO TOO LARGE! PLEASE KEEP IT UNDER 50MB.");
+      onToast("⚠️ VIDEO TOO LARGE! PLEASE KEEP IT UNDER 100MB.");
       e.target.value = "";
       return;
     }
