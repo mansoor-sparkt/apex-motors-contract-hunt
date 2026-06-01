@@ -139,7 +139,10 @@ export function dedupeProgressRows(
 }
 
 export function sortEntries(entries: LeaderboardEntry[]): LeaderboardEntry[] {
-  return [...entries].sort((a, b) => b.total - a.total);
+  return [...entries].sort((a, b) => {
+    if (b.total !== a.total) return b.total - a.total;
+    return a.timeSpent - b.timeSpent;
+  });
 }
 
 export function rankForEmail(

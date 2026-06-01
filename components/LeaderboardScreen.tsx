@@ -10,6 +10,10 @@ function formatTime(secs: number) {
   return `${mins}:${remainSecs < 10 ? "0" : ""}${remainSecs}`;
 }
 
+function formatTimeLabel(secs: number) {
+  return secs > 0 ? `${formatTime(secs)} MIN` : "0:00 MIN";
+}
+
 export function LeaderboardScreen({
   player,
   leaderboard,
@@ -29,8 +33,7 @@ export function LeaderboardScreen({
     totalSeconds,
   } = leaderboard;
 
-  const timeDisplay =
-    totalSeconds > 0 ? `${formatTime(totalSeconds)} MIN` : "0:00 MIN";
+  const timeDisplay = formatTimeLabel(totalSeconds);
   const dateStr = new Date().toLocaleDateString();
 
   return (
@@ -56,7 +59,7 @@ export function LeaderboardScreen({
             {(player.name || "YOU").toUpperCase()}
           </div>
           <div className="game-lb-sc">
-            {player.school} · {badgeCount} BADGES {timeDisplay}
+            {badgeCount} BADGES · {timeDisplay}
           </div>
         </div>
         <div className="game-lb-score-wrap">
@@ -97,7 +100,7 @@ export function LeaderboardScreen({
                   {p.isYou ? " ◄" : ""}
                 </div>
                 <div className="game-lb-sc">
-                  {p.school} · {p.badges} BADGES
+                  {p.badges} BADGES · {formatTimeLabel(p.timeSpent)}
                 </div>
               </div>
               <div className="game-lb-score-wrap">
