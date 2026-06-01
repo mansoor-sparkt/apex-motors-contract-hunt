@@ -6,6 +6,7 @@ import { useGameClock } from "./GameClockProvider";
 import { ShortCard } from "./ShortsScreen";
 import {
   getShortDef,
+  getTimelineIndexForShort,
   getTimelineNeighbors,
   type CelebrationDismissAction,
 } from "@/lib/game-timeline";
@@ -15,6 +16,7 @@ import type {
   ShortCompletion,
   StopCompletion,
 } from "@/lib/game-types";
+import { SHORTS } from "@/constants";
 
 export function BonusChallengeScreen({
   slug,
@@ -51,33 +53,167 @@ export function BonusChallengeScreen({
 }) {
   const short = getShortDef(slug);
 
+  // // ── 1. Check if this challenge is outside the main timeline ──
+  // const isOffTimeline = useMemo(() => {
+  //   return getTimelineIndexForShort(slug) < 0;
+  // }, [slug]);
+
+  // // ── 2. Find its exact position in the Bonus array ──
+  // const currentShortIndex = useMemo(() => {
+  //   return SHORTS.findIndex((s) => s.slug === slug);
+  // }, [slug]);
+
+
+  // const fullyDone = useMemo(() => {
+  //   if (!short) return false;
+  //   const completion = shortsDone[slug];
+  //   return short.type === "app" ? !!completion?.qAnswered : !!completion;
+  // }, [short, shortsDone, slug]);
+
+  // const { prev, next, stepLabel } = useMemo(
+  //   () =>
+  //     getTimelineNeighbors({ type: "short", slug }, stopsDone, shortsDone),
+  //   [slug, stopsDone, shortsDone],
+
+
+
+  // );
+
+
+  // // ── 3. Wire up custom PREV/NEXT targets for off-timeline bonuses ──
+  // const customPrev = useMemo((): CelebrationDismissAction | null => {
+  //   if (!isOffTimeline) return prev;
+  //   if (currentShortIndex > 0) return { type: "short", slug: SHORTS[currentShortIndex - 1].slug };
+  //   return null;
+  // }, [isOffTimeline, prev, currentShortIndex]);
+
+  // const customNext = useMemo((): CelebrationDismissAction | null => {
+  //   if (!isOffTimeline) return next;
+  //   if (currentShortIndex < SHORTS.length - 1) return { type: "short", slug: SHORTS[currentShortIndex + 1].slug };
+  //   return null;
+  // }, [isOffTimeline, next, currentShortIndex]);
+
+  // // const goPrev = useCallback(() => {
+  // //   if (prev) onNavigateTimeline(prev);
+  // // }, [prev, onNavigateTimeline]);
+
+  // // const goNext = useCallback(() => {
+  // //   if (fullyDone) {
+  // //     onAdvance(slug);
+  // //     return;
+  // //   }
+  // //   if (next) {
+  // //     onNavigateTimeline(next);
+  // //     return;
+  // //   }
+  // //   onToast("🔒 COMPLETE THIS CHALLENGE FIRST");
+  // // }, [fullyDone, next, onAdvance, onNavigateTimeline, onToast, slug]);
+
+
+  // const goPrev = useCallback(() => {
+  //   if (customPrev) onNavigateTimeline(customPrev);
+  // }, [customPrev, onNavigateTimeline]);
+
+  // const goNext = useCallback(() => {
+  //   if (fullyDone) {
+  //     if (!isOffTimeline) {
+  //       onAdvance(slug); // Standard timeline behavior
+  //     } else {
+  //       // Off-timeline behavior: Go to next bonus, or back to the list if it's the last one!
+  //       if (customNext) onNavigateTimeline(customNext);
+  //       else if (onGoToBonusListing) onGoToBonusListing();
+  //       else onBack();
+  //     }
+  //     return;
+  //   }
+
+  //   if (customNext) {
+  //     onNavigateTimeline(customNext);
+  //     return;
+  //   }
+
+  //   onToast("🔒 COMPLETE THIS CHALLENGE FIRST");
+  // }, [fullyDone, isOffTimeline, customNext, onAdvance, slug, onNavigateTimeline, onGoToBonusListing, onBack, onToast]);
+
+
+
+  // const short = getShortDef(slug);
+
+  // ── 1. Create a mini-list of ONLY the bonuses NOT in the timeline ──
+  // This guarantees it only grabs those exactly 2 new ones!
+  const offTimelineShorts = useMemo(() => {
+    if (!short) return [];
+    return SHORTS.filter(
+      (s) => s.type === short.type && getTimelineIndexForShort(s.slug) < 0
+    );
+  }, [short]);
+
+  // ── 2. Check if the current bonus is one of those off-timeline ones ──
+  const isOffTimeline = useMemo(() => {
+    return getTimelineIndexForShort(slug) < 0;
+  }, [slug]);
+
+  // ── 3. Find its exact position in that mini-list (e.g., 1 of 2) ──
+  const offTimelineIndex = useMemo(() => {
+    return offTimelineShorts.findIndex((s) => s.slug === slug);
+  }, [slug, offTimelineShorts]);
+
+  // ── 4. Standard timeline logic (for the regular game path) ──
+  const { prev, next, stepLabel } = useMemo(
+    () => getTimelineNeighbors({ type: "short", slug }, stopsDone, shortsDone),
+    [slug, stopsDone, shortsDone]
+  );
+
+  // ── 5. Wire up the Smart PREV/NEXT buttons ──
+  const customPrev = useMemo((): CelebrationDismissAction | null => {
+    if (!isOffTimeline) return prev; // If it's a normal timeline bonus, do normal behavior
+
+    // If it's an off-timeline bonus, cycle only to the previous off-timeline bonus
+    if (offTimelineIndex > 0) return { type: "short", slug: offTimelineShorts[offTimelineIndex - 1].slug };
+    return null;
+  }, [isOffTimeline, prev, offTimelineIndex, offTimelineShorts]);
+
+  const customNext = useMemo((): CelebrationDismissAction | null => {
+    if (!isOffTimeline) return next; // If it's a normal timeline bonus, do normal behavior
+
+    // If it's an off-timeline bonus, cycle only to the next off-timeline bonus
+    if (offTimelineIndex < offTimelineShorts.length - 1) return { type: "short", slug: offTimelineShorts[offTimelineIndex + 1].slug };
+    return null;
+  }, [isOffTimeline, next, offTimelineIndex, offTimelineShorts]);
+
   const fullyDone = useMemo(() => {
     if (!short) return false;
     const completion = shortsDone[slug];
     return short.type === "app" ? !!completion?.qAnswered : !!completion;
   }, [short, shortsDone, slug]);
 
-  const { prev, next, stepLabel } = useMemo(
-    () =>
-      getTimelineNeighbors({ type: "short", slug }, stopsDone, shortsDone),
-    [slug, stopsDone, shortsDone],
-  );
+
+
 
   const goPrev = useCallback(() => {
-    if (prev) onNavigateTimeline(prev);
-  }, [prev, onNavigateTimeline]);
+    if (customPrev) onNavigateTimeline(customPrev);
+  }, [customPrev, onNavigateTimeline]);
 
   const goNext = useCallback(() => {
     if (fullyDone) {
-      onAdvance(slug);
+      if (!isOffTimeline) {
+        onAdvance(slug); // Standard timeline behavior
+      } else {
+        // Off-timeline behavior: Go to next bonus, or back to the list if it's the last one!
+        if (customNext) onNavigateTimeline(customNext);
+        else if (onGoToBonusListing) onGoToBonusListing();
+        else onBack();
+      }
       return;
     }
-    if (next) {
-      onNavigateTimeline(next);
+
+    if (customNext) {
+      onNavigateTimeline(customNext);
       return;
     }
+
     onToast("🔒 COMPLETE THIS CHALLENGE FIRST");
-  }, [fullyDone, next, onAdvance, onNavigateTimeline, onToast, slug]);
+  }, [fullyDone, isOffTimeline, customNext, onAdvance, slug, onNavigateTimeline, onGoToBonusListing, onBack, onToast]);
 
   const handleKey = useCallback(
     (e: KeyboardEvent) => {
@@ -95,6 +231,10 @@ export function BonusChallengeScreen({
   }, [handleKey, isActive]);
 
   const gameClock = useGameClock();
+
+  // const isOffTimeline = useMemo(() => {
+  //   return getTimelineIndexForShort(slug) < 0;
+  // }, [slug]);
 
   if (!short) {
     return null;
@@ -159,20 +299,64 @@ export function BonusChallengeScreen({
       </div>
 
       <div className="game-stop-nav">
-        <button
+
+
+        {/* <button
+              type="button"
+              className="game-snav"
+              onClick={goPrev}
+            disabled={!customPrev}
+            >
+              ◄ PREV
+            </button>
+            <div className="game-snav-ctr">
+              <span className="text-[10px] tracking-[0.06em]"> {isOffTimeline ? `BONUS · ${currentShortIndex + 1} / ${SHORTS.length}` : stepLabel}</span>
+            </div>
+            <button type="button" className="game-snav text-right" onClick={goNext}>
+              {fullyDone || next ? "NEXT ►" : "DONE ►"}
+            </button> */}
+
+
+
+
+        {/* <button
           type="button"
           className="game-snav"
           onClick={goPrev}
-          disabled={!prev}
+          disabled={!customPrev}
         >
           ◄ PREV
         </button>
         <div className="game-snav-ctr">
-          <span className="text-[10px] tracking-[0.06em]">{stepLabel}</span>
+          <span className="text-[10px] tracking-[0.06em]">
+            {isOffTimeline ? `BONUS · ${currentShortIndex + 1} / ${SHORTS.length}` : stepLabel}
+          </span>
         </div>
         <button type="button" className="game-snav text-right" onClick={goNext}>
-          {fullyDone || next ? "NEXT ►" : "DONE ►"}
+          {fullyDone || customNext ? "NEXT ►" : "DONE ►"}
+        </button> */}
+
+        {/* <div className="game-stop-nav"> */}
+        <button
+          type="button"
+          className="game-snav"
+          onClick={goPrev}
+          disabled={!customPrev}
+        >
+          ◄ PREV
         </button>
+        <div className="game-snav-ctr">
+          <span className="text-[10px] tracking-[0.06em] uppercase">
+            {isOffTimeline
+              ? `BONUS · ${offTimelineIndex + 1} / ${offTimelineShorts.length}`
+              : stepLabel}
+          </span>
+        </div>
+        <button type="button" className="game-snav text-right" onClick={goNext}>
+          {fullyDone || customNext ? "NEXT ►" : "DONE ►"}
+        </button>
+        {/* </div> */}
+
       </div>
     </div>
   );
