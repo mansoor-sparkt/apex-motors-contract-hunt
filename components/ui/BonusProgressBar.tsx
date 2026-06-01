@@ -27,14 +27,14 @@ export function BonusProgressBar({ bonusScore }: { bonusScore: number }) {
         {/* Tracker Headers */}
         <div className="flex justify-between items-end mb-2">
           <div
-            className="font-share-mono text-[9px] tracking-[0.1em] transition-colors duration-300"
+            className="font-share-mono text-[11px] tracking-[0.1em] transition-colors duration-300"
             style={{ color: activeColor }}
           >
             BONUS SCORE
-            {isGoalReached ? " 🎉 EXTRA PRIZE UNLOCKED!" : "REACH 100 PTS TO UNLOCK EXTRA PRIZE"}
+            {isGoalReached ? " 🎉 EXTRA PRIZE UNLOCKED!" : " REACH 100 PTS TO UNLOCK EXTRA PRIZE"}
           </div>
           <div className="font-orbitron text-[12px] font-bold text-white">
-            {bonusScore} / {TOTAL_BONUS_POOL} PTS
+            {bonusScore} / {TOTAL_BONUS_POOL} BONUS POINT
           </div>
         </div>
 
