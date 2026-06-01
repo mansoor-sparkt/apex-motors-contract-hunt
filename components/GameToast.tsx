@@ -15,7 +15,11 @@ export function GameToast({
     return () => clearTimeout(t);
   }, [message, onDone]);
 
+
   return (
-    <div className={`game-toast${message ? " on" : ""}`}>{message}</div>
+
+    <div className={`game-toast${message ? " on" : ""}`}>
+      {message}
+    </div>
   );
 }

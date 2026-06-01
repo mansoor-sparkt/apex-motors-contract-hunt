@@ -367,7 +367,7 @@ export function HUDBar({
         </button>
       </div>} */}
       {/* {onBack && <div className="game-hud-sp" />} */}
-      {isMapShow && <div className="px-4 py-2 relative z-[1]">
+      {isMapShow && <div className={`${showLogo && "pr-4"} py-2 relative z-[1]`}>
         <button
           type="button"
           onClick={onOpenMap}

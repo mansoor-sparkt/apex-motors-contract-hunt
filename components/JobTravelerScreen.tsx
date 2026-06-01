@@ -123,7 +123,7 @@ export function JobTravelerScreen({
         .then((file) => {
           if (!cancelled) shareFileRef.current = file;
         })
-        .catch(() => {});
+        .catch(() => { });
     }, 600);
 
     return () => {
@@ -166,7 +166,7 @@ export function JobTravelerScreen({
             HUNT <span>›</span>
             <span style={{ color: "var(--o)" }}>MISSION REPORT</span>
           </div>
-          <div className="game-comp-hero-icon">🏭</div>
+          <div className="game-comp-hero-icon">⚙️</div>
           {/* <h2 className="game-comp-hero-title">
             500 BRACKETS
             <br />
@@ -178,10 +178,16 @@ export function JobTravelerScreen({
             <strong className="text-[var(--txt)]">YOUR SHOP IS REAL NOW.</strong>
           </p> */}
 
-          <h2 className="game-comp-hero-title">
+          {/* <h2 className="game-comp-hero-title">
             GEARBOX
             <br />
             <span className="text-[var(--o)]">DELIVERED.</span>
+          </h2> */}
+
+          <h2 className="game-comp-hero-title">
+            DELIVERED
+            <br />
+            <span className="text-[var(--o)]">PLANETARY GEAR.</span>
           </h2>
           <p className="font-share-mono text-[11px] text-[var(--mut)] leading-[1.65] m-0">
             Redline Robotics signs off.
@@ -192,65 +198,65 @@ export function JobTravelerScreen({
 
         <div className="game-traveler">
           <div ref={shareCaptureRef}>
-          <div className="game-trav-top">
-            <div className="game-trav-av">
-              <MachinistAvatar avatarIndex={player.avatarIndex} />
-            </div>
-            <div className="min-w-0">
-              <div className="game-trav-lbl">// MISSION REPORT</div>
-              <div className="game-trav-name">{av.title}</div>
-              <div className="game-trav-meta">{metaLine}</div>
-            </div>
-          </div>
-
-          <div className="game-trav-body">
-            <div>
-              <div className="game-trav-sec-lbl">SCORE</div>
-              <div className="game-trav-score-row">
-                <div className="game-trav-score-val">{baseScore}</div>
-                <div>
-                  <div className="font-share-mono text-[11px] text-[var(--am)]">
-                    +{bonusScore} bonus
-                  </div>
-                  <div className="font-share-mono text-[10px] text-[var(--mut)]">
-                    RANK #{rank}
-                  </div>
-                  <div className="font-share-mono text-[10px] text-[var(--mut)]">
-                    TIME {timeDisplay}
-                  </div>
-                </div>
+            <div className="game-trav-top">
+              <div className="game-trav-av">
+                <MachinistAvatar avatarIndex={player.avatarIndex} />
+              </div>
+              <div className="min-w-0">
+                <div className="game-trav-lbl">// MISSION REPORT</div>
+                <div className="game-trav-name">{av.title}</div>
+                <div className="game-trav-meta">{metaLine}</div>
               </div>
             </div>
 
-            <div className="game-trav-sec">
-              <div className="game-trav-sec-lbl">BADGES EARNED</div>
-              {badges.length ? (
-                <div className="flex flex-wrap gap-[5px]">
-                  {badges.map((b, i) => {
-                    const c = BADGE_COLORS[i % BADGE_COLORS.length];
-                    return (
-                      <span
-                        key={`${b}-${i}`}
-                        className="game-earn-b"
-                        style={{
-                          background: c.bg,
-                          color: c.text,
-                          border: `1px solid ${c.border}`,
-                        }}
-                      >
-                        {b}
-                      </span>
-                    );
-                  })}
+            <div className="game-trav-body">
+              <div>
+                <div className="game-trav-sec-lbl">SCORE</div>
+                <div className="game-trav-score-row">
+                  <div className="game-trav-score-val">{baseScore}</div>
+                  <div>
+                    <div className="font-share-mono text-[11px] text-[var(--am)]">
+                      +{bonusScore} bonus
+                    </div>
+                    <div className="font-share-mono text-[10px] text-[var(--mut)]">
+                      RANK #{rank}
+                    </div>
+                    <div className="font-share-mono text-[10px] text-[var(--mut)]">
+                      TIME {timeDisplay}
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                <p className="font-share-mono text-[10px] text-[var(--mut)] m-0">
-                  COMPLETE BONUS CHALLENGES TO EARN BADGES
-                </p>
-              )}
-            </div>
+              </div>
 
-            {/* <div className="game-trav-sec">
+              <div className="game-trav-sec">
+                <div className="game-trav-sec-lbl">BADGES EARNED</div>
+                {badges.length ? (
+                  <div className="flex flex-wrap gap-[5px]">
+                    {badges.map((b, i) => {
+                      const c = BADGE_COLORS[i % BADGE_COLORS.length];
+                      return (
+                        <span
+                          key={`${b}-${i}`}
+                          className="game-earn-b"
+                          style={{
+                            background: c.bg,
+                            color: c.text,
+                            border: `1px solid ${c.border}`,
+                          }}
+                        >
+                          {b}
+                        </span>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="font-share-mono text-[10px] text-[var(--mut)] m-0">
+                    COMPLETE BONUS CHALLENGES TO EARN BADGES
+                  </p>
+                )}
+              </div>
+
+              {/* <div className="game-trav-sec">
               <div className="game-trav-sec-lbl">CONTRACT</div>
               <p className="font-share-mono text-[11px] text-[rgba(232,234,240,0.8)] leading-[1.7] m-0">
                 APEX MOTORS · 500 BRAKE CALIPER BRACKETS
@@ -259,37 +265,38 @@ export function JobTravelerScreen({
               </p>
             </div> */}
 
-            <div className="game-trav-sec">
-              <div className="game-trav-sec-lbl">CONTRACT</div>
-              <p className="font-share-mono text-[11px] text-[rgba(232,234,240,0.8)] leading-[1.7] m-0">
-                REDLINE ROBOTICS · PLANETARY GEARBOX
-                <br />
-                MATERIAL: HYBRID (PRINTED & MACHINED)
-              </p>
-            </div>
-
-            <div className="game-trav-sec">
-              <div className="game-trav-sec-lbl">TEAM BUILT</div>
-              {roster.length ? (
-                roster.map((t, i) => (
-                  <div key={i} className="game-team-r">
-                    <div className="game-team-dot" />
-                    {t.n} — {t.c}
-                  </div>
-                ))
-              ) : (
-                <p className="font-share-mono text-[10px] text-[var(--mut)] m-0">
-                  COMPLETE CONVERSATION STOPS TO BUILD YOUR TEAM
+              <div className="game-trav-sec">
+                <div className="game-trav-sec-lbl">CONTRACT</div>
+                <p className="font-share-mono text-[11px] text-[rgba(232,234,240,0.8)] leading-[1.7] m-0">
+                  REDLINE ROBOTICS · PLANETARY GEARBOX
+                  <br />
+                  MATERIAL: HYBRID (PRINTED & MACHINED)
                 </p>
-              )}
-            </div>
+              </div>
 
-            <div className="game-trav-sec text-center pb-0">
-              <p className="font-share-mono text-[10px] text-[var(--mut)] m-0">
-                POWERED BY PHILLIPS MACHINIST
-              </p>
+              {/* <div className="game-trav-sec">
+                <div className="game-trav-sec-lbl">TEAM BUILT</div>
+                {roster.length ? (
+                  roster.map((t, i) => (
+                    <div key={i} className="game-team-r">
+                      <div className="game-team-dot" />
+                      {t.n} — {t.c}
+                    </div>
+                  ))
+                )
+                  : (
+                    <p className="font-share-mono text-[10px] text-[var(--mut)] m-0">
+                      COMPLETE CONVERSATION STOPS TO BUILD YOUR TEAM
+                    </p>
+                  )}
+              </div> */}
+
+              <div className="game-trav-sec text-center pb-0">
+                <p className="font-share-mono text-[10px] text-[var(--mut)] m-0">
+                  POWERED BY PHILLIPS MACHINIST
+                </p>
+              </div>
             </div>
-          </div>
           </div>
 
           <div className="game-trav-sec px-[14px] pb-[14px] -mt-1">

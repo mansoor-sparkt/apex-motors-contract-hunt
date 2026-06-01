@@ -1187,11 +1187,13 @@ export function StopScreen({
     }
 
 
-    clearPartialTime(stopIndex);
+    // clearPartialTime(stopIndex);
 
     const timeSpentOnThisStop =
       gameClock?.getTimeSpentOnStop(stopIndex) ??
       elapsedSeconds - previousStopsTime;
+
+    clearPartialTime(stopIndex);
 
     // ── FIX: Inject explicit variables directly matching your API specifications ──
     onSubmit(stopIndex, {

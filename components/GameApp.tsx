@@ -140,18 +140,28 @@ export function GameApp() {
     (action: CelebrationDismissAction | null) => {
       if (!action) return;
 
+      // if (action.type === "traveler") {
+      //   const currentBonusScore = computeBonusScore(shortsDone);
+      //   const wonExtraPrize = currentBonusScore >= 100;
+      //   const allBonusesDone =
+      //     Object.keys(shortsDone).length >= SHORTS.length;
+
+      //   setShowCongratulation(true);
+
+      //   if (wonExtraPrize || allBonusesDone) {
+      //     setShowCongratulation(true);
+      //   } else {
+      //     setShowEndGameNudge(true);
+      //   }
+
+      //   setScreen("hunt");
+      //   return;
+      // }
+
       if (action.type === "traveler") {
-        const currentBonusScore = computeBonusScore(shortsDone);
-        const wonExtraPrize = currentBonusScore >= 100;
-        const allBonusesDone =
-          Object.keys(shortsDone).length >= SHORTS.length;
-
-        if (wonExtraPrize || allBonusesDone) {
-          setShowCongratulation(true);
-        } else {
-          setShowEndGameNudge(true);
-        }
-
+        // STEP 1: Always trigger the Congrats Modal first when 6 stops are done.
+        // DO NOT trigger the Nudge here!
+        setShowCongratulation(true);
         setScreen("hunt");
         return;
       }
@@ -563,6 +573,8 @@ export function GameApp() {
 
     if (typeof window !== "undefined") {
       localStorage.removeItem("hunt_user_session");
+
+      // document.cookie = "hunt_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
       cloudProgressExistsRef.current = false;
 
       setPlayer({
@@ -703,183 +715,184 @@ export function GameApp() {
           className="absolute inset-0 z-10 flex h-full w-full min-h-0 flex-col overflow-x-hidden overflow-y-auto max-sm:shadow-none sm:shadow-[0_0_80px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.06)]"
         >
           <GameClockProvider stopsDone={stopsDone} running={clockRunning}>
-          {/* background overlays  */}
-          <div
-            className="absolute inset-0 z-[3] pointer-events-none opacity-60"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E")`,
-              mixBlendMode: 'overlay',
-            }}
-          />
-
-          <div
-            className="absolute inset-0 z-[4] pointer-events-none"
-            style={{
-
-
-              background:
-                `repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0, 0, 0, 0.06) 3px, rgba(0, 0, 0, 0.06) 4px)`
-
-            }}
-          />
-          {/* A: Splash */}
-          <ScreenSlot active={screen === "splash"} direction="fade">
-            <SplashScreen
-              onStart={() => setScreen("intro")}
-              onDemo={quickDemo}
-            />
-          </ScreenSlot>
-
-          {/* A2: Mission brief */}
-          <ScreenSlot active={screen === "intro"} direction="fwd">
-            <IntroScreen
-              onNext={() => setScreen("auth")}
-              onBack={() => setScreen("splash")}
-              onOpenMap={() => setIsMapOpen(true)}
-            />
-          </ScreenSlot>
-
-          {/* B: Auth */}
-          <ScreenSlot active={screen === "auth"} direction="fwd">
-            <AuthScreen
-              isLoading={isAuthenticating}
-              onNext={handleAuthSubmit}
-              onBack={() => setScreen("splash")}
-            />
-          </ScreenSlot>
-
-          {/* C: Register */}
-          <ScreenSlot active={screen === "register"} direction="fwd">
-            <RegisterScreen
-              initialEmail={authEmail}
-              draft={registerDraft}
-              onNext={(draft) => {
-                setRegisterDraft(draft);
-                setScreen("avatar");
+            {/* background overlays  */}
+            <div
+              className="absolute inset-0 z-[3] pointer-events-none opacity-60"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E")`,
+                mixBlendMode: 'overlay',
               }}
-              onBack={() => setScreen("auth")}
             />
-          </ScreenSlot>
 
-          {/* D: Choose Avatar */}
-          <ScreenSlot active={screen === "avatar"} direction="fwd">
-            {registerDraft ? (
-              <AvatarScreen
-                draft={registerDraft}
-                onComplete={(p) => registerHadnler(p)}
-                // onComplete={(p) => {
-                //   handleingAvater(p)
+            <div
+              className="absolute inset-0 z-[4] pointer-events-none"
+              style={{
 
-                // }}
-                onBack={() => setScreen("register")}
+
+                background:
+                  `repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0, 0, 0, 0.06) 3px, rgba(0, 0, 0, 0.06) 4px)`
+
+              }}
+            />
+            {/* A: Splash */}
+            <ScreenSlot active={screen === "splash"} direction="fade">
+              <SplashScreen
+                onStart={() => setScreen("intro")}
+                onDemo={quickDemo}
               />
-            ) : (
+            </ScreenSlot>
+
+            {/* A2: Mission brief */}
+            <ScreenSlot active={screen === "intro"} direction="fwd">
+              <IntroScreen
+                onNext={() => setScreen("auth")}
+                onBack={() => setScreen("splash")}
+                onOpenMap={() => setIsMapOpen(true)}
+              />
+            </ScreenSlot>
+
+            {/* B: Auth */}
+            <ScreenSlot active={screen === "auth"} direction="fwd">
+              <AuthScreen
+                isLoading={isAuthenticating}
+                onNext={handleAuthSubmit}
+                onBack={() => setScreen("splash")}
+              />
+            </ScreenSlot>
+
+            {/* C: Register */}
+            <ScreenSlot active={screen === "register"} direction="fwd">
               <RegisterScreen
+                initialEmail={authEmail}
+                draft={registerDraft}
                 onNext={(draft) => {
                   setRegisterDraft(draft);
                   setScreen("avatar");
                 }}
+                onBack={() => setScreen("auth")}
               />
-            )}
-          </ScreenSlot>
+            </ScreenSlot>
 
-          {/* E: Hunt Hub */}
-          <ScreenSlot active={screen === "hunt" && isProgressReady} direction="fwd">
-            <HuntScreen
-              player={player}
+            {/* D: Choose Avatar */}
+            <ScreenSlot active={screen === "avatar"} direction="fwd">
+              {registerDraft ? (
+                <AvatarScreen
+                  draft={registerDraft}
+                  onComplete={(p) => registerHadnler(p)}
+                  // onComplete={(p) => {
+                  //   handleingAvater(p)
 
-              baseScore={coreScore}       // PASS CORE SCORE
-              bonusScore={bonusScore}     // PASS BONUS SCORE
-              score={combinedScore}
-              stopsDone={stopsDone}
-              shortsDone={shortsDone}
-              roster={roster}
-              activeTab={huntTab}
-              isDemo={isDemo}
-              showEndGameNudge={showEndGameNudge}
-              setShowEndGameNudge={setShowEndGameNudge}
-              showCongratulation={showCongratulation}
-              setShowCongratulation={setShowCongratulation}
-              onTabChange={setHuntTab}
-              onOpenStop={openStop}
-              onOpenShort={openShort}
-              onShortComplete={handleShortComplete}
-              onCelebrate={(state) => openCelebration(state, "shorts")}
-              onToast={showToast}
-              onOpenMap={() => setIsMapOpen(true)}
-              logout={handleLogout}
+                  // }}
+                  onBack={() => setScreen("register")}
+                />
+              ) : (
+                <RegisterScreen
+                  onNext={(draft) => {
+                    setRegisterDraft(draft);
+                    setScreen("avatar");
+                  }}
+                />
+              )}
+            </ScreenSlot>
+
+            {/* E: Hunt Hub */}
+            <ScreenSlot active={screen === "hunt" && isProgressReady} direction="fwd">
+              <HuntScreen
+                player={player}
+
+                baseScore={coreScore}       // PASS CORE SCORE
+                bonusScore={bonusScore}     // PASS BONUS SCORE
+                score={combinedScore}
+                stopsDone={stopsDone}
+                shortsDone={shortsDone}
+                roster={roster}
+                activeTab={huntTab}
+                isDemo={isDemo}
+                showEndGameNudge={showEndGameNudge}
+                setShowEndGameNudge={setShowEndGameNudge}
+                showCongratulation={showCongratulation}
+                setShowCongratulation={setShowCongratulation}
+                onTabChange={setHuntTab}
+                onOpenStop={openStop}
+                onOpenShort={openShort}
+                onShortComplete={handleShortComplete}
+                onCelebrate={(state) => openCelebration(state, "shorts")}
+                onToast={showToast}
+                onOpenMap={() => setIsMapOpen(true)}
+                logout={handleLogout}
+              />
+            </ScreenSlot>
+
+            {/* F: Stop Detail */}
+            <ScreenSlot active={screen === "stop" && isProgressReady} direction="fwd">
+              <StopScreen
+                isActive={screen === "stop"}
+                stopIndex={curStop}
+                player={player}
+                stopsDone={stopsDone}
+                shortsDone={shortsDone}
+                onBack={backHandler}
+                onAdvance={advanceFromStop}
+                onNavigateTimeline={navigateTimeline}
+                onSubmit={handleStopSubmit}
+                onNavigate={openStop}
+                onToast={showToast}
+                onCelebrate={(state) => openCelebration(state, "stop")}
+                onOpenMap={() => setIsMapOpen(true)}
+                isDemo={isDemo}
+              />
+            </ScreenSlot>
+
+            {/* F2: Bonus challenge (inline, same flow as stops) */}
+            <ScreenSlot active={screen === "short" && isProgressReady && !!curShortSlug} direction="fwd">
+              <BonusChallengeScreen
+                slug={curShortSlug!}
+                isActive={screen === "short"}
+                player={player}
+                stopsDone={stopsDone}
+                shortsDone={shortsDone}
+                onBack={backHandler}
+                onAdvance={advanceFromShort}
+                onSkip={skipBonus}
+                onNavigateTimeline={navigateTimeline}
+                onComplete={handleShortComplete}
+                onCelebrate={(state) => openCelebration(state, "shorts")}
+                onToast={showToast}
+                onOpenMap={() => setIsMapOpen(true)}
+                onGoToBonusListing={() => enterHuntHub("shorts")}
+                isDemo={isDemo}
+              />
+            </ScreenSlot>
+
+            {/* G: Celebration Modal */}
+            <CelebrationModal
+              state={celebration}
+              onClose={dismissCelebration}
+              onContinue={dismissCelebration}
             />
-          </ScreenSlot>
 
-          {/* F: Stop Detail */}
-          <ScreenSlot active={screen === "stop" && isProgressReady} direction="fwd">
-            <StopScreen
-              isActive={screen === "stop"}
-              stopIndex={curStop}
-              player={player}
-              stopsDone={stopsDone}
-              shortsDone={shortsDone}
-              onBack={backHandler}
-              onAdvance={advanceFromStop}
-              onNavigateTimeline={navigateTimeline}
-              onSubmit={handleStopSubmit}
-              onNavigate={openStop}
-              onToast={showToast}
-              onCelebrate={(state) => openCelebration(state, "stop")}
-              onOpenMap={() => setIsMapOpen(true)}
-              isDemo={isDemo}
+
+            <MapModal
+              isOpen={isMapOpen}
+              onClose={() => setIsMapOpen(false)}
             />
-          </ScreenSlot>
 
-          {/* F2: Bonus challenge (inline, same flow as stops) */}
-          <ScreenSlot active={screen === "short" && isProgressReady && !!curShortSlug} direction="fwd">
-            <BonusChallengeScreen
-              slug={curShortSlug!}
-              isActive={screen === "short"}
-              player={player}
-              stopsDone={stopsDone}
-              shortsDone={shortsDone}
-              onBack={backHandler}
-              onAdvance={advanceFromShort}
-              onSkip={skipBonus}
-              onNavigateTimeline={navigateTimeline}
-              onComplete={handleShortComplete}
-              onCelebrate={(state) => openCelebration(state, "shorts")}
-              onToast={showToast}
-              onOpenMap={() => setIsMapOpen(true)}
-              onGoToBonusListing={() => enterHuntHub("shorts")}
-              isDemo={isDemo}
-            />
-          </ScreenSlot>
+            {/* <GameToast message={'hello helloe hellos shshshs sdsdfsdf sdf sdf sdfsd fsdf'} onDone={() => setToast(null)} /> */}
+            <GameToast message={toast} onDone={() => setToast(null)} />
 
-          {/* G: Celebration Modal */}
-          <CelebrationModal
-            state={celebration}
-            onClose={dismissCelebration}
-            onContinue={dismissCelebration}
-          />
-
-
-          <MapModal
-            isOpen={isMapOpen}
-            onClose={() => setIsMapOpen(false)}
-          />
-
-          <GameToast message={toast} onDone={() => setToast(null)} />
-
-          {isProgressLoading && (
-            <div
-              className="absolute inset-0 z-[60] flex flex-col items-center justify-center gap-3"
-              style={{ background: "rgba(0,0,0,0.92)" }}
-            >
+            {isProgressLoading && (
               <div
-                className="font-share-mono text-[10px] tracking-[0.2em] text-[var(--c)]"
-                style={{ animation: "pulse 1.2s ease-in-out infinite" }}
+                className="absolute inset-0 z-[60] flex flex-col items-center justify-center gap-3"
+                style={{ background: "rgba(0,0,0,0.92)" }}
               >
-                SYNCING SAVED PROGRESS…
+                <div
+                  className="font-share-mono text-[10px] tracking-[0.2em] text-[var(--c)]"
+                  style={{ animation: "pulse 1.2s ease-in-out infinite" }}
+                >
+                  SYNCING SAVED PROGRESS…
+                </div>
               </div>
-            </div>
-          )}
+            )}
           </GameClockProvider>
         </div>
       </div>
