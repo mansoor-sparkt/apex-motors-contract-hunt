@@ -462,7 +462,7 @@ export const STOPS = [
     bt: "calc", // Keeping as Shop Talk per original
     bp: "How many gears are in the planetary gear set.",
     options: ["4", "5", "19", "20"],
-    targetAnswer: "5",
+    targetAnswer: "20",
 
     badge: "Additive Minded",
   },
@@ -551,10 +551,11 @@ export const SHORTS = [
     em: "📱",
     title: "DIAL IN THE SPEED",
     task: "Phillips Machinist · Speeds & Feeds",
-    desc: "Dial in spindle speed and chip load with the Simple Speeds & Feeds calculator.",
+    desc: "Dial in spindle speed and chip load with the Simple Speeds & Feeds calculator. (Make sure the app is in Inch and Milling mode).",
+    // desc: "Dial in spindle speed and chip load with the Simple Speeds & Feeds calculator.",
     story:
       "Every cut has a sweet spot — how fast the tool spins, how fast it moves. Wrong numbers, and you break a tool or burn the part.",
-    fi: "Screenshot the Simple Speeds & Feeds Calculator open in the app.",
+    fi: "Screenshot the Simple Speeds & Feeds Calculator in the app.",
     bp: 'Use the calculator: what\'s the spindle speed for a 1/2" 2-flute carbide endmill at 250 SFM and .002" chip load?',
     type: "app" as const,
     pts: APP_BONUS_TOTAL_PTS,
@@ -598,7 +599,8 @@ export const SHORTS = [
     desc: "Learn form controls in GD&T — flat, round, and true to shape.",
     story:
       'Engineers use a symbol language called GD&T (Geometric Dimensioning & Tolerancing) to say how perfect a part needs to be. "Form" controls check whether a single surface is actually true to its ideal shape — is a flat face really flat? Is a round hole really round?',
-    fi: "Screenshot the GD&T reference open in the app.",
+    // fi: "Screenshot the GD&T reference open in the app.",
+    fi: "Take a screenshot of the GD&T reference in the app.",
     bp: "Which are Form controls?",
     type: "app" as const,
     pts: APP_BONUS_TOTAL_PTS,

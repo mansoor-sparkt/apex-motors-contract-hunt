@@ -111,7 +111,26 @@ export function BonusChallengeScreen({
         clockSeconds={gameClock?.elapsedSeconds}
       />
 
+
+
       <div className="game-scroll flex-1 min-h-0 bg-transparent">
+
+        {/* ── NEW: Massive Bonus Banner ── */}
+        <div className="bg-[rgba(255,187,0,0.15)] border-b border-[rgba(255,187,0,0.4)] px-4 py-2.5 flex items-center justify-center gap-3 shadow-[0_0_15px_rgba(255,187,0,0.1)] shrink-0">
+          <span className="text-[#ffbb00] text-lg animate-pulse">★</span>
+          <span className="font-orbitron font-bold text-[14px] text-[#ffbb00] tracking-widest drop-shadow-md">BONUS CHALLENGE</span>
+          <span className="text-[#ffbb00] text-lg animate-pulse">★</span>
+        </div>
+
+        <div className="bg-[rgba(57,255,20,0.06)] border-b border-[rgba(57,255,20,0.2)] px-4 py-2 flex items-center justify-between gap-2 shrink-0">
+          <span className="font-share-mono text-[10px] text-[var(--g)] tracking-[0.06em] uppercase">
+            🏆 PRIZE ELIGIBILITY STATUS:
+          </span>
+          <span className="font-[family:var(--font-rajdhani)] text-[12px] font-semibold text-white">
+            Reach <span className="text-[#ffbb00]">100 Pts</span> to unlock the Extra Prize gift box!
+          </span>
+        </div>
+
         <div className="px-[14px] pt-3 pb-2">
           <StatusTag variant="cyan">BONUS CHALLENGE · +{short.pts} PTS</StatusTag>
           <h1 className="font-orbitron text-[20px] font-black leading-tight tracking-[0.04em] text-white mt-2">

@@ -162,9 +162,9 @@ export function SplashScreen({
           <GameButton variant="primary" onClick={onStart}>
             ► ACCEPT THE CONTRACT
           </GameButton>
-          <GameButton variant="secondary" onClick={onDemo}>
+          {/* <GameButton variant="secondary" onClick={onDemo}>
             QUICK DEMO — SKIP SETUP
-          </GameButton>
+          </GameButton> */}
           <div className="font-share-mono text-[9px] text-[var(--dim)] text-center tracking-[0.08em]">
             JUN 2–4 · NLSC 2026 · POWERED BY PHILLIPS MACHINIST
           </div>

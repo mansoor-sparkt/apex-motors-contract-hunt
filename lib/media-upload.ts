@@ -9,6 +9,8 @@ export const MAX_VIDEO_UPLOAD_BYTES = 4_000_000;
 export const VIDEO_UPLOAD_ACCEPT =
   "video/*,.mov,.MOV,.mp4,.MP4,.m4v,.M4V,.webm,.WEBM,video/quicktime,video/mp4,video/x-m4v";
 
+("video/mp4,video/x-m4v,video/*");
+
 const VIDEO_EXT = /\.(mov|mp4|m4v|webm|avi|mkv|3gp|3g2|qt)$/i;
 
 const VIDEO_MIME_PREFIXES = ["video/", "application/mp4"];
@@ -81,7 +83,11 @@ async function compressVideoForUpload(
 
     video.onerror = () => {
       cleanup();
-      reject(new Error("Could not read this video. Try MOV or MP4 from your library."));
+      reject(
+        new Error(
+          "Could not read this video. Try MOV or MP4 from your library.",
+        ),
+      );
     };
 
     video.onloadedmetadata = () => {
@@ -111,8 +117,14 @@ async function compressVideoForUpload(
         return;
       }
 
-      const mimeType = ["video/mp4", "video/webm;codecs=vp8", "video/webm"].find(
-        (m) => typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(m),
+      const mimeType = [
+        "video/mp4",
+        "video/webm;codecs=vp8",
+        "video/webm",
+      ].find(
+        (m) =>
+          typeof MediaRecorder !== "undefined" &&
+          MediaRecorder.isTypeSupported(m),
       );
 
       if (!mimeType) {
@@ -176,7 +188,11 @@ async function compressVideoForUpload(
       const playPromise = video.play();
       playPromise?.catch(() => {
         cleanup();
-        reject(new Error("Could not play video — try a shorter clip or different file."));
+        reject(
+          new Error(
+            "Could not play video — try a shorter clip or different file.",
+          ),
+        );
       });
 
       const draw = () => {
@@ -210,7 +226,9 @@ export async function prepareVideoForUpload(file: File): Promise<File> {
     return await compressVideoForUpload(normalized, MAX_VIDEO_UPLOAD_BYTES);
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : videoTooLargeMessage(normalized.size);
+      error instanceof Error
+        ? error.message
+        : videoTooLargeMessage(normalized.size);
     throw new Error(message);
   }
 }

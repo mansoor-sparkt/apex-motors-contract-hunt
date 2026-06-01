@@ -46,9 +46,18 @@ export function formatNameFromEmail(email: string): string {
     .join(" ");
 }
 
-export function profileDisplayName(profile: BackendProfile | null, emailId: string): string {
+export function profileDisplayName(
+  profile: BackendProfile | null,
+  emailId: string,
+): string {
   if (!profile) return formatNameFromEmail(emailId);
-  const full = [profile.firstName, profile.lastName].filter(Boolean).join(" ").trim();
+
+  let first = profile?.firstName?.trim();
+  let last = profile?.lastName?.trim();
+
+  const lastInitial = last ? `${last.charAt(0).toUpperCase()}.` : "";
+  console.log(first, last, lastInitial, "users names");
+  const full = [first, lastInitial].filter(Boolean).join(" ").trim();
   return full || profile.operatorName || formatNameFromEmail(emailId);
 }
 
@@ -70,8 +79,13 @@ export function parseGameProgress(raw: string): {
   }
 }
 
-export function sumTimeSpent(stops: Record<number, { timeSpent?: number }>): number {
-  return Object.values(stops).reduce((acc, stop) => acc + (stop?.timeSpent || 0), 0);
+export function sumTimeSpent(
+  stops: Record<number, { timeSpent?: number }>,
+): number {
+  return Object.values(stops).reduce(
+    (acc, stop) => acc + (stop?.timeSpent || 0),
+    0,
+  );
 }
 
 export function buildLeaderboardEntry(
@@ -114,7 +128,8 @@ export function dedupeProgressRows(
     const existing = byEmail.get(key);
     if (
       !existing ||
-      new Date(row.modifiedDate).getTime() > new Date(existing.modifiedDate).getTime()
+      new Date(row.modifiedDate).getTime() >
+        new Date(existing.modifiedDate).getTime()
     ) {
       byEmail.set(key, row);
     }
@@ -135,7 +150,10 @@ export function rankForEmail(
   const normalized = email.toLowerCase();
   let all = sortEntries(entries);
 
-  if (fallbackScore != null && !all.some((e) => e.emailId.toLowerCase() === normalized)) {
+  if (
+    fallbackScore != null &&
+    !all.some((e) => e.emailId.toLowerCase() === normalized)
+  ) {
     all = sortEntries([
       ...all,
       {
