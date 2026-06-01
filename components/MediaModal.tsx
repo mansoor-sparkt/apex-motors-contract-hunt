@@ -12,16 +12,21 @@ const MediaModal = ({
   mediaType,
   title,
   onClose,
+  purpose = "evidence",
 }: {
   previewUrl: string;
   mediaType: "image" | "video";
   title: string;
   onClose: () => void;
+  /** Hint GIF preview vs submitted player evidence. */
+  purpose?: "evidence" | "hint";
 }) => {
-  const resolvedSrc =
-    (mediaType === "video"
-      ? resolveVideoPreviewUrl(previewUrl)
-      : resolveMediaPreviewUrl(previewUrl)) ?? previewUrl;
+  const isHint = purpose === "hint";
+  const resolvedSrc = isHint
+    ? previewUrl
+    : ((mediaType === "video"
+        ? resolveVideoPreviewUrl(previewUrl)
+        : resolveMediaPreviewUrl(previewUrl)) ?? previewUrl);
 
   return (
     <Dialog.Root open onOpenChange={(open) => !open && onClose()}>
@@ -67,8 +72,8 @@ const MediaModal = ({
             {/* Header */}
             <div style={{ padding: "11px 14px 10px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(241,92,48,0.18)", background: "linear-gradient(135deg, rgba(241,92,48,0.12), rgba(177,77,255,0.05))" }}>
               <div>
-                <div style={{ fontFamily: "var(--fm)", fontSize: 9, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--o)", marginBottom: 3 }}>
-                  // EVIDENCE PREVIEW
+                <div style={{ fontFamily: "var(--fm)", fontSize: 9, letterSpacing: ".18em", textTransform: "uppercase", color: isHint ? "var(--c)" : "var(--o)", marginBottom: 3 }}>
+                  {isHint ? "// WHERE TO FIND" : "// EVIDENCE PREVIEW"}
                 </div>
                 <div style={{ fontFamily: "var(--fd)", fontSize: 12, fontWeight: 700, letterSpacing: ".04em", color: "var(--txt)", lineHeight: 1.2 }}>
                   {title}
@@ -92,7 +97,7 @@ const MediaModal = ({
               {/* HUD frame */}
               <div style={{ position: "absolute", inset: 8, border: "1px solid rgba(241,92,48,0.2)", clipPath: "polygon(0 12px,12px 0,calc(100% - 12px) 0,100% 12px,100% calc(100% - 12px),calc(100% - 12px) 100%,12px 100%,0 calc(100% - 12px))", pointerEvents: "none", zIndex: 2 }} />
               {mediaType === "image" ? (
-                <img src={resolvedSrc} alt={title} style={{ width: "100%", maxHeight: 280, objectFit: "contain", display: "block" }} />
+                <img src={resolvedSrc} alt={title} style={{ width: "100%", maxHeight: isHint ? 360 : 280, objectFit: "contain", display: "block" }} />
               ) : (
                 <video src={resolvedSrc} style={{ width: "100%", maxHeight: 280, display: "block" }} controls playsInline autoPlay />
               )}
@@ -100,11 +105,17 @@ const MediaModal = ({
 
             {/* Footer */}
             <div style={{ padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid rgba(241,92,48,0.12)" }}>
-              <span style={{ fontFamily: "var(--fm)", fontSize: 9, color: "var(--g)", letterSpacing: ".1em", display: "flex", alignItems: "center", gap: 5 }}>
-                <span>✓</span> SUBMITTED · EVIDENCE LOGGED
+              <span style={{ fontFamily: "var(--fm)", fontSize: 9, color: isHint ? "var(--c)" : "var(--g)", letterSpacing: ".1em", display: "flex", alignItems: "center", gap: 5 }}>
+                {isHint ? (
+                  <>? TAP SCREENSHOT AREA IN APP</>
+                ) : (
+                  <>
+                    <span>✓</span> SUBMITTED · EVIDENCE LOGGED
+                  </>
+                )}
               </span>
               <span style={{ fontFamily: "var(--fm)", fontSize: 9, color: "var(--mut)", letterSpacing: ".08em" }}>
-                {mediaType === "image" ? "📷 PHOTO" : "🎬 VIDEO"}
+                {isHint ? "📱 APP HINT" : mediaType === "image" ? "📷 PHOTO" : "🎬 VIDEO"}
               </span>
             </div>
           </div>

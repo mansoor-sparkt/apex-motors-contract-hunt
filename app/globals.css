@@ -1540,6 +1540,43 @@
     background: linear-gradient(90deg, transparent, var(--o), transparent);
   }
 
+  .game-app-hint-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: var(--font-share-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--c);
+    transition: color 0.2s;
+  }
+
+  .game-app-hint-link:hover {
+    color: #fff;
+  }
+
+  .game-app-hint-q {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 229, 255, 0.5);
+    background: rgba(0, 229, 255, 0.12);
+    font-family: var(--font-orbitron);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
   .game-photo-box {
     border: 1px dashed rgba(241, 92, 48, 0.45);
     padding: 26px 20px;

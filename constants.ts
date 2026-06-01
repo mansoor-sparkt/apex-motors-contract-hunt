@@ -16,6 +16,10 @@ import avatarSpeedDemon from "@/assests/avatar/SPEED-DEMON.png";
 import avatarToleranceMaster from "@/assests/avatar/TOLERANCE-MASTER.png";
 import avatarChipSlayer from "@/assests/avatar/CHIP-SLAYER.png";
 import avatarPrecisionPro from "@/assests/avatar/PRECISION-PRO.png";
+import shortGifDialSpeed from "@/assests/shorts-gif/dialspeed.gif";
+import shortGifTapChart from "@/assests/shorts-gif/tapchart.gif";
+import shortGifGdt from "@/assests/shorts-gif/gd&t.gif";
+import shortGifTruePosition from "@/assests/shorts-gif/trueposition.gif";
 import { StaticImageData } from "next/image";
 
 export const TOTAL_STOPS = 6;
@@ -566,6 +570,7 @@ export const SHORTS = [
     options: ["210 RPM", "1,910 RPM", "2,010 RPM", "510 RPM"],
     targetAnswer: "1,910 RPM",
     appLink: "https://machinist.onelink.me/sVlw/cmvwaf3x",
+    hintGif: shortGifDialSpeed,
   },
   {
     slug: "crack-chart",
@@ -590,6 +595,7 @@ export const SHORTS = [
     ],
     targetAnswer: '#7 (.201") Drill',
     appLink: "https://machinist.onelink.me/sVlw/6ztbw4ry",
+    hintGif: shortGifTapChart,
   },
   {
     slug: "gdt-form-controls",
@@ -616,6 +622,7 @@ export const SHORTS = [
     ],
     targetAnswer: "All of the above",
     appLink: "https://machinist.onelink.me/sVlw/hzn4wtkk",
+    hintGif: shortGifGdt,
   },
   {
     slug: "true-position",
@@ -636,6 +643,7 @@ export const SHORTS = [
     options: [".005", ".002", ".003", ".050"],
     targetAnswer: ".003",
     appLink: "https://machinist.onelink.me/sVlw/5oi3dvkd",
+    hintGif: shortGifTruePosition,
   },
 
   // 4 Photos (10 pts each)

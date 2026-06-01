@@ -4,6 +4,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { StaticImageData } from "next/image";
 import {
   APP_BONUS_ANSWER_PTS,
   APP_BONUS_PHOTO_PTS,
@@ -95,6 +96,35 @@ function ShortTag({
   return <span className={`game-tag game-tag-sm ${v}`}>{children}</span>;
 }
 
+function getAppHintGif(short: ShortDef): StaticImageData | null {
+  if (short.type !== "app" || !("hintGif" in short) || !short.hintGif) {
+    return null;
+  }
+  return short.hintGif;
+}
+
+function AppFindItHint({
+  title,
+  onOpen,
+}: {
+  title: string;
+  onOpen: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="game-app-hint-link"
+      onClick={onOpen}
+      aria-label={`Where to find in app: ${title}`}
+    >
+      <span className="game-app-hint-q" aria-hidden>
+        ?
+      </span>
+      Where to find?
+    </button>
+  );
+}
+
 export function ShortCard({
   short,
   completion,
@@ -130,6 +160,8 @@ export function ShortCard({
   const fullyDone = isApp ? !!completion?.qAnswered : !!completion;
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [hintModalOpen, setHintModalOpen] = useState(false);
+  const appHintGif = isApp ? getAppHintGif(short) : null;
   const [appAnswer, setAppAnswer] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -335,6 +367,15 @@ export function ShortCard({
             onClose={() => setModalOpen(false)}
           />
         )}
+        {hintModalOpen && appHintGif && (
+          <MediaModal
+            previewUrl={appHintGif.src}
+            mediaType="image"
+            title={short.title}
+            purpose="hint"
+            onClose={() => setHintModalOpen(false)}
+          />
+        )}
 
         <div
           className={`game-sc2 game-sc2--app-list w-full max-w-full min-w-0 box-border${fullyDone ? " done" : ""} `}
@@ -370,6 +411,13 @@ export function ShortCard({
           <p className="font-share-mono text-[10px] text-[var(--mut)] tracking-[0.06em] mt-1.5 leading-snug">
             {statusLine}
           </p>
+
+          {appHintGif && (
+            <AppFindItHint
+              title={short.title}
+              onOpen={() => setHintModalOpen(true)}
+            />
+          )}
 
           {photoDone && previewUrl && (
             <button
@@ -498,6 +546,15 @@ export function ShortCard({
             onClose={() => setModalOpen(false)}
           />
         )}
+        {hintModalOpen && appHintGif && (
+          <MediaModal
+            previewUrl={appHintGif.src}
+            mediaType="image"
+            title={short.title}
+            purpose="hint"
+            onClose={() => setHintModalOpen(false)}
+          />
+        )}
 
         <div className={`${fullyDone ? "opacity-95" : ""}`}>
           <input
@@ -537,6 +594,13 @@ export function ShortCard({
               <p className="font-[family:var(--font-rajdhani)] text-base font-medium leading-[1.55] text-[rgba(232,234,240,0.92)] mb-2.5">
                 {findItText}
               </p>
+
+              {appHintGif && (
+                <AppFindItHint
+                  title={short.title}
+                  onOpen={() => setHintModalOpen(true)}
+                />
+              )}
 
               {!photoDone && (
                 <MachinistAppCta
