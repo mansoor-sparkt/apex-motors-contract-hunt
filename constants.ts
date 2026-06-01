@@ -555,7 +555,7 @@ export const SHORTS = [
     // desc: "Dial in spindle speed and chip load with the Simple Speeds & Feeds calculator.",
     story:
       "Every cut has a sweet spot — how fast the tool spins, how fast it moves. Wrong numbers, and you break a tool or burn the part.",
-    fi: "Screenshot the Simple Speeds & Feeds Calculator in the app.",
+    fi: "Screenshot the Simple Speeds & Feeds Calculator in the app. (Make sure the app is in Inch and Milling mode).",
     bp: 'Use the calculator: what\'s the spindle speed for a 1/2" 2-flute carbide endmill at 250 SFM and .002" chip load?',
     type: "app" as const,
     pts: APP_BONUS_TOTAL_PTS,
