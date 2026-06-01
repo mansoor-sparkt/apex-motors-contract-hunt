@@ -56,7 +56,7 @@ export function profileDisplayName(
   let last = profile?.lastName?.trim();
 
   const lastInitial = last ? `${last.charAt(0).toUpperCase()}.` : "";
-  console.log(first, last, lastInitial, "users names");
+
   const full = [first, lastInitial].filter(Boolean).join(" ").trim();
   return full || profile.operatorName || formatNameFromEmail(emailId);
 }
