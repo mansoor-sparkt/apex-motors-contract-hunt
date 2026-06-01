@@ -317,13 +317,13 @@ export function GameApp() {
 
           cloudProgressExistsRef.current = true;
           setProgressStatus("loaded");
-          console.log("⚡ Cloud metrics synchronized successfully.");
+          // console.log("⚡ Cloud metrics synchronized successfully.");
           return true;
         }
 
         cloudProgressExistsRef.current = false;
         setProgressStatus("loaded");
-        console.log("ℹ️ No previous progress metrics found in cloud. Starting fresh.");
+        // console.log("ℹ️ No previous progress metrics found in cloud. Starting fresh.");
         return false;
       } catch (error) {
         console.error("Critical Exception encountered during engine hydration:", error);
@@ -681,7 +681,7 @@ export function GameApp() {
       if (res.success) {
         // ── FIX 2: Explicitly flag that row now exists after successful initial POST ──
         cloudProgressExistsRef.current = true;
-        console.log("💾 Game progress auto-saved:", res.message);
+        // console.log("💾 Game progress auto-saved:", res.message);
       } else {
         // Handles business rule rejections
         console.warn("⚠️ Cloud sync rejected:", res.error);
