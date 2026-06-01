@@ -31,8 +31,8 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'SkillsUSA Hunt — Apex Motors',
-  description: 'SkillsUSA Hunt game interface',
+  title: 'Phillips Machinist Hunt - USA',
+  description: 'Phillips Machinist Hunt USA game interface',
   icons: {
     icon: [
       // { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
