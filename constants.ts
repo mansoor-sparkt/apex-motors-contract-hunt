@@ -618,7 +618,7 @@ export const SHORTS = [
     prompt:
       "If max deviation in X and Y is .001\" and the tolerance is .005\", what's the True Position diameter?",
     options: [".005", ".002", ".003", ".050"],
-    targetAnswer: ".002",
+    targetAnswer: ".003",
     appLink: "https://machinist.onelink.me/sVlw/5oi3dvkd",
   },
 
