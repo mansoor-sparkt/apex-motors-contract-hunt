@@ -196,7 +196,7 @@ export function ShortCard({
     }
 
     if (isVideo && file.size > MAX_VIDEO_UPLOAD_BYTES) {
-      onToast("⚠️ VIDEO TOO LARGE! PLEASE KEEP IT UNDER 4MB.");
+      onToast("⚠️ VIDEO TOO LARGE! PLEASE KEEP IT UNDER 50MB.");
       e.target.value = "";
       return;
     }
@@ -942,8 +942,67 @@ export function ShortsScreen({
   // ── NEW: Tab State Controller ──
   const [activeCategory, setActiveCategory] = useState<"app" | "photo" | "video">("app");
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+
   // ── NEW: Filter challenges dynamically based on the active tab ──
-  const displayedChallenges = SHORTS.filter((s) => s.type === activeCategory);
+  // const displayedChallenges = SHORTS.filter((s) => s.type === activeCategory);
+
+
+  // ── NEW: Quick Jump Scroll Logic ──
+  // const scrollToCategory = (category: "app" | "photo" | "video") => {
+  //   if (!scrollRef.current) return;
+
+
+  //   const containerTop = scrollRef.current.getBoundingClientRect().top;
+
+  //   const firstOfCategory = SHORTS.find((s) => s.type === category);
+
+  //   if (firstOfCategory) {
+  //     // Find that element on the screen and smoothly scroll to it!
+  //     const element = document.getElementById(`challenge-${firstOfCategory.slug}`);
+  //     if (element) {
+  //       element.scrollIntoView({ behavior: "smooth", block: "start" });
+  //     }
+  //   }
+  // };
+
+
+  const scrollToCategory = (category: "app" | "photo" | "video") => {
+    setActiveCategory(category); // Instantly update the button
+
+    const firstOfCategory = SHORTS.find((s) => s.type === category);
+    if (firstOfCategory) {
+      const element = document.getElementById(`challenge-${firstOfCategory.slug}`);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  };
+
+
+  const handleScroll = () => {
+    if (!scrollRef.current) return;
+
+    // Find where the top of our scrolling box is
+    const containerTop = scrollRef.current.getBoundingClientRect().top;
+    const triggerLine = containerTop + 120; // Invisible line near the top
+
+    // Check which challenge is crossing that line
+    for (const s of SHORTS) {
+      const el = document.getElementById(`challenge-${s.slug}`);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+
+        // If the challenge is currently crossing our trigger line
+        if (rect.top <= triggerLine && rect.bottom >= triggerLine) {
+          if (activeCategory !== s.type) {
+            setActiveCategory(s.type); // Update the tab button!
+          }
+          break; // Stop looking once we find it
+        }
+      }
+    }
+  };
 
 
   // Helper function to handle tab button styling
@@ -990,7 +1049,7 @@ export function ShortsScreen({
             </span>
           </div> */}
 
-          <div className="flex justify-between items-center gap-1.5">
+          {/* <div className="flex justify-between items-center gap-1.5">
             <button
               type="button"
               onClick={() => setActiveCategory("app")}
@@ -1012,19 +1071,45 @@ export function ShortsScreen({
             >
               🎬 VIDEOS
             </button>
+          </div> */}
+
+
+          <div className="flex justify-between items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => scrollToCategory("app")}
+              className={getTabClass("app")}
+            >
+              📱 APPS
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToCategory("photo")}
+              className={getTabClass("photo")}
+            >
+              📷 PHOTOS
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToCategory("video")}
+              className={getTabClass("video")}
+            >
+              🎬 VIDEOS
+            </button>
           </div>
         </div>
       </div>
 
       {/* <div className={`h-full ${bonusPercent < 100 ? "bg-[#ffbb00]" : 'bg-[#39ff14]'} transition-all duration-500 ease-out`} style={{ width: `${bonusPercent}%` }} /> */}
-      <div className="game-scroll flex-1 min-h-0 w-full min-w-0">
+      <div ref={scrollRef}
+        onScroll={handleScroll} className="game-scroll flex-1 min-h-0 w-full min-w-0">
 
         {/* ── FIX: Callout at the top of the Bonus Page ── */}
         <div className="px-3.5  pb-1 relative z-[1]">
           <div className="bg-[rgba(0,229,255,0.06)] border border-[rgba(0,229,255,0.25)] p-2.5">
             <span className="font-orbitron text-[11px] text-[var(--c)] font-bold block mb-1">🎯 BONUS OBJECTIVE</span>
             <span className="font-rajdhani text-[13px] text-[rgba(232,234,240,0.9)] leading-tight block">
-              App, Photo, and Video (max 4MB) challenges are all available below! Complete them in any order to unlock the Extra Prize.
+              App, Photo, and Video (max 50MB) challenges are all available below! Complete them in any order to unlock the Extra Prize.
             </span>
           </div>
         </div>
@@ -1054,7 +1139,7 @@ export function ShortsScreen({
             </div>
           ))} */}
 
-          {displayedChallenges.map((s) => (
+          {/* {displayedChallenges.map((s) => (
             <div
               key={s.slug}
               className={
@@ -1063,7 +1148,7 @@ export function ShortsScreen({
                   : "game-shorts-item min-w-0 w-full max-w-full"
               }
             >
-              {/* <div className={s.type === "app" ? "max-h-[165px] overflow-hidden" : ""}> */}
+             
               <ShortCard
                 short={s}
                 variant="list"
@@ -1075,9 +1160,38 @@ export function ShortsScreen({
                 onViewChallenge={() => onOpenShort(s.slug)}
                 isDemo={isDemo}
               />
-              {/* </div> */}
+              
+            </div>
+          ))} */}
+
+
+
+          {/* Loop through ALL SHORTS, not just the filtered ones! */}
+          {SHORTS.map((s) => (
+            <div
+              key={s.slug}
+
+              id={`challenge-${s.slug}`} // ── NEW: Add this ID so we can scroll to it! ──
+              className={
+                s.type === "app"
+                  ? "game-shorts-item game-shorts-item--full col-span-2 min-w-0 w-full max-w-full"
+                  : "game-shorts-item min-w-0 w-full max-w-full"
+              }
+            >
+              <ShortCard
+                short={s}
+                variant="list"
+                completion={shortsDone[s.slug]}
+                emailId={emailId}
+                onComplete={onComplete}
+                onCelebrate={onCelebrate}
+                onToast={onToast}
+                onViewChallenge={() => onOpenShort(s.slug)}
+                isDemo={isDemo}
+              />
             </div>
           ))}
+
         </div>
       </div>
     </div>

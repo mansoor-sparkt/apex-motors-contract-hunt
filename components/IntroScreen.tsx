@@ -167,8 +167,8 @@ export function IntroScreen({
             </div>
 
             <ul className="font-rajdhani text-[14px] font-medium leading-[1.55] text-[rgba(232,234,240,0.95)] list-none border-l-2 border-[var(--o)] pl-3 bg-[rgba(241,92,48,0.06)] py-2.5 space-y-2">
-              <li>✓ Visit all 6 core booth stops to claim the base prize.</li>
-              <li>✓ Earn 100 bonus points to unlock the extra prize.</li>
+              <li>✓ Visit all 6 core booth stops to claim the <span className="text-[#39ff14]">base prize.</span></li>
+              <li className="text-[#ffbb00] font-bold">✓ Earn 100 bonus points to unlock the extra prize.</li>
               <li>🎁 Collect rewards at the Phillips Machinist booth.</li>
             </ul>
           </div>
@@ -189,6 +189,6 @@ export function IntroScreen({
           </GameButton>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
