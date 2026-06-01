@@ -1026,7 +1026,7 @@ export function ShortsScreen({
           HUNT <span>›</span> BONUS CHALLENGES
         </div>
         <p className="font-share-mono text-[10px] text-[var(--mut)] tracking-[0.08em] mt-0">
-          ALL UNLOCKED · ANY ORDER · +10 OR +15 PTS EACH
+          ALL UNLOCKED · ANY ORDER · +10 TO +25 PTS EACH
         </p>
       </div>
 
