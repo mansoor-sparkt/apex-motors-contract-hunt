@@ -148,7 +148,7 @@ export function SplashScreen({
               <div className="flex gap-[6px] mt-[10px]">
                 <SplashStat value="500" label="PARTS" />
                 <SplashStat value="6 WKS" label="DEADLINE" />
-                <SplashStat value="8" label="STOPS" />
+                <SplashStat value="6" label="STOPS" />
                 <SplashStat value="200" label="MAX PTS" />
               </div>
             </div>
