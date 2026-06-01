@@ -341,7 +341,7 @@ export function ShortCard({
       onCelebrate({
         icon: "🎉",
         title: "APP CHALLENGE 100% COMPLETE!",
-        sub: `+${APP_BONUS_ANSWER_PTS} PTS LOGGED · ${APP_BONUS_TOTAL_PTS} PTS TOTAL.`,
+        sub: `+${APP_BONUS_TOTAL_PTS} PTS TOTAL.`,
         badge: short.badge || "APP MASTER",
       });
     } else {
