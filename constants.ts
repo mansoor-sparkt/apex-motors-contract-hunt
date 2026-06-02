@@ -515,8 +515,8 @@ export const STOPS = [
     fi: "Photo of the model information plate on any Haas machine",
     bt: "calc",
     bp: "Which of the following is NOT a machine you can find at the Haas booth today?",
-    options: ["UMC-500SS", "VF-2SS", "ST-20", "TLW-100"],
-    targetAnswer: "TLW-100",
+    options: ["UMC-500SS", "VF-2SS", "ST-20", "TL-2"],
+    targetAnswer: "TL-2",
 
     rc: "Haas",
     badge: "Iron Talker",
