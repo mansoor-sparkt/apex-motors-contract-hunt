@@ -52,6 +52,11 @@ export async function POST(request: Request) {
     });
 
     if (!res.ok) {
+      const errorText = await res.text();
+      console.error(
+        `❌ AZURE REJECTED VIDEO. Status: ${res.status}, Reason: ${errorText}`,
+      );
+
       return NextResponse.json(
         { success: false, error: "External API is down" },
         { status: res.status },
