@@ -743,10 +743,12 @@ export const MAP_IMAGES = {
   zoomIn: mapTwo as StaticImageData,
 };
 
+const useTruePosition = process.env.NEXT_PUBLIC_USE_TRUE_POSITION === "true";
+
 export const GAME_TIMELINE = [
   { type: "stop", index: 0 }, // Phillips Corp
   { type: "stop", index: 1 }, // Markforged
-  { type: "short", slug: "dial-speed" }, // BONUS: dial-speed
+  { type: "short", slug: useTruePosition ? "true-position" : "dial-speed" }, // BONUS: dial-speed
   { type: "stop", index: 2 }, // Autodesk
   { type: "short", slug: "album-cover" }, // BONUS: album-cover
   { type: "stop", index: 3 }, // Mastercam
