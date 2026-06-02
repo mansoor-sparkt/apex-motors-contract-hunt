@@ -1045,13 +1045,29 @@ export function ShortsScreen({
 
 
   const handleScroll = () => {
-    if (!scrollRef.current) return;
+    const container = scrollRef.current;
+    if (!container) return;
 
-    // Find where the top of our scrolling box is
-    const containerTop = scrollRef.current.getBoundingClientRect().top;
-    const triggerLine = containerTop + 120; // Invisible line near the top
+    // ── 1. THE BOTTOM REACHED FIX ──
+    // Check if the user has scrolled to the absolute bottom of the container (with a 10px buffer)
+    const isAtBottom = Math.abs(container.scrollHeight - container.clientHeight - container.scrollTop) <= 10;
 
-    // Check which challenge is crossing that line
+    if (isAtBottom) {
+      // Find what category the very last challenge belongs to (Video)
+      const lastChallenge = SHORTS[SHORTS.length - 1];
+      if (activeCategory !== lastChallenge.type) {
+        setActiveCategory(lastChallenge.type); // Force the last tab to active!
+      }
+      return; // Stop looking, we are at the bottom!
+    }
+
+    // ── 2. THE STANDARD TRIGGER LINE (Moved down slightly) ──
+    const containerTop = container.getBoundingClientRect().top;
+
+    // Instead of a hard 120px, we set the trigger line to 30% down the screen.
+    // This makes it activate much sooner as the item comes up from the bottom!
+    const triggerLine = containerTop + (container.clientHeight * 0.3);
+
     for (const s of SHORTS) {
       const el = document.getElementById(`challenge-${s.slug}`);
       if (el) {
@@ -1060,7 +1076,7 @@ export function ShortsScreen({
         // If the challenge is currently crossing our trigger line
         if (rect.top <= triggerLine && rect.bottom >= triggerLine) {
           if (activeCategory !== s.type) {
-            setActiveCategory(s.type); // Update the tab button!
+            setActiveCategory(s.type);
           }
           break; // Stop looking once we find it
         }
