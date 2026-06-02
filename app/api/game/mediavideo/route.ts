@@ -57,8 +57,16 @@ export async function POST(request: Request) {
         `❌ AZURE REJECTED VIDEO. Status: ${res.status}, Reason: ${errorText}`,
       );
 
+      // return NextResponse.json(
+      //   { success: false, error: "External API is down" },
+      //   { status: res.status },
+      // );
+
       return NextResponse.json(
-        { success: false, error: "External API is down" },
+        {
+          success: false,
+          error: `Backend said: ${errorText || "Validation failed"}`,
+        },
         { status: res.status },
       );
     }
