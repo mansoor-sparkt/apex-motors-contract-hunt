@@ -3,10 +3,7 @@ import type {
   PlayerProfile,
   StopCompletion,
 } from "@/lib/game-types";
-import {
-  convertImageToPng,
-  MAX_UPLOAD_BYTES,
-} from "@/lib/image-to-png";
+import { convertImageToPng, MAX_UPLOAD_BYTES } from "@/lib/image-to-png";
 import { isVideoFile, prepareVideoForUpload } from "@/lib/media-upload";
 import {
   postFormDataWithProgress,
@@ -14,6 +11,7 @@ import {
 } from "@/lib/upload-with-progress";
 import { apiFetch } from "@/lib/api-client";
 import { encryptProgressPayload } from "@/lib/progress-payload-crypto";
+import { resolveVideoPreviewUrl } from "./media-url";
 
 export const GameService = {
   /**
@@ -95,13 +93,38 @@ export const GameService = {
         }
         reportProgress(8);
         formData.append("UploadVideo", uploadFile);
-        return await postFormDataWithProgress(
-          "/api/game/mediavideo",
+
+        // ── 1. BYPASS VERCEL: Point directly to Azure ──
+        const azureVideoUrl = `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/Profile/UploadHunt_Video`;
+
+        const response: any = await postFormDataWithProgress(
+          azureVideoUrl,
+          // "/api/game/mediavideo",
           formData,
           (uploadPct) => {
             reportProgress(8 + Math.round(uploadPct * 0.92));
           },
         );
+
+        // const data = await response.json();
+
+        if (response?.statusCode === 200 && response?.result) {
+          const rawCdnUrl = response.result.cdnUrl as string;
+          return {
+            success: true,
+            cdnUrl: resolveVideoPreviewUrl(rawCdnUrl) ?? rawCdnUrl,
+            message: response.message?.[0] || "Success",
+          };
+        }
+
+        // If Azure rejected it (or if postFormDataWithProgress caught a network error)
+        return {
+          success: false,
+          error:
+            response?.errors?.[0] ||
+            response?.error ||
+            "Video upload rejected by server.",
+        };
       }
 
       reportProgress(3);
