@@ -11,17 +11,21 @@ export interface MediaUploadResponse {
 export function postFormDataWithProgress(
   url: string,
   formData: FormData,
-  onProgress?: UploadProgressHandler
+  onProgress?: UploadProgressHandler,
 ): Promise<MediaUploadResponse> {
   return new Promise((resolve) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", url);
-    xhr.withCredentials = true;
+    // xhr.withCredentials = true;
+
+    xhr.withCredentials = !url.startsWith("http");
 
     xhr.upload.addEventListener("progress", (event) => {
       if (!onProgress) return;
       if (event.lengthComputable && event.total > 0) {
-        onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
+        onProgress(
+          Math.min(100, Math.round((event.loaded / event.total) * 100)),
+        );
       }
     });
 
