@@ -972,6 +972,7 @@ import { useGameClock } from "./GameClockProvider";
 import { MachinistAppCta } from "@/components/MachinistAppCta";
 import { MediaUploadProgress } from "@/components/MediaUploadProgress";
 import { useUploadAccept } from "@/lib/use-upload-accept";
+import { MediaPickerSheet } from "./modals/MediaPickerSheet";
 
 export function StopScreen({
   isActive,
@@ -1029,7 +1030,9 @@ export function StopScreen({
 
   const [uploading, setUploading] = useState(false);
   const [uploadPercent, setUploadPercent] = useState(0);
+  const [showMediaPicker, setShowMediaPicker] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const blobPreviewRef = useRef<string | null>(null);
 
   const displayPreviewUrl = resolveMediaPreviewUrl(previewUrl);
@@ -1066,7 +1069,8 @@ export function StopScreen({
 
   const openPicker = () => {
     if (done || photoUp || uploading) return;
-    fileInputRef.current?.click();
+    // fileInputRef.current?.click();
+    setShowMediaPicker(true);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1270,6 +1274,29 @@ export function StopScreen({
         aria-label="Upload photo evidence from camera or gallery"
         onChange={handleFileChange}
       />
+
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="sr-only"
+        tabIndex={-1}
+        aria-label="Take photo with camera"
+        onChange={handleFileChange}
+      />
+
+
+      {showMediaPicker && (
+        <MediaPickerSheet
+          isPhoto={true}
+          onCamera={() => cameraInputRef.current?.click()}
+          onGallery={() => fileInputRef.current?.click()}
+          onClose={() => setShowMediaPicker(false)}
+        />
+      )}
+
+
       <div
         className="absolute inset-0 z-0"
         style={{

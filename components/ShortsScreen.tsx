@@ -29,6 +29,7 @@ import { MediaUploadProgress } from "@/components/MediaUploadProgress";
 import { Panel, StatusTag } from "./GameComponents";
 import { BonusProgressBar } from "./ui/BonusProgressBar";
 import { useUploadAccept } from "@/lib/use-upload-accept";
+import { MediaPickerSheet } from "./modals/MediaPickerSheet";
 
 type ShortDef = (typeof SHORTS)[number];
 
@@ -173,16 +174,22 @@ export function ShortCard({
   const mediaType = completion?.mediaType ?? (isPhoto ? "image" : "video");
   const displayPreviewUrl = resolveShortPreviewUrl(previewUrl, mediaType);
 
+  const [showMediaPicker, setShowMediaPicker] = useState(false);
   const openPicker = () => {
     if (photoDone || uploading) return;
 
 
 
-    fileInputRef.current?.click();
+    // fileInputRef.current?.click();
+
+    setShowMediaPicker(true);
   };
 
   const imageAccept = useUploadAccept("image");
   const mediaAccept = useUploadAccept(isPhoto ? "image" : "video");
+
+  // const fileInputRefCapture = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null); // ← ADD THIS
 
   // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   //   const file = e.target.files?.[0];
@@ -563,6 +570,16 @@ export function ShortCard({
           />
         )}
 
+        {/* ── Media picker sheet ── */}
+        {showMediaPicker && (
+          <MediaPickerSheet
+            isPhoto={isPhoto}
+            onCamera={() => cameraInputRef.current?.click()}
+            onGallery={() => fileInputRef.current?.click()}
+            onClose={() => setShowMediaPicker(false)}
+          />
+        )}
+
         <div className={`${fullyDone ? "opacity-95" : ""}`}>
           <input
             ref={fileInputRef}
@@ -573,6 +590,17 @@ export function ShortCard({
             className="sr-only"
             tabIndex={-1}
             aria-label="Upload screenshot from camera or gallery"
+            onChange={handleFileChange}
+          />
+
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="sr-only"
+            tabIndex={-1}
+            aria-label="Take photo with camera"
             onChange={handleFileChange}
           />
 
@@ -618,6 +646,7 @@ export function ShortCard({
                   onOpened={() => onToast("📱 Opening Phillips Machinist…")}
                 />
               )}
+
 
               <button
                 type="button"
@@ -778,6 +807,17 @@ export function ShortCard({
         />
       )}
 
+
+      {/* ── Media picker sheet ── */}
+      {showMediaPicker && (
+        <MediaPickerSheet
+          isPhoto={isPhoto}
+          onCamera={() => cameraInputRef.current?.click()}
+          onGallery={() => fileInputRef.current?.click()}
+          onClose={() => setShowMediaPicker(false)}
+        />
+      )}
+
       <div
         className={`game-sc2 w-full max-w-full min-w-0 box-border${variant === "list" ? " game-sc2--tile" : ""}${fullyDone ? " done" : ""}`}
       >
@@ -794,6 +834,21 @@ export function ShortCard({
             isPhoto
               ? "Upload photo from camera or gallery"
               : "Upload video from camera or gallery"
+          }
+          onChange={handleFileChange}
+        />
+
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept={isPhoto ? "image/*" : "video/*"}
+          capture="environment"
+          className="sr-only"
+          tabIndex={-1}
+          aria-label={
+            isPhoto
+              ? "Take photo with camera"
+              : "Record video with camera"
           }
           onChange={handleFileChange}
         />
