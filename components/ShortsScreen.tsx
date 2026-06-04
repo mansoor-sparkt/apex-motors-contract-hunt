@@ -175,6 +175,11 @@ export function ShortCard({
 
   const openPicker = () => {
     if (photoDone || uploading) return;
+
+    alert(
+      `ACCEPT: ${fileInputRef.current?.accept}\n\nUA: ${navigator.userAgent}`
+    );
+
     fileInputRef.current?.click();
   };
 
