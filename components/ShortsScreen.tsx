@@ -28,6 +28,7 @@ import { MachinistAppCta } from "@/components/MachinistAppCta";
 import { MediaUploadProgress } from "@/components/MediaUploadProgress";
 import { Panel, StatusTag } from "./GameComponents";
 import { BonusProgressBar } from "./ui/BonusProgressBar";
+import { useUploadAccept } from "@/lib/use-upload-accept";
 
 type ShortDef = (typeof SHORTS)[number];
 
@@ -176,6 +177,9 @@ export function ShortCard({
     if (photoDone || uploading) return;
     fileInputRef.current?.click();
   };
+
+  const imageAccept = useUploadAccept("image");
+  const mediaAccept = useUploadAccept(isPhoto ? "image" : "video");
 
   // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   //   const file = e.target.files?.[0];
@@ -560,7 +564,9 @@ export function ShortCard({
           <input
             ref={fileInputRef}
             type="file"
-            accept={IMAGE_UPLOAD_ACCEPT}
+            // accept={IMAGE_UPLOAD_ACCEPT}
+            // accept="image/*"
+            accept={imageAccept}
             className="sr-only"
             tabIndex={-1}
             aria-label="Upload screenshot from camera or gallery"
@@ -775,7 +781,10 @@ export function ShortCard({
         <input
           ref={fileInputRef}
           type="file"
-          accept={isPhoto ? IMAGE_UPLOAD_ACCEPT : VIDEO_UPLOAD_ACCEPT}
+          // accept={isPhoto ? IMAGE_UPLOAD_ACCEPT : VIDEO_UPLOAD_ACCEPT}
+          // accept={isPhoto ? "image/*" : "video/*"}
+
+          accept={mediaAccept}
           className="sr-only"
           tabIndex={-1}
           aria-label={

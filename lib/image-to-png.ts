@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  isHeicMagicBytes,
-  readFileHeader,
-} from "@/lib/image-magic";
+import { isHeicMagicBytes, readFileHeader } from "@/lib/image-magic";
 
 /**
  * Stay under Vercel's ~4.5MB serverless request body limit (multipart adds overhead).
@@ -111,11 +108,7 @@ async function heicToJpegBlob(file: File): Promise<Blob> {
 }
 
 type ImageSource = {
-  draw: (
-    ctx: CanvasRenderingContext2D,
-    w: number,
-    h: number,
-  ) => void;
+  draw: (ctx: CanvasRenderingContext2D, w: number, h: number) => void;
   width: number;
   height: number;
   cleanup?: () => void;
@@ -180,9 +173,7 @@ function canvasToJpegBlob(
   });
 }
 
-async function compressImageSource(
-  source: ImageSource,
-): Promise<Blob> {
+async function compressImageSource(source: ImageSource): Promise<Blob> {
   let maxDim = MAX_UPLOAD_DIMENSION;
   let quality = JPEG_QUALITY_START;
 
@@ -203,7 +194,11 @@ async function compressImageSource(
       }
     }
 
-    return await canvasToJpegBlob(source, MIN_UPLOAD_DIMENSION, JPEG_QUALITY_MIN);
+    return await canvasToJpegBlob(
+      source,
+      MIN_UPLOAD_DIMENSION,
+      JPEG_QUALITY_MIN,
+    );
   } finally {
     source.cleanup?.();
   }

@@ -971,6 +971,7 @@ import { clearPartialTime } from "@/lib/game-clock";
 import { useGameClock } from "./GameClockProvider";
 import { MachinistAppCta } from "@/components/MachinistAppCta";
 import { MediaUploadProgress } from "@/components/MediaUploadProgress";
+import { useUploadAccept } from "@/lib/use-upload-accept";
 
 export function StopScreen({
   isActive,
@@ -1032,6 +1033,8 @@ export function StopScreen({
   const blobPreviewRef = useRef<string | null>(null);
 
   const displayPreviewUrl = resolveMediaPreviewUrl(previewUrl);
+
+  const imageAccept = useUploadAccept("image");
 
   useEffect(() => {
     return () => revokeObjectPreviewUrl(blobPreviewRef.current);
@@ -1260,7 +1263,8 @@ export function StopScreen({
       <input
         ref={fileInputRef}
         type="file"
-        accept={IMAGE_UPLOAD_ACCEPT}
+        accept={imageAccept}
+        // accept={IMAGE_UPLOAD_ACCEPT}
         className="sr-only"
         tabIndex={-1}
         aria-label="Upload photo evidence from camera or gallery"
